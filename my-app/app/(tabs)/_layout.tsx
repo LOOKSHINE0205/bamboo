@@ -2,59 +2,62 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+    const colorScheme = useColorScheme();
 
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-          tabBarStyle: {
-              height: 60, // 원하는 높이로 설정 (기본 높이보다 살짝 높게)
-              paddingBottom: 10, // 아이콘과 텍스트를 살짝 위로 조절
-              paddingTop: 10,
-          },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: '대화하기',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: '일기',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'book' : 'book-outline'} color={color} />
-          ),
-        }}
-      />
-        <Tabs.Screen
-            name="index2"
-            options={{
-                title: '보고서',
-                tabBarIcon: ({ color, focused }) => (
-                    <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-                ),
+    return (
+        <Tabs
+            screenOptions={{
+                tabBarActiveTintColor: '#4a9960', // 대나무 색깔로 설정
+                headerShown: true, // 각 탭의 헤더를 보여줍니다
+                tabBarStyle: {
+                    height: 60,
+                    paddingTop: 10,
+                },
             }}
-        />
-        <Tabs.Screen
-            name="index3"
-            options={{
-                title: '마이페이지',
-                tabBarIcon: ({ color, focused }) => (
-                    <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-                ),
-            }}
-        />
-    </Tabs>
-  );
+        >
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: "대화하기",
+                    tabBarLabel: '', // 텍스트 숨김
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabBarIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="diary"
+                options={{
+                    title: "일기",
+                    tabBarLabel: '',
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabBarIcon name={focused ? 'journal' : 'journal-outline'} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="report"
+                options={{
+                    title: "보고서",
+                    tabBarLabel: '',
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabBarIcon name={focused ? 'analytics' : 'analytics-outline'} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="myPage"
+                options={{
+                    title: "마이 페이지",
+                    tabBarLabel: '',
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
+                    ),
+                }}
+            />
+        </Tabs>
+    );
 }

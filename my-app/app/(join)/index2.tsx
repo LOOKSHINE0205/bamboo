@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import JoinBackground from '../../components/JoinBackground'// 경로는 실제 파일 위치에 맞게 조정하세요
+import JoinBG from '../../components/JoinBG'; // 경로는 실제 파일 위치에 맞게 조정하세요
 
 const keywords = [
   '행실', '성장', '해결', '이성', '용기', '열정', '논리', '현실',
@@ -10,9 +10,9 @@ const keywords = [
 
 export default function KeywordSelectionScreen() {
   const router = useRouter();
-  const [selectedKeywords, setSelectedKeywords] = useState([]);
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]); // 타입 지정
 
-  const toggleKeyword = (keyword) => {
+  const toggleKeyword = (keyword: string) => {
     if (selectedKeywords.includes(keyword)) {
       setSelectedKeywords(selectedKeywords.filter(k => k !== keyword));
     } else {
@@ -21,28 +21,28 @@ export default function KeywordSelectionScreen() {
   };
 
   return (
-    <JoinBackground>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>마음에 드는 단어를 편하게 골라보세요.</Text>
-        <View style={styles.keywordContainer}>
-          {keywords.map((keyword, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.keywordButton,
-                selectedKeywords.includes(keyword) && styles.selectedKeyword
-              ]}
-              onPress={() => toggleKeyword(keyword)}
-            >
-              <Text style={styles.keywordText}>{keyword}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TouchableOpacity style={styles.completeButton} onPress={() => console.log('선택 완료')}>
-          <Text style={styles.completeButtonText}>저는 이게 편해요.</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </JoinBackground>
+      <JoinBG>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>마음에 드는 단어를 편하게 골라보세요.</Text>
+          <View style={styles.keywordContainer}>
+            {keywords.map((keyword, index) => (
+                <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.keywordButton,
+                      selectedKeywords.includes(keyword) && styles.selectedKeyword
+                    ]}
+                    onPress={() => toggleKeyword(keyword)}
+                >
+                  <Text style={styles.keywordText}>{keyword}</Text>
+                </TouchableOpacity>
+            ))}
+          </View>
+          <TouchableOpacity style={styles.completeButton} onPress={() => console.log('선택 완료')}>
+            <Text style={styles.completeButtonText}>저는 이게 편해요.</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </JoinBG>
   );
 }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import BackGround from "../../components/BackGround";
+import BackGround from "../../components/FirstBG";
 
 export default function InitialScreen() {
     const router = useRouter();

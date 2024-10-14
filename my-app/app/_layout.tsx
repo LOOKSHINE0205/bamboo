@@ -31,7 +31,6 @@ export default function RootLayout() {
       <Stack  initialRouteName="(init)">
         <Stack.Screen name="(init)" options={{ headerShown: false }} />
         <Stack.Screen name="(join)" options={{ headerShown: false }} />
-        <Stack.Screen name="(login)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
