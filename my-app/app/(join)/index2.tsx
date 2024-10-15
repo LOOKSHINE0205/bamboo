@@ -1,116 +1,187 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG'; // 경로는 실제 파일 위치에 맞게 조정하세요
 
-const keywords = [
-  '행실', '성장', '해결', '이성', '용기',
-  '열정', '논리', '현실', '성찰', '분석',
-  '희망', '위로', '변화', '믿음', '이해'
-];
-
-export default function KeywordSelectionScreen() {
+// KeywordSelectionScreen 컴포넌트: 사용자에게 질문을 표시하고 응답을 받는 화면
+const KeywordSelectionScreen = () => {
   const router = useRouter();
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  // 현재 질문 인덱스를 관리하는 상태
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // 화면 너비를 관리하는 상태 (반응형 디자인을 위해 사용)
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
 
-  const toggleKeyword = (keyword: string) => {
-    if (selectedKeywords.includes(keyword)) {
-      setSelectedKeywords(selectedKeywords.filter(k => k !== keyword));
+  // 화면 크기 변경을 감지하고 screenWidth 상태를 업데이트하는 useEffect
+  useEffect(() => {
+    const updateLayout = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    // 화면 크기 변경 이벤트 리스너 등록
+    Dimensions.addEventListener('change', updateLayout);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      Dimensions.removeEventListener('change', updateLayout);
+    };
+  }, []);
+
+  // 질문과 응답 옵션을 포함하는 배열
+  const questions = [
+    {
+      question: "어떻게 대답하실건가요????",
+      aiResponse: "아 바보야",
+      responses: [
+        '응..',
+        '뭐라고 했나',
+        '네가바보라는건인정할수가없군',
+        '솔직히 바보는 너인거 같아..'
+      ]
+    },
+    {
+      question: "다음 질문입니다. 어떻게 생각하시나요?",
+      aiResponse: "흠... 어렵네요",
+      responses: [
+        '그렇군요',
+        '동의합니다',
+        '잘 모르겠어요',
+        '다시 설명해주세요'
+      ]
+    },
+    {
+      question: "마지막 질문입니다. 이 대화가 도움이 되셨나요?",
+      aiResponse: "솔직히 말씀해 주세요",
+      responses: [
+        '네, 많은 도움이 되었어요',
+        '조금 도움이 되었어요',
+        '별로 도움이 되지 않았어요',
+        '전혀 도움이 되지 않았어요'
+      ]
+    }
+    // ... (다른 질문들)
+  ];
+
+  // 현재 표시할 질문 객체
+  const currentQuestion = questions[currentQuestionIndex];
+  // 마지막 질문인지 확인
+  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+  // 첫 번째 질문인지 확인
+  const isFirstQuestion = currentQuestionIndex === 0;
+
+  // '다음' 또는 '완료' 버튼 클릭 시 실행되는 함수
+  const handleNext = () => {
+    if (isLastQuestion) {
+      // 마지막 질문이면 메인 화면으로 이동
+      router.push('../../(init)');
     } else {
-      setSelectedKeywords([...selectedKeywords, keyword]);
+      // 다음 질문으로 이동
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     }
   };
 
+  // '이전' 버튼 클릭 시 실행되는 함수
+  const handlePrevious = () => {
+    setCurrentQuestionIndex(prevIndex => prevIndex - 1);
+  };
+
+  // 컴포넌트 UI 렌더링
   return (
     <JoinBG>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>마음에 드는 단어를 편하게 골라보세요.</Text>
-        <View style={styles.keywordContainer}>
-          {keywords.map((keyword, index) => (
+        {/* 질문 표시 영역 */}
+        <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
+          <Text style={styles.chatText}>{currentQuestion.question}</Text>
+        </View>
+        {/* 응답 영역 */}
+        <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
+          {/* AI 응답 */}
+          <View style={styles.aiResponse}>
+            <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+          </View>
+          {/* 사용자 응답 옵션 */}
+          {currentQuestion.responses.map((response, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.keywordButton}
-              onPress={() => toggleKeyword(keyword)}
+              style={styles.responseButton}
             >
-              <Text style={styles.keywordText}>{keyword}</Text>
+              <Text style={styles.responseText}>{response}</Text>
             </TouchableOpacity>
           ))}
+          {/* 네비게이션 버튼 */}
+          <View style={styles.navigationButtons}>
+            {!isFirstQuestion && (
+              <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
+                <Text style={styles.navButtonText}>이전</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.navButton} onPress={handleNext}>
+              <Text style={styles.navButtonText}>{isLastQuestion ? '완료' : '다음'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity style={styles.completeButton}>
-          <Text style={styles.completeButtonText}>저는 이게 편해요.</Text>
-        </TouchableOpacity>
       </ScrollView>
     </JoinBG>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
+    alignItems: 'center',
+    paddingVertical: '5%',
+  },
+  chatBubble: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: '4%',
+    marginBottom: '5%',
+  },
+  chatText: {
+    fontSize: 16,
+    color: '#000',
+    textAlign: 'center',
+  },
+  responseContainer: {
     alignItems: 'center',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '500',
-    marginVertical: 20,
-    color: '#333',
-    textAlign: 'center',
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 25,
-    overflow: 'hidden',
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  keywordContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  keywordButton: {
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    margin: 5,
+  aiResponse: {
+    backgroundColor: '#E8E8E8',
     borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    padding: '4%',
+    alignSelf: 'flex-start',
+    marginBottom: '5%',
+    maxWidth: '90%',
   },
-  keywordText: {
+  aiResponseText: {
     fontSize: 16,
-    color: '#333',
   },
-  completeButton: {
-    backgroundColor: 'white',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  responseButton: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: '4%',
+    marginBottom: '3%',
+    width: '100%',
   },
-  completeButtonText: {
+  responseText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    textAlign: 'center',
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: '5%',
+  },
+  navButton: {
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    paddingVertical: '2%',
+    paddingHorizontal: '4%',
+    marginHorizontal: '2%',
+  },
+  navButtonText: {
+    fontSize: 14,
+    color: '#000',
   },
 });
+
+export default KeywordSelectionScreen;
