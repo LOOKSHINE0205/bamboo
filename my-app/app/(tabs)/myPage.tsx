@@ -1,69 +1,41 @@
 import { NativeBaseProvider, Box, Button, Text, VStack } from 'native-base';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import BackGround from "../../assets/images/bamboobg.png";
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
     const router = useRouter();
 
     return (
         <NativeBaseProvider>
-            <Box flex={1} justifyContent="center" alignItems="center">
-                <VStack space={4} alignItems="center">
-                    <Text fontSize={60}>마이페이지</Text>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onPress={() => router.push('../(init)')}
-                    >
-                        메인으로
-                    </Button>
-                </VStack>
-            </Box>
+            <ImageBackground
+                source={BackGround}
+                style={styles.background}
+                resizeMode="stretch"
+            >
+                <TouchableOpacity
+                    style={styles.settingsButton}
+                    onPress={() => router.push('../(setting)')}
+                >
+                    <Ionicons name="settings-outline" size={30} color="white" />
+                </TouchableOpacity>
+
+            </ImageBackground>
         </NativeBaseProvider>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    background: {
         flex: 1,
-        padding: 20,
-        backgroundColor: '#ffffff',
+        width: '100%',
+        height: '100%',
     },
-    backButton: {
+    settingsButton: {
         position: 'absolute',
-        top: 40,
-        left: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginTop: 60,
-        marginBottom: 30,
-    },
-    inputContainer: {
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 5,
-    },
-    input: {
-        backgroundColor: '#e8f5e9',
-        borderRadius: 8,
+        top: 10,
+        right: 10,
         padding: 10,
-        marginBottom: 15,
-    },
-    button: {
-        backgroundColor: '#ffffff',
-        borderColor: '#000000',
-        borderWidth: 1,
-        paddingVertical: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: '#000000',
-        fontSize: 16,
-        fontWeight: 'bold',
     },
 });
