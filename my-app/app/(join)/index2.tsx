@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG'; // 경로는 실제 파일 위치에 맞게 조정하세요
 
@@ -8,23 +8,8 @@ const KeywordSelectionScreen = () => {
   const router = useRouter();
   // 현재 질문 인덱스를 관리하는 상태
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // 화면 너비를 관리하는 상태 (반응형 디자인을 위해 사용)
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
-
-  // 화면 크기 변경을 감지하고 screenWidth 상태를 업데이트하는 useEffect
-  useEffect(() => {
-    const updateLayout = () => {
-      setScreenWidth(Dimensions.get('window').width);
-    };
-
-    // 화면 크기 변경 이벤트 리스너 등록
-    Dimensions.addEventListener('change', updateLayout);
-
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
-    return () => {
-      Dimensions.removeEventListener('change', updateLayout);
-    };
-  }, []);
+  // useWindowDimensions 훅을 사용하여 화면 너비를 가져옴 (반응형 디자인을 위해 사용)
+  const { width: screenWidth } = useWindowDimensions();
 
   // 질문과 응답 옵션을 포함하는 배열
   const questions = [
