@@ -8,7 +8,7 @@ const BambooAnimation = () => {
   const leafAnim2 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // 첫 번째 나뭇잎 애니메이션 설정
+    // 첫 번째 나뭇잎 애니메이션 설정 (부드럽게 반복 이동)
     Animated.loop(
       Animated.sequence([
         Animated.timing(leafAnim1, {
@@ -26,7 +26,7 @@ const BambooAnimation = () => {
       ])
     ).start();
 
-    // 두 번째 나뭇잎 애니메이션 설정
+    // 두 번째 나뭇잎 애니메이션 설정 (부드럽게 반복 이동)
     Animated.loop(
       Animated.sequence([
         Animated.timing(leafAnim2, {

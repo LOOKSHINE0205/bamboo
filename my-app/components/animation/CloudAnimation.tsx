@@ -4,41 +4,32 @@ import { Animated, Dimensions, StyleSheet } from 'react-native';
 const { width, height } = Dimensions.get('window'); // 현재 화면의 너비와 높이 가져오기
 
 const CloudAnimation = () => {
-  const cloudAnim1 = useRef(new Animated.Value(0)).current;
-  const cloudAnim2 = useRef(new Animated.Value(0)).current;
+  const cloudAnim1 = useRef(new Animated.Value(-width*0.25)).current; // 첫 번째 구름의 초기 위치를 화면 왼쪽 바깥으로 설정
+  const cloudAnim2 = useRef(new Animated.Value(-width*0.25)).current; // 두 번째 구름의 초기 위치를 화면 왼쪽 바깥으로 설정
 
   useEffect(() => {
-    // 첫 번째 구름 애니메이션 (느리게 이동)
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(cloudAnim1, {
-          toValue: width,
-          duration: 12000, // 느린 속도
-          useNativeDriver: true,
-        }),
-        Animated.timing(cloudAnim1, {
-          toValue: -width,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // 구름 애니메이션 함수
+    const animateCloud = (cloudAnim, duration) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(cloudAnim, {
+            toValue: width, // 화면 오른쪽으로 이동
+            duration: duration, // 지정된 속도
+            useNativeDriver: true,
+          }),
+          Animated.timing(cloudAnim, {
+            toValue: -width, // 다시 화면 왼쪽 바깥으로 이동
+            duration: 0, // 즉시 이동
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
 
-    // 두 번째 구름 애니메이션 (빠르게 이동)
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(cloudAnim2, {
-          toValue: width,
-          duration: 8000, // 빠른 속도
-          useNativeDriver: true,
-        }),
-        Animated.timing(cloudAnim2, {
-          toValue: -width,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // 첫 번째 구름 애니메이션 시작 (느리게 이동)
+    animateCloud(cloudAnim1, 12000); // 느린 속도로 이동
+    // 두 번째 구름 애니메이션 시작 (빠르게 이동)
+    animateCloud(cloudAnim2, 10000); // 빠른 속도로 이동
   }, [cloudAnim1, cloudAnim2]);
 
   return (
@@ -57,7 +48,7 @@ const CloudAnimation = () => {
         source={require('../../assets/images/cloud.png')}
         style={[
           styles.cloud,
-          { top: height * 0.2, transform: [{ translateX: cloudAnim2 }] }, // 화면 높이의 30% 위치
+          { top: height * 0.2, transform: [{ translateX: cloudAnim2 }] }, // 화면 높이의 20% 위치
         ]}
       />
     </>
