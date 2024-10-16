@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import JoinBG from '../../components/JoinBG'; // 경로는 실제 파일 위치에 맞게 조정하세요
+import JoinBG from '../../components/JoinBG';
 
 // KeywordSelectionScreen 컴포넌트: 사용자에게 질문을 표시하고 응답을 받는 화면
 const KeywordSelectionScreen = () => {
