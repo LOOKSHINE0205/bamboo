@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { VictoryBar, VictoryChart, VictoryTheme, Bar, VictoryAxis } from 'victory-native';
-
+import DropDownPicker from 'react-native-dropdown-picker';
 const screenWidth = Dimensions.get("window").width;
 
 const data = [
@@ -16,70 +14,46 @@ const data = [
 ];
 
 export default function EmotionReport() {
-    const [selectedMonth, setSelectedMonth] = useState("10월");
+    const [open, setOpen] = useState(false);
+    const [value, setValue] = useState("10월");
+    const [items, setItems] = useState([
+        { label: '1월', value: '1월' },
+        { label: '2월', value: '2월' },
+        { label: '3월', value: '3월' },
+        { label: '4월', value: '4월' },
+        { label: '5월', value: '5월' },
+        { label: '6월', value: '6월' },
+        { label: '7월', value: '7월' },
+        { label: '8월', value: '8월' },
+        { label: '9월', value: '9월' },
+        { label: '10월', value: '10월' },
+        { label: '11월', value: '11월' },
+        { label: '12월', value: '12월' },
+    ]);
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>철수님의</Text>
                 <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={selectedMonth}
-                        style={styles.picker}
-                        itemStyle={styles.pickerItem}
-                        onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-                    >
-                        <Picker.Item label="1월" value="1월" />
-                        <Picker.Item label="2월" value="2월" />
-                        <Picker.Item label="3월" value="3월" />
-                        <Picker.Item label="4월" value="4월" />
-                        <Picker.Item label="5월" value="5월" />
-                        <Picker.Item label="6월" value="6월" />
-                        <Picker.Item label="7월" value="7월" />
-                        <Picker.Item label="8월" value="8월" />
-                        <Picker.Item label="9월" value="9월" />
-                        <Picker.Item label="10월" value="10월" />
-                        <Picker.Item label="11월" value="11월" />
-                        <Picker.Item label="12월" value="12월" />
-                    </Picker>
+                    <DropDownPicker
+                        open={open}
+                        value={value}
+                        items={items}
+                        setOpen={setOpen}
+                        setValue={setValue}
+                        setItems={setItems}
+                        placeholder="월 선택"
+                        style={styles.dropdown}
+                        dropDownContainerStyle={styles.dropdownContainer}
+                        containerStyle={{ zIndex: 5000 }} // zIndex를 containerStyle로 적용
+                        modalProps={{ animationType: 'fade' }} // 필요한 경우 modalProps 사용 가능
+                    />
                 </View>
                 <Text style={styles.title}>감정상태</Text>
             </View>
 
-            <VictoryChart
-                theme={VictoryTheme.material}
-                width={screenWidth}
-                padding={{ left: 30, right: 34, top: 20, bottom: 50 }}
-                domainPadding={20}
-            >
-                <VictoryAxis
-                    style={{
-                        axis: { stroke: "#001F3F", strokeWidth: 2 },
-                        ticks: { stroke: "#B7B7B7", size: 5, strokeWidth: 0 },
-                        tickLabels: { fontSize: 12, padding: 5 },
-                    }}
-                />
-                <VictoryAxis
-                    dependentAxis
-                    style={{
-                        axis: { stroke: "#001F3F", strokeWidth: 2 },
-                        grid: { stroke: "#B7B7B7", strokeWidth: 1 },
-                        tickLabels: { fontSize: 12, padding: 5 },
-                    }}
-                />
-                <VictoryBar
-                    data={data}
-                    x="x"
-                    y="y"
-                    style={{
-                        data: {
-                            fill: ({ datum }) => datum.fill,
-                            width: 15,
-                        },
-                    }}
-                    dataComponent={<Bar cornerRadius={{ top: 5, bottom: 0 }} />}
-                />
-            </VictoryChart>
+
 
             <Text style={styles.subtitle}>가장 많이 사용한 단어</Text>
             <View style={styles.wordContainer}>
@@ -118,18 +92,6 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginHorizontal: 10,
     },
-    picker: {
-        height: 40,
-        width: 80,
-        color: '#333',
-    },
-    pickerItem: {
-        fontSize: 16,
-        color: '#333',
-    },
-    chart: {
-        marginVertical: 20,
-    },
     subtitle: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -153,5 +115,17 @@ const styles = StyleSheet.create({
     wordCount: {
         fontSize: 14,
         color: '#555',
+    },
+    dropdown: {
+        borderColor: '#ccc',
+        borderRadius: 10,
+        height: 40,
+    },
+    dropdownContainer: {
+        borderColor: '#ccc',
+        borderRadius: 10,
+    },
+    containerStyle: {
+        zIndex: 5000, // 드롭다운이 다른 요소보다 위로 오도록 설정
     },
 });
