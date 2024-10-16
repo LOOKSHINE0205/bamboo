@@ -18,7 +18,7 @@ const { width, height } = Dimensions.get('window'); // 화면 크기 가져오�
 export default function HomeScreen() {
     const router = useRouter();
 
-    const level = 4; // 현재 레벨을 4로 설정 (레벨에 따라 나무를 쌓음)
+    const level = 10; // 현재 레벨을 4로 설정 (레벨에 따라 나무를 쌓음)
     const imageHeight = 150 * 0.4; // 각 이미지의 높이 (줄임)
     const gapBetweenImages = -8; // 나무 간의 간격을 줄임
 
