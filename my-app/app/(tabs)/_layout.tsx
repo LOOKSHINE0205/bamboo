@@ -31,7 +31,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="diary"
                 options={{
-                    title: "일기",
+                    title: "마음짓기",
                     tabBarLabel: '',
                     tabBarIcon: ({ color, focused }) => (
                         <TabBarIcon name={focused ? 'journal' : 'journal-outline'} color={color} />
