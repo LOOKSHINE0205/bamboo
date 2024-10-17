@@ -1,45 +1,47 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, Modal, ScrollView } from 'react-native';
-import { VictoryChart, VictoryBar, VictoryAxis, VictoryTheme } from 'victory-native';
+import React, {useState} from 'react';
+import {View, Text, StyleSheet, Dimensions, Pressable, Modal, ScrollView} from 'react-native';
+import {VictoryChart, VictoryBar, VictoryAxis, VictoryTheme} from 'victory-native';
+
 const screenWidth = Dimensions.get("window").width;
-
-
-
-const data = [
-    { x: "쏘쏘", y: 10, fill: "#FF9BD2" },
-    { x: "기쁨", y: 20, fill: "#FFC436" },
-    { x: "슬픔", y: 10, fill: "#0174BE" },
-    { x: "화남", y: 16, fill: "#BF3131" },
-    { x: "놀람", y: 10, fill: "#5C8374" },
-    { x: "두려움", y: 10, fill: "#758694" },
-    { x: "싫은", y: 10, fill: "#81689D" },
-];
 
 export default function EmotionReport() {
     const currentMonth = `${new Date().getMonth() + 1}`;
     const [value, setValue] = useState(currentMonth);
     const [modalVisible, setModalVisible] = useState(false);
 
-    const monthItems = [
-        { label: '1월', value: '1' },
-        { label: '2월', value: '2' },
-        { label: '3월', value: '3' },
-        { label: '4월', value: '4' },
-        { label: '5월', value: '5' },
-        { label: '6월', value: '6' },
-        { label: '7월', value: '7' },
-        { label: '8월', value: '8' },
-        { label: '9월', value: '9' },
-        { label: '10월', value: '10' },
-        { label: '11월', value: '11' },
-        { label: '12월', value: '12' },
+    const data = [
+        {x: "쏘쏘", y: 12, fill: "#FF9BD2"},
+        {x: "기쁨", y: 20, fill: "#FFC436"},
+        {x: "슬픔", y: 13, fill: "#0174BE"},
+        {x: "화남", y: 14, fill: "#BF3131"},
+        {x: "놀람", y: 10, fill: "#5C8374"},
+        {x: "두려움", y: 1, fill: "#758694"},
+        {x: "싫은", y: 5, fill: "#81689D"},
     ];
 
-    // 차트 데이터와 매칭되는 색상
+    const monthItems = [
+        {label: '1월', value: '1'},
+        {label: '2월', value: '2'},
+        {label: '3월', value: '3'},
+        {label: '4월', value: '4'},
+        {label: '5월', value: '5'},
+        {label: '6월', value: '6'},
+        {label: '7월', value: '7'},
+        {label: '8월', value: '8'},
+        {label: '9월', value: '9'},
+        {label: '10월', value: '10'},
+        {label: '11월', value: '11'},
+        {label: '12월', value: '12'},
+    ];
+
     const wordBoxColors = {
-        "불안": "#EDEDED",
+        "쏘쏘": "#FF9BD2",
         "기쁨": "#FFC436",
-        "슬픔": "#0174BE", // 슬픔의 바 색상
+        "슬픔": "#0174BE",
+        "화남": "#BF3131",
+        "놀람": "#5C8374",
+        "두려움": "#758694",
+        "싫은": "#81689D",
     };
 
     return (
@@ -58,7 +60,10 @@ export default function EmotionReport() {
                             {monthItems.map((item) => (
                                 <Pressable
                                     key={item.value}
-                                    onPress={() => { setValue(item.value); setModalVisible(false); }}
+                                    onPress={() => {
+                                        setValue(item.value);
+                                        setModalVisible(false);
+                                    }}
                                     style={styles.modalItem}
                                 >
                                     <Text>{item.label}</Text>
@@ -68,49 +73,63 @@ export default function EmotionReport() {
                     </View>
                 </Modal>
 
-                <VictoryChart
-                    theme={VictoryTheme.material}
-                    width={screenWidth}
-                    domainPadding={20}
-                    padding={{ left: 30, right: 35, top: 10, bottom: 70 }}
-                >
-                    <VictoryAxis style={{ axis: { stroke: "#cccccc" }, tickLabels: { fontSize: 12 } }} />
-                    <VictoryAxis dependentAxis style={{ axis: { stroke: "#cccccc" }, tickLabels: { fontSize: 12 } }} />
-                    <VictoryBar
-                        data={data}
-                        x="x"
-                        y="y"
-                        cornerRadius={6}
-                        style={{
-                            data: {
-                                fill: ({ datum }) => datum.fill,
-                                width: 25
-                            }
-                        }}
-                    />
-                </VictoryChart>
+                {/* Chart and Subtitle Container */}
+                <View style={styles.chartContainer}>
+                    <VictoryChart
+                        theme={VictoryTheme.material}
+                        width={screenWidth}
+                        domainPadding={25}
+                        padding={{left: 28, right: 40, top: 5, bottom: 60}}
+                    >
+                        <VictoryAxis
+                            style={{
+                                axis: {stroke: "#322C2B"},
+                                tickLabels: {fontSize: 14, fill: "#000000",fontWeight:500},
+                                grid: {stroke: "#686D76", strokeWidth: 0.5}
+                            }}
+                        />
+                        <VictoryAxis
+                            dependentAxis
+                            style={{
+                                axis: {stroke: "#322C2B"},
+                                tickLabels: {fontSize: 12, fill: "#000000"},
+                                grid: {stroke: "#686D76", strokeWidth: 0.5}
+                            }}
+                        />
+                        <VictoryBar
+                            data={data}
+                            x="x"
+                            y="y"
+                            cornerRadius={6}
+                            style={{
+                                data: {
+                                    fill: ({datum}) => datum.fill || '#000000',
+                                    width: 25,
+                                }
+                            }}
+                        />
+                    </VictoryChart>
 
-                <Text style={styles.subtitle}>많이 사용한 단어</Text>
+                    <Text style={styles.subtitle}>많이 사용한 단어</Text>
+                </View>
+
                 <View style={styles.wordContainer}>
-                    {/* 슬픔의 wordBox 색상을 차트 막대 색상과 일치시키기 */}
-                    <View style={[styles.wordBox, { backgroundColor: wordBoxColors["슬픔"] }]}>
+                    <View style={[styles.wordBox, {backgroundColor: wordBoxColors["슬픔"]}]}>
                         <Text style={styles.wordText}>슬픔</Text>
                         <Text style={styles.wordCount}>370번</Text>
                     </View>
-                    <View style={[styles.wordBox, { backgroundColor: wordBoxColors["기쁨"] }]}>
-                        <Text style={styles.wordText}>기쁨</Text>
+                    <View style={[styles.wordBox, {backgroundColor: wordBoxColors["화남"]}]}>
+                        <Text style={styles.wordText}>화남</Text>
                         <Text style={styles.wordCount}>280번</Text>
                     </View>
                 </View>
 
-                {/* 편지 칸 */}
                 <View style={styles.letterBox}>
                     <Text style={styles.letterTitle}>
-                        <Text style={styles.nameText}>철수</Text>
-                        <Text>님의 편지</Text>
+                        <Text style={styles.nameText}>철수</Text>의 편지
                     </Text>
                     <Text style={styles.letterText}>
-                        편지를 써보자 나는 밤부야 너는 누구니? 나는 아직 감저잉 없어...
+                        편지를 써보자 나는 밤부야 너는 누구니? 나는 아직 감정이 없어...
                     </Text>
                 </View>
             </View>
@@ -121,20 +140,19 @@ export default function EmotionReport() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
-        backgroundColor: '#FAFAFA',
+        padding: 15,
+        backgroundColor: '#FFFFFF',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-start',
         marginBottom: 20,
-        padding:10
     },
     title: {
         fontSize: 20,
         fontWeight: '600',
-        color: '#333',
+        color: '#000',
     },
     dropdownTrigger: {
         paddingHorizontal: 10,
@@ -168,38 +186,46 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         width: 60,
     },
-    subtitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#444',
+    chartContainer: {
         marginBottom: 5,
+
+        // 빅토리 차트와 텍스트 사이의 간격을 줄이려면 이 값을 더 작게 설정
+    },
+    subtitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#000',
         textAlign: 'center',
     },
     wordContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 20,
+        marginTop: 15,
     },
     wordBox: {
         alignItems: 'center',
-        padding: 20,
+        padding: 10,
         borderRadius: 10,
-        width: 180,
+        width: 170,
         height: 70,
         justifyContent: 'center',
+        borderWidth: 2,            // 테두리 두께
+        borderColor: '#000',
+
     },
     wordText: {
         fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
+        fontWeight: '500',
+        color: '#000',
     },
     wordCount: {
         fontSize: 14,
-        color: '#666',
+        color: '#000',
         marginTop: 5,
+        fontWeight: '500',
     },
-    letterBox:{
-        backgroundColor: '#72BF78',
+    letterBox: {
+        backgroundColor: '#E9EFEC',
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 15,
@@ -207,7 +233,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     letterText: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: '500',
         color: '#000',
         textAlign: 'left',
@@ -227,6 +253,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
-        backgroundColor: '#FAFAFA',
+        backgroundColor: '#FFFFFF',
+
     },
 });
