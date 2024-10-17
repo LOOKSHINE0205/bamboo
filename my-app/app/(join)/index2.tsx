@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions, TextInput, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
 
-// KeywordSelectionScreen 컴포넌트: 사용자에게 질문을 표시하고 응답을 받는 화면
 const KeywordSelectionScreen = () => {
   const router = useRouter();
-  // 현재 질문 인덱스를 관리하는 상태
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // useWindowDimensions 훅을 사용하여 화면 너비를 가져옴 (반응형 디자인을 위해 사용)
+  const [bambooName, setBambooName] = useState('');
   const { width: screenWidth } = useWindowDimensions();
 
-  // 질문과 응답 옵션을 포함하는 배열
   const questions = [
     {
       question: "어떻게 대답하실건가요????",
@@ -42,34 +39,32 @@ const KeywordSelectionScreen = () => {
         '별로 도움이 되지 않았어요',
         '전혀 도움이 되지 않았어요'
       ]
-    }
-    // ... (다른 질문들)
+    },
+    {
+      question: "밤부의 이름을 지어주세요",
+      aiResponse: "좋은 이름을 기대할게요!",
+      responses: [], // 입력 필드를 보여줄 것이므로 빈 배열로 남겨둠
+    },
   ];
 
-  // 현재 표시할 질문 객체
   const currentQuestion = questions[currentQuestionIndex];
-  // 마지막 질문인지 확인
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
-  // 첫 번째 질문인지 확인
   const isFirstQuestion = currentQuestionIndex === 0;
 
-  // '다음' 또는 '완료' 버튼 클릭 시 실행되는 함수
   const handleNext = () => {
     if (isLastQuestion) {
-      // 마지막 질문이면 메인 화면으로 이동
+      // 밤부의 이름을 저장하고 메인 화면으로 이동
+      console.log('Bamboo 이름:', bambooName);
       router.push('../../(init)');
     } else {
-      // 다음 질문으로 이동
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     }
   };
 
-  // '이전' 버튼 클릭 시 실행되는 함수
   const handlePrevious = () => {
     setCurrentQuestionIndex(prevIndex => prevIndex - 1);
   };
 
-  // 컴포넌트 UI 렌더링
   return (
     <JoinBG>
       <ScrollView contentContainerStyle={styles.container}>
@@ -77,32 +72,52 @@ const KeywordSelectionScreen = () => {
         <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
           <Text style={styles.chatText}>{currentQuestion.question}</Text>
         </View>
-        {/* 응답 영역 */}
-        <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
-          {/* AI 응답 */}
-          <View style={styles.aiResponse}>
-            <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+
+        {/* 밤부 이미지 및 이름 입력 영역 (마지막 질문일 때만 표시) */}
+        {isLastQuestion && (
+          <View style={styles.bambooContainer}>
+            <Image
+              source={require('../../assets/images/bamboo_head.png')}
+              style={styles.bambooImage}
+              resizeMode="contain"
+            />
+            <TextInput
+              style={styles.nameInput}
+              value={bambooName}
+              onChangeText={setBambooName}
+              placeholder="밤부의 이름을 입력하세요"
+              placeholderTextColor="#999"
+            />
           </View>
-          {/* 사용자 응답 옵션 */}
-          {currentQuestion.responses.map((response, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.responseButton}
-            >
-              <Text style={styles.responseText}>{response}</Text>
-            </TouchableOpacity>
-          ))}
-          {/* 네비게이션 버튼 */}
-          <View style={styles.navigationButtons}>
-            {!isFirstQuestion && (
-              <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-                <Text style={styles.navButtonText}>이전</Text>
+        )}
+
+        {/* 응답 옵션 영역 */}
+        {!isLastQuestion && (
+          <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
+            <View style={styles.aiResponse}>
+              <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+            </View>
+            {currentQuestion.responses.map((response, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.responseButton}
+              >
+                <Text style={styles.responseText}>{response}</Text>
               </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.navButton} onPress={handleNext}>
-              <Text style={styles.navButtonText}>{isLastQuestion ? '완료' : '다음'}</Text>
-            </TouchableOpacity>
+            ))}
           </View>
+        )}
+
+        {/* 네비게이션 버튼 */}
+        <View style={styles.navigationButtons}>
+          {!isFirstQuestion && (
+            <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
+              <Text style={styles.navButtonText}>이전</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.navButton} onPress={handleNext}>
+            <Text style={styles.navButtonText}>{isLastQuestion ? '완료' : '다음'}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </JoinBG>
@@ -125,6 +140,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     textAlign: 'center',
+  },
+  bambooContainer: {
+    alignItems: 'center',
+    marginVertical: '5%',
+  },
+  bambooImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
+  nameInput: {
+    borderWidth: 1,
+    borderColor: '#999',
+    borderRadius: 10,
+    padding: 10,
+    width: '80%',
+    fontSize: 16,
+    textAlign: 'center',
+    backgroundColor: '#FFF',
   },
   responseContainer: {
     alignItems: 'center',
