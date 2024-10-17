@@ -63,7 +63,7 @@ return(
          container: {
              flexGrow: 1,
              flex: 1,
-             backgroundColor: '#f0f0f0', // 단색 배경 설정
+             backgroundColor: '#FFFFFF', // 단색 배경 설정
              justifyContent: 'center',
              alignItems: 'center',
          },
