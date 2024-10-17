@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, Modal } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable, Modal, ScrollView } from 'react-native';
 import { VictoryChart, VictoryBar, VictoryAxis, VictoryTheme } from 'victory-native';
 const screenWidth = Dimensions.get("window").width;
 
@@ -16,7 +16,6 @@ const data = [
 ];
 
 export default function EmotionReport() {
-
     const currentMonth = `${new Date().getMonth() + 1}`;
     const [value, setValue] = useState(currentMonth);
     const [modalVisible, setModalVisible] = useState(false);
@@ -36,67 +35,86 @@ export default function EmotionReport() {
         { label: '12월', value: '12' },
     ];
 
-    return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>철수님의</Text>
-                <Pressable style={styles.dropdownTrigger} onPress={() => setModalVisible(true)}>
-                    <Text style={styles.selectedValue}>{value}월 ▼</Text>
-                </Pressable>
-                <Text style={styles.title}>감정상태</Text>
-            </View>
+    // 차트 데이터와 매칭되는 색상
+    const wordBoxColors = {
+        "불안": "#EDEDED",
+        "긴장": "#EDEDED",
+        "슬픔": "#0174BE", // 슬픔의 바 색상
+    };
 
-            <Modal visible={modalVisible} transparent animationType="fade">
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        {monthItems.map((item) => (
-                            <Pressable
-                                key={item.value}
-                                onPress={() => { setValue(item.value); setModalVisible(false); }}
-                                style={styles.modalItem}
-                            >
-                                <Text>{item.label}</Text>
-                            </Pressable>
-                        ))}
+    return (
+        <ScrollView style={styles.scrollView}>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>철수님의 감정상태</Text>
+                    <Pressable style={styles.dropdownTrigger} onPress={() => setModalVisible(true)}>
+                        <Text style={styles.selectedValue}>{value}월 ▼</Text>
+                    </Pressable>
+                </View>
+
+                <Modal visible={modalVisible} transparent animationType="fade">
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            {monthItems.map((item) => (
+                                <Pressable
+                                    key={item.value}
+                                    onPress={() => { setValue(item.value); setModalVisible(false); }}
+                                    style={styles.modalItem}
+                                >
+                                    <Text>{item.label}</Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                    </View>
+                </Modal>
+
+                <VictoryChart
+                    theme={VictoryTheme.material}
+                    width={screenWidth}
+                    domainPadding={20}
+                    padding={{ left: 30, right: 35, top: 10, bottom: 70 }}
+                >
+                    <VictoryAxis style={{ axis: { stroke: "#cccccc" }, tickLabels: { fontSize: 12 } }} />
+                    <VictoryAxis dependentAxis style={{ axis: { stroke: "#cccccc" }, tickLabels: { fontSize: 12 } }} />
+                    <VictoryBar
+                        data={data}
+                        x="x"
+                        y="y"
+                        cornerRadius={6}
+                        style={{
+                            data: {
+                                fill: ({ datum }) => datum.fill,
+                                width: 25
+                            }
+                        }}
+                    />
+                </VictoryChart>
+
+                <Text style={styles.subtitle}>많이 사용한 단어</Text>
+                <View style={styles.wordContainer}>
+                    {/* 슬픔의 wordBox 색상을 차트 막대 색상과 일치시키기 */}
+                    <View style={[styles.wordBox, { backgroundColor: wordBoxColors["슬픔"] }]}>
+                        <Text style={styles.wordText}>슬픔</Text>
+                        <Text style={styles.wordCount}>370번</Text>
+                    </View>
+                    <View style={styles.wordBox}>
+                        <Text style={styles.wordText}>긴장</Text>
+                        <Text style={styles.wordCount}>280번</Text>
                     </View>
                 </View>
-            </Modal>
 
-
-            <VictoryChart
-                theme={VictoryTheme.material}
-                width={screenWidth}
-                domainPadding={20}
-                padding={{ left: 30, right: 35, top: 10, bottom: 70 }}
-            >
-                <VictoryAxis style={{ axis: { stroke: "#cccccc" }, tickLabels: { fontSize: 12 } }} />
-                <VictoryAxis dependentAxis style={{ axis: { stroke: "#cccccc" }, tickLabels: { fontSize: 12 } }} />
-                <VictoryBar
-                    data={data}
-                    x="x"
-                    y="y"
-                    cornerRadius={6}
-                    style={{
-                        data: {
-                            fill: ({ datum }) => datum.fill,
-                            width: 25
-                        }
-                    }}
-                />
-            </VictoryChart>
-
-            <Text style={styles.subtitle}>많이 사용한 단어</Text>
-            <View style={styles.wordContainer}>
-                <View style={styles.wordBox}>
-                    <Text style={styles.wordText}>불안</Text>
-                    <Text style={styles.wordCount}>370번</Text>
-                </View>
-                <View style={styles.wordBox}>
-                    <Text style={styles.wordText}>긴장</Text>
-                    <Text style={styles.wordCount}>280번</Text>
+                {/* 편지 칸 */}
+                <View style={styles.letterBox}>
+                    <Text style={styles.letterTitle}>
+                        <Text style={styles.nameText}>철수</Text>
+                        <Text>님의 편지</Text>
+                    </Text>
+                    <Text style={styles.letterText}>
+                        편지를 써보자 나는 밤부야 너는 누구니? 나는 아직 감저잉 없어...
+                    </Text>
                 </View>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
@@ -109,8 +127,9 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         marginBottom: 20,
+        padding:10
     },
     title: {
         fontSize: 20,
@@ -123,14 +142,12 @@ const styles = StyleSheet.create({
     selectedValue: {
         fontSize: 18,
         color: '#333',
-
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-
     },
     modalContent: {
         flexDirection: 'row',
@@ -140,7 +157,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF',
         borderRadius: 10,
         padding: 10,
-
     },
     modalItem: {
         fontSize: 20,
@@ -151,16 +167,12 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         textAlign: 'center',
         width: 60,
-        alignItems: 'center',
-        justifyContent: 'center',
-
     },
     subtitle: {
         fontSize: 18,
         fontWeight: '600',
         color: '#444',
-        marginTop: 20,
-        marginBottom: 10,
+        marginBottom: 5,
         textAlign: 'center',
     },
     wordContainer: {
@@ -170,11 +182,10 @@ const styles = StyleSheet.create({
     },
     wordBox: {
         alignItems: 'center',
-        backgroundColor: '#EDEDED',
         padding: 20,
-        borderRadius: 100,
-        width: 100,
-        height: 100,
+        borderRadius: 10,
+        width: 180,
+        height: 70,
         justifyContent: 'center',
     },
     wordText: {
@@ -186,5 +197,36 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginTop: 5,
+    },
+    letterBox:{
+        backgroundColor: '#72BF78',
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 15,
+        alignSelf: 'center',
+        marginTop: 20,
+    },
+    letterText: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#000',
+        textAlign: 'left',
+    },
+    letterTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#000',
+        alignSelf: 'flex-start',
+        marginBottom: 15,
+    },
+    nameText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#347928',
+        alignSelf: 'flex-start',
+    },
+    scrollView: {
+        flex: 1,
+        backgroundColor: '#FAFAFA',
     },
 });

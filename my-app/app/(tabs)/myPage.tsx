@@ -1,9 +1,13 @@
 import { NativeBaseProvider } from 'native-base';
 import { StyleSheet, ImageBackground, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+// @ts-ignore
 import BackGround from "../../assets/images/bamboobg.png";
+// @ts-ignore
 import BambooHead from "../../assets/images/bamboo_head.png"; // 이미지 불러오기
+// @ts-ignore
 import BambooBody from "../../assets/images/bamboo_body.png"; // 이미지 불러오기
+// @ts-ignore
 import BambooPanda from "../../assets/images/bamboo_panda.png"; // 판다 이미지 불러오기
 import { Ionicons } from '@expo/vector-icons';
 
