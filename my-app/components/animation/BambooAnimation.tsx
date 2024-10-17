@@ -86,19 +86,19 @@ const BambooAnimation = () => {
   // 첫 번째 나뭇잎 회전 보간
   const rotateInterpolation1 = leafRotation1.interpolate({
     inputRange: [-1, 1],
-    outputRange: ['-5deg', '3deg'],
+    outputRange: ['-5deg', '10deg'],
   });
 
   // 두 번째 나뭇잎 회전 보간
   const rotateInterpolation2 = leafRotation2.interpolate({
     inputRange: [-1, 1],
-    outputRange: ['-5deg', '3deg'], // 회전 각도를 살짝 다르게 설정
+    outputRange: ['-5deg', '7deg'], // 회전 각도를 살짝 다르게 설정
   });
 
   // 세 번째 나뭇잎 회전 보간
   const rotateInterpolation3 = leafRotation3.interpolate({
     inputRange: [-1, 1],
-    outputRange: ['-5deg', '3deg'], // 회전 각도를 살짝 다르게 설정
+    outputRange: ['-5deg', '7deg'], // 회전 각도를 살짝 다르게 설정
   });
 
   // 네 번째 나뭇잎 회전 보간 (반대 방향으로 회전)
