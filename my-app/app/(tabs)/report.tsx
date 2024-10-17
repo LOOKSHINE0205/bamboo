@@ -38,7 +38,7 @@ export default function EmotionReport() {
     // 차트 데이터와 매칭되는 색상
     const wordBoxColors = {
         "불안": "#EDEDED",
-        "긴장": "#EDEDED",
+        "기쁨": "#FFC436",
         "슬픔": "#0174BE", // 슬픔의 바 색상
     };
 
@@ -97,8 +97,8 @@ export default function EmotionReport() {
                         <Text style={styles.wordText}>슬픔</Text>
                         <Text style={styles.wordCount}>370번</Text>
                     </View>
-                    <View style={styles.wordBox}>
-                        <Text style={styles.wordText}>긴장</Text>
+                    <View style={[styles.wordBox, { backgroundColor: wordBoxColors["기쁨"] }]}>
+                        <Text style={styles.wordText}>기쁨</Text>
                         <Text style={styles.wordCount}>280번</Text>
                     </View>
                 </View>
