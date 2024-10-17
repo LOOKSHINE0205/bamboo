@@ -1,14 +1,11 @@
 import { NativeBaseProvider } from 'native-base';
 import { StyleSheet, ImageBackground, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-// @ts-ignore
 import BackGround from "../../assets/images/bamboobg.png";
-// @ts-ignore
 import BambooHead from "../../assets/images/bamboo_head.png"; // 이미지 불러오기
-// @ts-ignore
 import BambooBody from "../../assets/images/bamboo_body.png"; // 이미지 불러오기
-// @ts-ignore
 import BambooPanda from "../../assets/images/bamboo_panda.png"; // 판다 이미지 불러오기
+import em_happy from "../../assets/images/기쁨2.png"; // 기쁨 이미지 불러오기 (변수명 수정)
 import { Ionicons } from '@expo/vector-icons';
 
 // 애니메이션 컴포넌트 불러오기
@@ -74,6 +71,20 @@ export default function HomeScreen() {
                     source={BambooHead}
                     style={[styles.bambooHead, { bottom: (level - 1) * (imageHeight + gapBetweenImages) }]} // 머리가 위로 올라감
                 />
+
+                <Image
+                    source={em_happy} // 수정된 변수명 사용
+                    style={[
+                        styles.em_happy,
+                        {
+                            bottom: 20, // bottom을 고정된 값으로 설정해서 위치를 보장
+                            width: 100, // 너비를 더 작게 조정
+                            height: 100 // 높이를 더 작게 조정
+                        }
+                    ]}
+                />
+
+
             </ImageBackground>
         </NativeBaseProvider>
     );
@@ -113,6 +124,15 @@ const styles = StyleSheet.create({
         left: (width - (200 * 0.5)) / 2, // 첫 번째 나무와 동일하게 중앙 정렬
         width: 200 * 0.5, // 크기를 첫 번째 나무와 동일하게 설정
         height: 150 * 0.5, // 높이도 동일하게 유지
+        resizeMode: 'contain', // 이미지 비율 유지
+    },
+
+    em_happy: {
+        position: 'absolute',
+        zIndex: 3, // 가장 앞에 보이도록 zIndex 값을 높게 설정
+        left: (width - (200 * 0.5)) / 2, // 화면 중앙에 정렬
+        width: 200 * 1, // 이미지 너비 설정
+        height: 150 * 0.5, // 이미지 높이 설정
         resizeMode: 'contain', // 이미지 비율 유지
     },
 });

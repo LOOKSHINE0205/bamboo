@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: width * 0.25, // 화면 너비의 25% 크기
     height: height * 0.1, // 화면 높이의 10% 크기
+    zIndex: 1, // 이미지가 맨 뒤에 배치되도록 설정
   },
 });
 
