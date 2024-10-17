@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ImageBackground } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -33,30 +33,32 @@ export default function ChatbotPage() {
 
     return (
         <View style={styles.container}>
-            <ScrollView style={styles.chatArea}>
-                {messages.map((msg, index) => (
-                    <View
-                        key={index}
-                        style={[
-                            styles.message,
-                            msg.sender === 'user' ? styles.userMessage : styles.botMessage,
-                        ]}
-                    >
-                        <Text style={styles.messageText}>{msg.text}</Text>
-                    </View>
-                ))}
-            </ScrollView>
-            <View style={styles.inputArea}>
-                <TextInput
-                    style={styles.input}
-                    value={input}
-                    onChangeText={setInput}
-                    placeholder="이야기 입력하기.."
-                />
-                <TouchableOpacity onPress={sendMessage} style={styles.iconButton}>
-                    <Ionicons name="volume-high" size={24} color="#fff" />
-                </TouchableOpacity>
-            </View>
+            <ImageBackground source={require('../../assets/images/reportbg.png')} style={styles.backgroundImage}>
+                <ScrollView style={styles.chatArea}>
+                    {messages.map((msg, index) => (
+                        <View
+                            key={index}
+                            style={[
+                                styles.message,
+                                msg.sender === 'user' ? styles.userMessage : styles.botMessage,
+                            ]}
+                        >
+                            <Text style={styles.messageText}>{msg.text}</Text>
+                        </View>
+                    ))}
+                </ScrollView>
+                <View style={styles.inputArea}>
+                    <TextInput
+                        style={styles.input}
+                        value={input}
+                        onChangeText={setInput}
+                        placeholder="이야기 입력하기.."
+                    />
+                    <TouchableOpacity onPress={sendMessage} style={styles.iconButton}>
+                        <Ionicons name="volume-high" size={24} color="#fff" />
+                    </TouchableOpacity>
+                </View>
+            </ImageBackground>
         </View>
     );
 }
