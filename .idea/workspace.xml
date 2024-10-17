@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e749d4cf-792e-4ece-9244-2b24969e2922" name="Changes" comment="boreum">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/diary.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/diary.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="e749d4cf-792e-4ece-9244-2b24969e2922" name="Changes" comment="일기장" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -143,7 +140,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729059786150</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="일기장">
+      <option name="closed" value="true" />
+      <created>1729155572743</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1729155572743</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -159,6 +164,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="boreum" />
-    <option name="LAST_COMMIT_MESSAGE" value="boreum" />
+    <MESSAGE value="일기장" />
+    <option name="LAST_COMMIT_MESSAGE" value="일기장" />
   </component>
 </project>
