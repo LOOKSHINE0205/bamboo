@@ -1,64 +1,62 @@
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import React, { useState } from 'react';
 import JoinBG from '../../components/JoinBG';
 
+interface Message {
+    text: string;
+    date: string;
+}
 
-export default function DiaryScreen(){
-    const [input, setInput] = useState(''); // 입력된 텍스트의 상태
-    const [messages, setMessages] = useState([]); // 전송된 메세지의 목록
+export default function DiaryScreen() {
+    const [input, setInput] = useState('');
+    const [messages, setMessages] = useState<Message[]>([]);
 
-    // 전송 버튼을 눌렀을 때
     const handleSend = () => {
-        if(input.trim()){
-            const newMessage = {
-                text : input,
-                date : new Date().toLocaleDateString('ko-KR',{
-                     year: 'numeric',
-                     month: '2-digit',
-                     day: '2-digit',
-                    }),
-                };
-            setMessages([...messages, newMessage]); //입력된 텍스트를 message 배열에 추가
-            setInput(''); //입력창을 초기화
-            }
+        if (input.trim()) {
+            const newMessage: Message = {
+                text: input,
+                date: new Date().toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                }),
+            };
+            setMessages([...messages, newMessage]);
+            setInput('');
+        }
     };
 
-return(
-    <JoinBG>
-    <View style = {styles.container}>
-        <ScrollView style={styles.chatArea}
-          bounces={false}
-          overScrollMode="never"
-          decelerationRate="fast"
-          scrollEventThrottle={16}
-          >
-            {messages.map((message, index) =>(
-                <View key={index} style={styles.messagesContainer}>
-                    <Text style={styles.messageText}>{message.text}</Text>
-                    <Text style={styles.dateText}>{message.date}</Text>
+    return (
+        <JoinBG>
+            <View style={styles.container}>
+                <ScrollView style={styles.chatArea} bounces={false} overScrollMode="never">
+                    {messages.map((message, index) => (
+                        <View key={index} style={styles.messagesContainer}>
+                            <Text style={styles.messageText}>{message.text}</Text>
+                            <Text style={styles.dateText}>{message.date}</Text>
+                        </View>
+                    ))}
+                </ScrollView>
+
+                <View style={styles.inputArea}>
+                    <TextInput
+                        style={styles.input}
+                        value={input}
+                        onChangeText={setInput}
+                        placeholder="이야기 입력하기.."
+                        multiline={true}
+                    />
+                    <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
+                        <Ionicons name="paper-plane-outline" size={24} color="#fff" />
+                    </TouchableOpacity>
                 </View>
+            </View>
+        </JoinBG>
+    );
+}
 
-                ))}
-        </ScrollView>
 
-        <View style={styles.inputArea}>
-            <TextInput
-                style={styles.input}
-                value={input}
-                onChangeText={setInput}
-                placeholder="이야기 입력하기.."
-                multiline={true}
-            />
-            <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
-               <Ionicons name="paper-plane-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-         </View>
-    </View>
-    </JoinBG>
-
-     );
-     }
      const styles = StyleSheet.create({
          container: {
              flexGrow: 1,
