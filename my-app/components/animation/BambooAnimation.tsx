@@ -33,13 +33,13 @@ const BambooAnimation = () => {
       Animated.sequence([
         Animated.timing(leafRotation2, {
           toValue: 1,
-          duration: 2200, // 살짝 다른 애니메이션 속도로 설정
+          duration: 900, // 살짝 다른 애니메이션 속도로 설정
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(leafRotation2, {
           toValue: 0,
-          duration: 2200,
+          duration: 900,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -51,13 +51,13 @@ const BambooAnimation = () => {
       Animated.sequence([
         Animated.timing(leafRotation3, {
           toValue: 1,
-          duration: 1500, // 살짝 다른 애니메이션 속도로 설정
+          duration: 1000, // 살짝 다른 애니메이션 속도로 설정
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(leafRotation3, {
           toValue: 0,
-          duration: 1500,
+          duration: 1000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
