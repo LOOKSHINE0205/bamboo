@@ -33,13 +33,13 @@ const BambooAnimation = () => {
       Animated.sequence([
         Animated.timing(leafRotation2, {
           toValue: 1,
-          duration: 2200, // 살짝 다른 애니메이션 속도로 설정
+          duration: 900, // 살짝 다른 애니메이션 속도로 설정
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(leafRotation2, {
           toValue: 0,
-          duration: 2200,
+          duration: 900,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -51,13 +51,13 @@ const BambooAnimation = () => {
       Animated.sequence([
         Animated.timing(leafRotation3, {
           toValue: 1,
-          duration: 1500, // 살짝 다른 애니메이션 속도로 설정
+          duration: 1000, // 살짝 다른 애니메이션 속도로 설정
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(leafRotation3, {
           toValue: 0,
-          duration: 1500,
+          duration: 1000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -86,19 +86,19 @@ const BambooAnimation = () => {
   // 첫 번째 나뭇잎 회전 보간
   const rotateInterpolation1 = leafRotation1.interpolate({
     inputRange: [-1, 1],
-    outputRange: ['-5deg', '3deg'],
+    outputRange: ['-5deg', '10deg'],
   });
 
   // 두 번째 나뭇잎 회전 보간
   const rotateInterpolation2 = leafRotation2.interpolate({
     inputRange: [-1, 1],
-    outputRange: ['-5deg', '3deg'], // 회전 각도를 살짝 다르게 설정
+    outputRange: ['-5deg', '7deg'], // 회전 각도를 살짝 다르게 설정
   });
 
   // 세 번째 나뭇잎 회전 보간
   const rotateInterpolation3 = leafRotation3.interpolate({
     inputRange: [-1, 1],
-    outputRange: ['-5deg', '3deg'], // 회전 각도를 살짝 다르게 설정
+    outputRange: ['-5deg', '7deg'], // 회전 각도를 살짝 다르게 설정
   });
 
   // 네 번째 나뭇잎 회전 보간 (반대 방향으로 회전)
