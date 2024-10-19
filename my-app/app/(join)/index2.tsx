@@ -16,9 +16,10 @@ const KeywordSelectionScreen = () => {
   // 애니메이션을 위한 각 응답의 Animated.Value를 정의
   const responseAnim = useRef(new Animated.Value(screenWidth)).current;
 
+  const question = '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.';
   const questions = [
     {
-      question: "어떻게 대답하실건가요????",
+      question: question,
       aiResponse: "아 바보야",
       responses: [
         '응..',
@@ -28,7 +29,7 @@ const KeywordSelectionScreen = () => {
       ]
     },
     {
-      question: "다음 질문입니다. 어떻게 생각하시나요?",
+      question: "다음 질문입니다.\n어떻게 생각하시나요?",
       aiResponse: "흠... 어렵네요",
       responses: [
         '그렇군요',
@@ -38,7 +39,7 @@ const KeywordSelectionScreen = () => {
       ]
     },
     {
-      question: "마지막 질문입니다. 이 대화가 도움이 되셨나요?",
+      question: "마지막 질문입니다.\n이 대화가 도움이 되셨나요?",
       aiResponse: "솔직히 말씀해 주세요",
       responses: [
         '네, 많은 도움이 되었어요',
@@ -58,92 +59,112 @@ const KeywordSelectionScreen = () => {
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
 
-
-  // 애니메이션 시작 함수
+  // startSlideAnimation 함수에서 duration을 응답 애니메이션과 동일하게 설정
   const startSlideAnimation = () => {
-    // 텍스트가 왼쪽으로 사라짐 (direction 상관없이 항상 왼쪽으로 사라지게 설정)
-    const toValueStart = -screenWidth;  // 왼쪽으로 사라짐
-    const toValueEnd = 0;  // 다시 왼쪽에서 들어옴
+    const toValueStart = -screenWidth;
+    const toValueEnd = 0;
 
     Animated.sequence([
-      // 텍스트가 왼쪽으로 사라지는 애니메이션
       Animated.timing(slideAnim, {
         toValue: toValueStart,
-        duration: 300,
+        duration: 300, // 동일한 시간으로 설정
         useNativeDriver: true,
       }),
-      // 즉시 텍스트를 화면 밖 왼쪽으로 이동
       Animated.timing(slideAnim, {
-        toValue: -screenWidth,  // 텍스트가 화면 밖 왼쪽에서 시작
-        duration: 0,  // 즉시 이동
+        toValue: -screenWidth,
+        duration: 0,
         useNativeDriver: true,
       }),
-      // 텍스트가 왼쪽에서 다시 들어오는 애니메이션
       Animated.timing(slideAnim, {
         toValue: toValueEnd,
-        duration: 300,
+        duration: 300, // 동일한 시간으로 설정
         useNativeDriver: true,
       }),
     ]).start();
   };
- // 응답이 화면에 나타날 때 애니메이션
+
+
+  // startResponseAnimation 함수에서 duration을 aiResponse 애니메이션과 동일하게 설정
   const startResponseAnimation = () => {
+    responseAnim.setValue(screenWidth); // 초기 위치를 오른쪽 화면 밖으로 설정
     Animated.timing(responseAnim, {
-      toValue: 0, // 오른쪽에서 화면 안으로 들어옴
-      duration: 300,
+      toValue: 0,
+      duration: 300, // 동일한 시간으로 설정
       useNativeDriver: true,
     }).start();
   };
 
-  // 응답이 선택되었을 때 오른쪽으로 사라지는 애니메이션
+
   const endResponseAnimation = (callback) => {
     Animated.timing(responseAnim, {
-      toValue: screenWidth, // 화면 밖으로 오른쪽으로 사라짐
+      toValue: screenWidth,
       duration: 300,
       useNativeDriver: true,
     }).start(callback);
   };
 
-  // 응답이 선택되었을 때 처리
   const handleResponsePress = (response) => {
-    endResponseAnimation(() => {
-      // 응답이 사라진 후에 질문을 전환하거나 다른 로직을 실행
+    // aiResponse와 응답 버튼이 동시에 사라지도록 애니메이션 처리
+    Animated.parallel([
+      // aiResponse가 왼쪽으로 사라지도록 애니메이션
+      Animated.timing(slideAnim, {
+        toValue: -screenWidth,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      // 응답 버튼이 오른쪽으로 사라지도록 애니메이션
+      Animated.timing(responseAnim, {
+        toValue: screenWidth,
+        duration: 300,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
       if (isLastQuestion) {
         router.push('../../(init)');
       } else {
+        // 상태 업데이트 후 새 aiResponse 애니메이션 시작
+        slideAnim.setValue(-screenWidth); // 새 aiResponse가 왼쪽에서 시작
+        responseAnim.setValue(screenWidth); // 응답 버튼이 오른쪽에서 시작
         setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+
+        // aiResponse가 먼저 나타나고, 0.5초 뒤에 응답 버튼이 나타나도록 설정
+        Animated.sequence([
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.delay(500), // 0.5초 지연
+          Animated.timing(responseAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          })
+        ]).start();
       }
-      startResponseAnimation(); // 새 질문의 응답 애니메이션 시작
     });
   };
 
+
+
+
+
   useEffect(() => {
-    startResponseAnimation(); // 질문이 변경될 때마다 응답 애니메이션 실행
+    startResponseAnimation();
   }, [currentQuestionIndex]);
 
-
-  const handleNext = () => {
-    startSlideAnimation('next'); // 애니메이션 실행
-    setTimeout(() => {
-      if (isLastQuestion) {
-        // 마지막 질문일 경우 메인 화면으로 이동
-        console.log('Bamboo 이름:', bambooName);
-        router.push('../../(init)');
-      } else {
-        setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-      }
-    }, 300); // 애니메이션 완료 후 상태 변경
-  };
-
   const handlePrevious = () => {
-    startSlideAnimation('previous'); // 이전 버튼 눌렀을 때 애니메이션
-    setTimeout(() => {
-      if (!isFirstQuestion) {
-        setCurrentQuestionIndex(prevIndex => prevIndex - 1);
-      }
-    }, 300); // 애니메이션 완료 후 상태 변경
-  };
+    // 기존 aiResponse 애니메이션을 왼쪽으로 이동시키고, 응답 버블은 오른쪽으로 이동 후 다시 오른쪽에서 나타나게 처리
+    startSlideAnimation(); // aiResponse가 왼쪽으로 이동했다가 나타나게 함
 
+    endResponseAnimation(() => {
+      if (!isFirstQuestion) {
+        setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
+      }
+      // 애니메이션 완료 후 새로운 응답 버블이 오른쪽에서 나타나도록
+      startResponseAnimation();
+    });
+  };
 
 
   return (
@@ -153,6 +174,11 @@ const KeywordSelectionScreen = () => {
         <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
           <Text style={styles.chatText}>{currentQuestion.question}</Text>
         </View>
+
+        {/* AI 응답 부분을 질문 아래로 이동 */}
+        <Animated.View style={[styles.aiResponse, { transform: [{ translateX: slideAnim }] }]}>
+          <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+        </Animated.View>
 
         {/* 밤부 이미지 및 이름 입력 영역 (마지막 질문일 때만 표시) */}
         {isLastQuestion && (
@@ -175,10 +201,6 @@ const KeywordSelectionScreen = () => {
         {/* 응답 옵션 영역 */}
         {!isLastQuestion && (
           <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
-            {/* AI 응답 부분에 애니메이션 적용 */}
-            <Animated.View style={[styles.aiResponse, { transform: [{ translateX: slideAnim }] }]}>
-              <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
-            </Animated.View>
             {currentQuestion.responses.map((response, index) => (
               <Animated.View key={index} style={[styles.responseButton, { transform: [{ translateX: responseAnim }] }]}>
                 <TouchableOpacity onPress={() => handleResponsePress(response)}>
@@ -186,20 +208,19 @@ const KeywordSelectionScreen = () => {
                 </TouchableOpacity>
               </Animated.View>
             ))}
+
+            {/* 네비게이션 버튼 - 응답 영역 바로 아래에 위치 */}
+            <View style={styles.navigationButtons}>
+              {!isFirstQuestion ? (
+                <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
+                  <Text style={styles.navButtonText}>이전</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={[styles.navButtonPlaceholder,{height:50 , width:'30%'}]} /> // 빈 공간을 유지
+              )}
+            </View>
           </View>
         )}
-
-        {/* 네비게이션 버튼 */}
-        <View style={styles.navigationButtons}>
-          {!isFirstQuestion && (
-            <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-              <Text style={styles.navButtonText}>이전</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.navButton} onPress={handleNext}>
-            <Text style={styles.navButtonText}>{isLastQuestion ? '완료' : '다음'}</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </JoinBG>
   );
@@ -211,7 +232,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chatBubble: {
-    backgroundColor: '#FFF',
+    // 배경 색상 제거
     borderRadius: 20,
     padding: '4%',
     marginBottom: '5%',
@@ -239,6 +260,10 @@ const styles = StyleSheet.create({
   },
   responseContainer: {
     alignItems: 'center',
+    position: 'absolute', // 화면 하단에 고정
+    bottom: 20,
+    width: '100%',
+    paddingHorizontal: '5%',
   },
   aiResponse: {
     backgroundColor: '#E8E8E8',
@@ -247,6 +272,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: '5%',
     maxWidth: '90%',
+    // 그림자 효과 추가
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3.84,
+    elevation: 5, // Android용 그림자
   },
   aiResponseText: {
     fontSize: 16,
@@ -257,6 +288,12 @@ const styles = StyleSheet.create({
     padding: '4%',
     marginBottom: '3%',
     width: '100%',
+    // 그림자 효과 추가
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3.84,
+    elevation: 5, // Android용 그림자
   },
   responseText: {
     fontSize: 16,
@@ -277,6 +314,17 @@ const styles = StyleSheet.create({
   navButtonText: {
     fontSize: 14,
     color: '#000',
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: '5%',
+    marginBottom: 20, // 네비게이션 버튼과 응답 영역 사이의 간격 유지
+  },
+  navButtonPlaceholder: {
+    height: 50, // navButton과 동일한 높이를 설정해 빈 공간을 유지
+    width: 100, // 버튼의 너비와 동일하게 설정하여 빈 공간 유지
+    marginHorizontal: '2%',
   },
 });
 
