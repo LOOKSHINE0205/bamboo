@@ -8,12 +8,12 @@ const KeywordSelectionScreen = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [bambooName, setBambooName] = useState('');
 
-  // 화면 크기를 가져오는 useWindowDimensions() 훅
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
-  // 애니메이션을 위한 Animated Value
   const slideAnim = useRef(new Animated.Value(0)).current;
   const responseAnim = useRef(new Animated.Value(screenWidth)).current;
+  const cloudAnim = useRef(new Animated.Value(1)).current;
+  const bambooScale = useRef(new Animated.Value(0)).current;
 
   const question = '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.';
   const questions = [
@@ -50,55 +50,30 @@ const KeywordSelectionScreen = () => {
     {
       question: "밤부의 이름을 지어주세요",
       aiResponse: "좋은 이름을 기대할게요!",
-      responses: [], // 입력 필드를 보여줄 것이므로 빈 배열로 남겨둠
+      responses: [],
     },
   ];
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === questions.length - 1;
-  const isFirstQuestion = currentQuestionIndex === 0;
+  // Ensure the currentQuestionIndex is within the valid range
+  const validIndex = Math.min(Math.max(currentQuestionIndex, 0), questions.length - 1);
+  const currentQuestion = questions[validIndex];
+  const isLastQuestion = validIndex === questions.length - 1;
+  const isFirstQuestion = validIndex === 0;
 
-  const startSlideAnimation = () => {
-    const toValueStart = -screenWidth;
-    const toValueEnd = 0;
-
-    Animated.sequence([
-      Animated.timing(slideAnim, {
-        toValue: toValueStart,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: -screenWidth,
-        duration: 0,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: toValueEnd,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const startResponseAnimation = () => {
-    responseAnim.setValue(screenWidth);
-    Animated.timing(responseAnim, {
-      toValue: 0,
-      duration: 300,
+  const startBambooAnimation = () => {
+    bambooScale.setValue(0);
+    Animated.timing(bambooScale, {
+      toValue: 1,
+      duration: 500,
       useNativeDriver: true,
     }).start();
   };
 
-  const endResponseAnimation = (callback) => {
-    Animated.timing(responseAnim, {
-      toValue: screenWidth,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(callback);
-  };
-
   const handleResponsePress = (response) => {
+    if (currentQuestionIndex === questions.length - 2) {
+      startCloudAnimation();
+    }
+
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: -screenWidth,
@@ -111,12 +86,46 @@ const KeywordSelectionScreen = () => {
         useNativeDriver: true,
       })
     ]).start(() => {
-      if (isLastQuestion) {
-        router.push('../../(init)');
-      } else {
+      slideAnim.setValue(-screenWidth);
+      responseAnim.setValue(screenWidth);
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+
+      resetCloudAnimation();
+
+      Animated.sequence([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.delay(500),
+        Animated.timing(responseAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start();
+    });
+  };
+
+  const handlePrevious = () => {
+    if (!isFirstQuestion) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: screenWidth,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(responseAnim, {
+          toValue: -screenWidth,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+
         slideAnim.setValue(-screenWidth);
         responseAnim.setValue(screenWidth);
-        setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
 
         Animated.sequence([
           Animated.timing(slideAnim, {
@@ -124,60 +133,93 @@ const KeywordSelectionScreen = () => {
             duration: 300,
             useNativeDriver: true,
           }),
-          Animated.delay(500),
           Animated.timing(responseAnim, {
             toValue: 0,
             duration: 300,
             useNativeDriver: true,
-          })
+          }),
         ]).start();
-      }
-    });
+      });
+    }
+  };
+
+  const startCloudAnimation = () => {
+    Animated.timing(cloudAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const resetCloudAnimation = () => {
+    cloudAnim.setValue(1);
   };
 
   useEffect(() => {
     startResponseAnimation();
+
+    if (isLastQuestion) {
+      startBambooAnimation();
+    }
   }, [currentQuestionIndex]);
 
-  const handlePrevious = () => {
-    startSlideAnimation();
+  const startResponseAnimation = () => {
+    responseAnim.setValue(screenWidth);
+    Animated.timing(responseAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
 
-    endResponseAnimation(() => {
-      if (!isFirstQuestion) {
-        setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
-      }
-      startResponseAnimation();
-    });
+  const handleConfirm = () => {
+    if (bambooName.trim()) {
+      router.push('../../(init)');
+    }
   };
 
   return (
     <JoinBG>
       <ScrollView contentContainerStyle={[styles.container, { paddingVertical: screenHeight * 0.05 }]}>
-        {/* 질문 표시 영역 */}
         <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
           <Text style={styles.chatText}>{currentQuestion.question}</Text>
         </View>
 
-        {/* AI 응답 부분을 질문 아래로 이동 */}
         <Animated.View style={[styles.aiResponse, { transform: [{ translateX: slideAnim }], width: screenWidth * 0.85 }]}>
           <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
         </Animated.View>
 
-        {/* 구름 이미지 (마지막 질문 전까지 표시) */}
         {!isLastQuestion && (
-          <Image
-            source={require('../../assets/images/구름.png')}
-            style={[styles.cloudImage, { width: screenWidth * 0.6, height: screenWidth * 0.3 }]}
-            resizeMode="contain"
-          />
+          <Animated.View
+            style={{
+              transform: [{ scale: cloudAnim }],
+              opacity: cloudAnim,
+              width: screenWidth * 0.6,
+              height: screenWidth * 0.3,
+              marginBottom: '5%',
+              alignSelf: 'center',
+            }}
+          >
+            <Image
+              source={require('../../assets/images/구름.png')}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+            />
+          </Animated.View>
         )}
 
-        {/* 밤부 이미지 및 이름 입력 영역 (마지막 질문일 때만 표시) */}
         {isLastQuestion && (
           <View style={styles.bambooContainer}>
-            <Image
+            <Animated.Image
               source={require('../../assets/images/bamboo_head.png')}
-              style={[styles.bambooImage, { width: screenWidth * 0.4, height: screenWidth * 0.4 }]}
+              style={[
+                styles.bambooImage,
+                {
+                  width: screenWidth * 0.4,
+                  height: screenWidth * 0.4,
+                  transform: [{ scale: bambooScale }],
+                },
+              ]}
               resizeMode="contain"
             />
             <TextInput
@@ -194,11 +236,17 @@ const KeywordSelectionScreen = () => {
                   <Text style={styles.navButtonText}>이전</Text>
                 </TouchableOpacity>
               )}
+              <TouchableOpacity
+                style={[styles.navButton, { paddingVertical: screenHeight * 0.02, backgroundColor: bambooName.trim() ? '#00f' : '#ccc' }]}
+                onPress={handleConfirm}
+                disabled={!bambooName.trim()}
+              >
+                <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
 
-        {/* 응답 옵션 영역 (마지막 질문이 아닐 때만) */}
         {!isLastQuestion && (
           <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
             {currentQuestion.responses.map((response, index) => (
@@ -208,14 +256,13 @@ const KeywordSelectionScreen = () => {
                 </TouchableOpacity>
               </Animated.View>
             ))}
-
-            <View style={styles.navigationButtons}>
-              {currentQuestionIndex > 0 && (
+            {currentQuestionIndex > 0 && (
+              <View style={styles.navigationButtons}>
                 <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
                   <Text style={styles.navButtonText}>이전</Text>
                 </TouchableOpacity>
-              )}
-            </View>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -276,10 +323,6 @@ const styles = StyleSheet.create({
   },
   aiResponseText: {
     fontSize: 16,
-  },
-  cloudImage: {
-    marginBottom: '5%',
-    alignSelf: 'center',
   },
   responseButton: {
     backgroundColor: '#FFF',
