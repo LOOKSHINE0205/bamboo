@@ -13,6 +13,7 @@ const KeywordSelectionScreen = () => {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const responseAnim = useRef(new Animated.Value(screenWidth)).current;
   const cloudAnim = useRef(new Animated.Value(1)).current;
+  const cloudScale = useRef(new Animated.Value(0.3)).current; // 초기 구름 크기는 30%
   const bambooScale = useRef(new Animated.Value(0)).current;
 
   const question = '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.';
@@ -54,7 +55,6 @@ const KeywordSelectionScreen = () => {
     },
   ];
 
-  // Ensure the currentQuestionIndex is within the valid range
   const validIndex = Math.min(Math.max(currentQuestionIndex, 0), questions.length - 1);
   const currentQuestion = questions[validIndex];
   const isLastQuestion = validIndex === questions.length - 1;
@@ -155,11 +155,26 @@ const KeywordSelectionScreen = () => {
     cloudAnim.setValue(1);
   };
 
+  const updateCloudScale = () => {
+    let targetScale = 1;
+    if (validIndex === 0) targetScale = 0.3;
+    else if (validIndex === 1) targetScale = 0.6;
+    else if (validIndex === 2) targetScale = 1;
+
+    Animated.timing(cloudScale, {
+      toValue: targetScale,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
   useEffect(() => {
     startResponseAnimation();
 
     if (isLastQuestion) {
       startBambooAnimation();
+    } else {
+      updateCloudScale();
     }
   }, [currentQuestionIndex]);
 
@@ -192,7 +207,7 @@ const KeywordSelectionScreen = () => {
         {!isLastQuestion && (
           <Animated.View
             style={{
-              transform: [{ scale: cloudAnim }],
+              transform: [{ scale: cloudScale }],
               opacity: cloudAnim,
               width: screenWidth * 0.6,
               height: screenWidth * 0.3,
