@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, Dimensions, Pressable, Modal, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, Dimensions, Pressable, Modal, ScrollView, ImageBackground} from 'react-native';
 import {VictoryChart, VictoryBar, VictoryAxis, VictoryTheme} from 'victory-native';
 
 const screenWidth = Dimensions.get("window").width;
@@ -46,93 +46,95 @@ export default function EmotionReport() {
 
     return (
         <ScrollView style={styles.scrollView}>
-            <View style={styles.container}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>철수님의 감정상태</Text>
-                    <Pressable style={styles.dropdownTrigger} onPress={() => setModalVisible(true)}>
-                        <Text style={styles.selectedValue}>{value}월 ▼</Text>
-                    </Pressable>
-                </View>
+            <ImageBackground source={require('../../assets/images/reportbg.png')} style={styles.backgroundImage}>
+                <View style={styles.container}>
+                    <View style={styles.header}>
+                        <Text style={styles.title}>철수님의 감정상태</Text>
+                        <Pressable style={styles.dropdownTrigger} onPress={() => setModalVisible(true)}>
+                            <Text style={styles.selectedValue}>{value}월 ▼</Text>
+                        </Pressable>
+                    </View>
 
-                <Modal visible={modalVisible} transparent animationType="fade">
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            {monthItems.map((item) => (
-                                <Pressable
-                                    key={item.value}
-                                    onPress={() => {
-                                        setValue(item.value);
-                                        setModalVisible(false);
-                                    }}
-                                    style={styles.modalItem}
-                                >
-                                    <Text>{item.label}</Text>
-                                </Pressable>
-                            ))}
+                    <Modal visible={modalVisible} transparent animationType="fade">
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                {monthItems.map((item) => (
+                                    <Pressable
+                                        key={item.value}
+                                        onPress={() => {
+                                            setValue(item.value);
+                                            setModalVisible(false);
+                                        }}
+                                        style={styles.modalItem}
+                                    >
+                                        <Text>{item.label}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </View>
+                    </Modal>
+
+                    {/* Chart and Subtitle Container */}
+                    <View style={styles.chartContainer}>
+                        <VictoryChart
+                            theme={VictoryTheme.material}
+                            width={screenWidth}
+                            domainPadding={25}
+                            padding={{left: 28, right: 40, top: 5, bottom: 60}}
+                        >
+                            <VictoryAxis
+                                style={{
+                                    axis: {stroke: "#322C2B"},
+                                    tickLabels: {fontSize: 14, fill: "#000000", fontWeight: 500},
+                                    grid: {stroke: "#686D76", strokeWidth: 0.5},
+                                }}
+                            />
+                            <VictoryAxis
+                                dependentAxis
+                                style={{
+                                    axis: {stroke: "#322C2B"},
+                                    tickLabels: {fontSize: 12, fill: "#000000"},
+                                    grid: {stroke: "#686D76", strokeWidth: 0.5},
+                                }}
+                            />
+                            <VictoryBar
+                                data={data}
+                                x="x"
+                                y="y"
+                                cornerRadius={6}
+                                style={{
+                                    data: {
+                                        fill: ({datum}) => datum.fill || '#000000',
+                                        width: 25,
+                                    },
+                                }}
+                            />
+                        </VictoryChart>
+
+                        <Text style={styles.subtitle}>많이 사용한 단어</Text>
+                    </View>
+
+                    <View style={styles.wordContainer}>
+                        <View style={[styles.wordBox, {backgroundColor: wordBoxColors["슬픔"]}]}>
+                            <Text style={styles.wordText}>슬픔</Text>
+                            <Text style={styles.wordCount}>370번</Text>
+                        </View>
+                        <View style={[styles.wordBox, {backgroundColor: wordBoxColors["화남"]}]}>
+                            <Text style={styles.wordText}>화남</Text>
+                            <Text style={styles.wordCount}>280번</Text>
                         </View>
                     </View>
-                </Modal>
 
-                {/* Chart and Subtitle Container */}
-                <View style={styles.chartContainer}>
-                    <VictoryChart
-                        theme={VictoryTheme.material}
-                        width={screenWidth}
-                        domainPadding={25}
-                        padding={{left: 28, right: 40, top: 5, bottom: 60}}
-                    >
-                        <VictoryAxis
-                            style={{
-                                axis: {stroke: "#322C2B"},
-                                tickLabels: {fontSize: 14, fill: "#000000",fontWeight:500},
-                                grid: {stroke: "#686D76", strokeWidth: 0.5}
-                            }}
-                        />
-                        <VictoryAxis
-                            dependentAxis
-                            style={{
-                                axis: {stroke: "#322C2B"},
-                                tickLabels: {fontSize: 12, fill: "#000000"},
-                                grid: {stroke: "#686D76", strokeWidth: 0.5}
-                            }}
-                        />
-                        <VictoryBar
-                            data={data}
-                            x="x"
-                            y="y"
-                            cornerRadius={6}
-                            style={{
-                                data: {
-                                    fill: ({datum}) => datum.fill || '#000000',
-                                    width: 25,
-                                }
-                            }}
-                        />
-                    </VictoryChart>
-
-                    <Text style={styles.subtitle}>많이 사용한 단어</Text>
-                </View>
-
-                <View style={styles.wordContainer}>
-                    <View style={[styles.wordBox, {backgroundColor: wordBoxColors["슬픔"]}]}>
-                        <Text style={styles.wordText}>슬픔</Text>
-                        <Text style={styles.wordCount}>370번</Text>
-                    </View>
-                    <View style={[styles.wordBox, {backgroundColor: wordBoxColors["화남"]}]}>
-                        <Text style={styles.wordText}>화남</Text>
-                        <Text style={styles.wordCount}>280번</Text>
+                    <View style={styles.letterBox}>
+                        <Text style={styles.letterTitle}>
+                            <Text style={styles.nameText}>철수</Text>의 편지
+                        </Text>
+                        <Text style={styles.letterText}>
+                            편지를 써보자 나는 밤부야 너는 누구니? 나는 아직 감정이 없어...
+                        </Text>
                     </View>
                 </View>
-
-                <View style={styles.letterBox}>
-                    <Text style={styles.letterTitle}>
-                        <Text style={styles.nameText}>철수</Text>의 편지
-                    </Text>
-                    <Text style={styles.letterText}>
-                        편지를 써보자 나는 밤부야 너는 누구니? 나는 아직 감정이 없어...
-                    </Text>
-                </View>
-            </View>
+            </ImageBackground>
         </ScrollView>
     );
 }
@@ -251,9 +253,17 @@ const styles = StyleSheet.create({
         color: '#347928',
         alignSelf: 'flex-start',
     },
+    container: {
+        flex: 1,
+        padding: 15,
+    },
     scrollView: {
         flex: 1,
         backgroundColor: '#FFFFFF',
 
+    },
+    backgroundImage: {
+        flex: 1,
+        resizeMode: 'cover',  // Make sure the image covers the entire area
     },
 });

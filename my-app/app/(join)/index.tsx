@@ -7,27 +7,20 @@ export default function JoinScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [nickname, setNickname] = useState('');
-
-    // 이메일 유효성 검사 함수 (나중에 데이터베이스 연결 시 사용)
-    /*
-    const validateEmail = (email) => {
-        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return re.test(String(email).toLowerCase());
-    };
-    */
+    const [birthdate, setBirthdate] = useState('');
 
     const handleJoin = () => {
-        // 이메일 유효성 검사 (나중에 구현)
-        /*
-        if (!validateEmail(email)) {
-            alert('유효한 이메일 주소를 입력해주세요.');
-            return;
-        }
-        */
+        // 이메일 유효성 검사와 추가 로직 구현 (나중에 데이터베이스 연결 시 추가)
+        // 예: if (!validateEmail(email)) { alert('유효한 이메일 주소를 입력해주세요.'); return; }
 
-        // 여기에 회원가입 로직 구현 (나중에 데이터베이스 연결 시 추가)
-
+        // 회원가입 후 다음 페이지로 이동
         router.push('/index2');
+    };
+
+    const handleBirthdateChange = (text) => {
+        // 숫자만 입력 가능하도록 필터링하고 최대 8자리까지 제한
+        const filteredText = text.replace(/[^0-9]/g, '').slice(0, 8);
+        setBirthdate(filteredText);
     };
 
     return (
@@ -61,6 +54,14 @@ export default function JoinScreen() {
                                 value={nickname}
                                 onChangeText={setNickname}
                                 placeholder="닉네임을 입력하세요"
+                            />
+                            <Text style={styles.label}>생년월일</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={birthdate}
+                                onChangeText={handleBirthdateChange}
+                                placeholder="YYYYMMDD"
+                                keyboardType="numeric"
                             />
                         </View>
                         <TouchableOpacity

@@ -26,7 +26,7 @@ const { width, height } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const router = useRouter();
-    const level = 10;
+    const level = 4;
     const imageHeight = 150 * 0.4;
     const gapBetweenImages = -8;
 
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
         top: (height - (150 * -2.7)) / 2,
     },
     em_surprise: {
-        left: (width - (200 * -0.3)) / 2,
+        left: (width - (200 * -1.6)) / 2,
         top: (height - (150 * -2)) / 2,
     },
     em_fear: {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
         top: (height - (150 * -2.3)) / 2,
     },
     em_dislike: {
-        left: (width - (200 * -0.1)) / 2,
+        left: (width - (200 * -1.2)) / 2,
         top: (height - (150 * -2.8)) / 2,
     },
     em_soso: {

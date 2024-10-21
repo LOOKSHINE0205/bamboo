@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Switch, Button, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router'; // useRouter 임포트
 
 const SettingsScreen = () => {
+  const router = useRouter(); // useRouter 훅 사용
   const [nickname, setNickname] = useState('천동이부');
   const [email, setEmail] = useState('sun1003@gmail.com');
   const [password, setPassword] = useState('');
@@ -10,13 +12,12 @@ const SettingsScreen = () => {
   const toggleSwitch = () => setNotificationsEnabled(previousState => !previousState);
 
   const handleSave = () => {
-    // 저장 버튼 클릭 시 처리할 내용
     alert('설정이 저장되었습니다.');
   };
 
   const handleLogout = () => {
-    // 로그아웃 버튼 클릭 시 처리할 내용
     alert('로그아웃 되었습니다.');
+    router.push('../(init)'); // 로그아웃 시 ../(init)으로 이동
   };
 
   return (
@@ -53,16 +54,18 @@ const SettingsScreen = () => {
         <Switch
           onValueChange={toggleSwitch}
           value={notificationsEnabled}
+          trackColor={{ false: '#767577', true: '#c6fdbf' }} // 트랙 색상 설정
+          thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} // 손잡이 색상 설정
         />
       </View>
 
       {/* 저장 및 로그아웃 버튼 */}
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
-          <Button title="저장" onPress={handleSave} />
+          <Button title="저장" onPress={handleSave} color="#4a9960" />
         </View>
         <View style={styles.button}>
-          <Button title="로그아웃" onPress={handleLogout} />
+          <Button title="로그아웃" onPress={handleLogout} color="#4a9960" />
         </View>
       </View>
     </View>
