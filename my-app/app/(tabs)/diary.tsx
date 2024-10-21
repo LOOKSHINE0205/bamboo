@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 export default function DiaryScreen() {
     const emojiImages = [
         { key: 'neutral', image: require('../../assets/images/diary_neutral.png') },
-        { key: 'surprise', image: require('../../assets/images/diary_suprise.png') },
+        { key: 'surprise', image: require('../../assets/images/diary_surprise.png') },
         { key: 'angry', image: require('../../assets/images/diary_angry.png') },
         { key: 'sad', image: require('../../assets/images/diary_sad.png') },
         { key: 'happy', image: require('../../assets/images/diary_happy.png') },
