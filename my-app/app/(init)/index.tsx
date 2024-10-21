@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import BackGround from "../../components/FirstBG";
 
 export default function InitialScreen() {
     const router = useRouter();
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    const handlePress = (path) => {
+        if (!isNavigating) {
+            setIsNavigating(true);
+            router.push(path);
+            setTimeout(() => setIsNavigating(false), 1000); // 1초 후 다시 활성화
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -12,13 +21,15 @@ export default function InitialScreen() {
             <View style={styles.buttonsContainer}>
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => router.push('/(join)/login')} // 로그인 버튼 클릭 시 이동할 경로
+                    onPress={() => handlePress('/(join)/login')} // 로그인 버튼 클릭 시 이동할 경로
+                    disabled={isNavigating}
                 >
                     <Text style={styles.buttonText}>로그인</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => router.push('/(join)')} // 회원가입 버튼 클릭 시 이동할 경로
+                    onPress={() => handlePress('/(join)')} // 회원가입 버튼 클릭 시 이동할 경로
+                    disabled={isNavigating}
                 >
                     <Text style={styles.buttonText}>회원가입</Text>
                 </TouchableOpacity>
@@ -36,7 +47,7 @@ const styles = StyleSheet.create({
     },
     buttonsContainer: {
         position: 'absolute',
-        bottom: 50, // 버튼이 화면 아래에서 50px 정도 위로 올라오도록 설정
+        bottom: 50,
         width: '80%',
         alignItems: 'center',
     },
