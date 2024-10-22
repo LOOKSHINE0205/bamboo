@@ -9,6 +9,7 @@ export default function JoinScreen() {
     const [userPw, setPassword] = useState('');
     const [userNick, setNickname] = useState('');
     const [userBirthdate, setBirthdate] = useState('');
+    const [message, setMessage] = useState('');  // 메시지 상태
 
     const handleJoin = async () => {
         let birthdateString;
@@ -25,14 +26,14 @@ export default function JoinScreen() {
         }
 
         const userData = {
-            userEmail: userEmail,
-            userPw: userPw,
-            userNick: userNick,
+            userEmail,
+            userPw,
+            userNick,
             userBirthdate: birthdateString,
         };
 
         try {
-            const response = await fetch('http://10.0.2.2:8082/api/users/join', {
+            const response = await fetch('http://10.0.2.2:8082/api/users/checkEmail', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,8 +42,13 @@ export default function JoinScreen() {
             });
 
             const result = await response.text(); // 서버의 응답 받기
-            Alert.alert('Response', result); // 응답 메시지를 알림창으로 표시
-            router.push('/index2'); // 회원가입 성공 시 화면 전환
+            setMessage(result); // 서버 메세지 message 삳태에 저장
+            if (result !== '중복된 이메일입니다') {
+                router.push({
+                    pathname: '/index2',
+                    params: { userData: JSON.stringify(userData) },
+                });
+            }
 
         } catch (error) {
             console.error('Error:', error); // 에러가 발생하면 콘솔에 출력
@@ -65,7 +71,10 @@ export default function JoinScreen() {
                 <ScrollView contentContainerStyle={styles.scrollView}>
                     <View style={styles.formContainer}>
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>이메일</Text>
+                            {/*중목이메일 체크*/}
+                            <Text style={styles.label}>이메일    
+                                {message ? <Text style={styles.message}>{message}</Text> : null}</Text>
+
                             <TextInput
                                 style={styles.input}
                                 value={userEmail}
@@ -73,6 +82,7 @@ export default function JoinScreen() {
                                 placeholder="이메일 주소를 입력하세요"
                                 keyboardType="email-address"
                             />
+
                             <Text style={styles.label}>비밀번호</Text>
                             <TextInput
                                 style={styles.input}
@@ -103,6 +113,7 @@ export default function JoinScreen() {
                         >
                             <Text style={styles.buttonText}>다음</Text>
                         </TouchableOpacity>
+
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -151,4 +162,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    message: {
+        marginTop: 20,
+        color: 'red',
+        textAlign: 'left',
+    }
 });

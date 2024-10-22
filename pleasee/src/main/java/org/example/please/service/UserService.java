@@ -19,9 +19,9 @@ public class UserService {
     //이메일 중복체크 및 회원가입
     public String  checkEmail(User user) {
         if (userRepository.existsByUserEmail(user.getUserEmail())) {
-            return "중복";
+            return "중복된 이메일입니다";
         }
-        return "미중복";
+        return "사용가능한 이메일입니다";
     }
 
     public void saveUser(User user) {
