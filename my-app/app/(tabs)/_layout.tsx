@@ -3,6 +3,7 @@ import React from 'react';
 
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
     const colorScheme = useColorScheme();
@@ -31,10 +32,20 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="diary"
                 options={{
-                    title: "마음짓기",
+                    title: "일기",
                     tabBarLabel: '',
                     tabBarIcon: ({ color, focused }) => (
                         <TabBarIcon name={focused ? 'journal' : 'journal-outline'} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="myPage"
+                options={{
+                    title: "마이 페이지",
+                    tabBarLabel: '',
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
                     ),
                 }}
             />
@@ -49,12 +60,12 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="myPage"
+                name="setting"
                 options={{
-                    title: "마이 페이지",
+                    title: "설정",
                     tabBarLabel: '',
                     tabBarIcon: ({ color, focused }) => (
-                        <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
+                        <TabBarIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
                     ),
                 }}
             />
