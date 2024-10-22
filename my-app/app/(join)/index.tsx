@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import {tls} from "node-forge";
 
 export default function JoinScreen() {
     const router = useRouter();
@@ -47,11 +48,6 @@ export default function JoinScreen() {
             console.error('Error:', error); // 에러가 발생하면 콘솔에 출력
             Alert.alert('Error', 'Something went wrong!'); // 에러 메시지 표시
         }
-    };
-
-    const handlePass = () => {
-        // 패스 버튼을 눌렀을 때, 입력된 내용에 상관없이 라우터로 이동
-        router.push('/index2');
     };
 
     const handleBirthdateChange = (text: string) => {
@@ -107,12 +103,6 @@ export default function JoinScreen() {
                         >
                             <Text style={styles.buttonText}>다음</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.passButton}
-                            onPress={handlePass}
-                        >
-                            <Text style={styles.buttonText}>패스</Text>
-                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -149,16 +139,6 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#ffffff',
-        borderColor: '#000000',
-        borderWidth: 1,
-        borderRadius: 8,
-        padding: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
-    },
-    passButton: {
-        backgroundColor: '#f5f5f5',
         borderColor: '#000000',
         borderWidth: 1,
         borderRadius: 8,

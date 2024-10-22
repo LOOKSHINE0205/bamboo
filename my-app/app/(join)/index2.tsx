@@ -1,20 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions, TextInput, Image, Animated } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
 
 const KeywordSelectionScreen = () => {
   const router = useRouter();
+  const { userData: initialUserData } = useLocalSearchParams();  // 회원정보 데이터
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [bambooName, setBambooName] = useState('');
+  const [testResults, setTestResults] = useState<string>('');  // 테스트 결과를 저장하는 문자열s
+  const [chatbotName, setChatbotName] = useState('');
+
+  // 응답 선택 시 0 또는 1을 testResults에 추가하는 함수
+  const handleSelectResult = (value: '0' | '1') => {
+    setTestResults((prevResults) => prevResults + value);  // 기존 결과에 선택한 값을 추가
+  };
 
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const responseAnim = useRef(new Animated.Value(screenWidth)).current;
   const cloudAnim = useRef(new Animated.Value(1)).current;
-  const cloudScale = useRef(new Animated.Value(0.3)).current; // 초기 구름 크기는 30%
-  const bambooScale = useRef(new Animated.Value(0)).current;
+  const cloudScale = useRef(new Animated.Value(0.3)).current;  // 초기 구름 크기는 30%
+  const chatbotScale = useRef(new Animated.Value(0)).current;
 
   const question = '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.';
   const questions = [
@@ -46,10 +53,11 @@ const KeywordSelectionScreen = () => {
       question: "마지막 질문입니다.\n이 대화가 도움이 되셨나요?",
       aiResponse: "무인도에서 계속 살아가야 한다면 나는",
       responses: [
-        '이렇게 된 김에 자유로운 삶을 산다',
-        '안정적으로 살기 위해 집도 짓고 시설을 설치한다',
+        '이렇게 된 김에 자유로운 삶을 산다\n',
+        '안정적으로 살기 위해 집도 짓고 시설을 설치한다\n',
       ]
     },
+
     {
       question: "밤부의 이름을 지어주세요",
       aiResponse: "좋은 이름을 기대할게요!",
@@ -62,16 +70,18 @@ const KeywordSelectionScreen = () => {
   const isLastQuestion = validIndex === questions.length - 1;
   const isFirstQuestion = validIndex === 0;
 
-  const startBambooAnimation = () => {
-    bambooScale.setValue(0);
-    Animated.timing(bambooScale, {
+  const startChatbotAnimation = () => {
+    chatbotScale.setValue(0);
+    Animated.timing(chatbotScale, {
       toValue: 1,
       duration: 500,
       useNativeDriver: true,
     }).start();
   };
 
-  const handleResponsePress = (response) => {
+  const handleResponsePress = (index: number) => {
+    handleSelectResult(index === 0 ? '0' : '1');  // 인덱스에 따라 0 또는 1 추가
+
     if (currentQuestionIndex === questions.length - 2) {
       startCloudAnimation();
     }
@@ -174,7 +184,7 @@ const KeywordSelectionScreen = () => {
     startResponseAnimation();
 
     if (isLastQuestion) {
-      startBambooAnimation();
+      startChatbotAnimation();
     } else {
       updateCloudScale();
     }
@@ -190,100 +200,109 @@ const KeywordSelectionScreen = () => {
   };
 
   const handleConfirm = () => {
-    if (bambooName.trim()) {
-      router.push('../../(init)');
+    if (chatbotName.trim()) {
+      router.push({
+        pathname: './sendUserInfo',
+        params: {
+          userData: initialUserData,  // 기존 사용자 정보
+          testResults: testResults,   // testResults 문자열로 전달
+          chatbotName,  // 챗봇 이름 전달
+        },
+      });
+    } else {
+      alert('챗봇 이름을 입력해주세요.');
     }
   };
 
   return (
-    <JoinBG>
-      <ScrollView contentContainerStyle={[styles.container, { paddingVertical: screenHeight * 0.05 }]}>
-        <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
-          <Text style={styles.chatText}>{currentQuestion.question}</Text>
-        </View>
+      <JoinBG>
+        <ScrollView contentContainerStyle={[styles.container, { paddingVertical: screenHeight * 0.05 }]}>
+          <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
+            <Text style={styles.chatText}>{currentQuestion.question}</Text>
+          </View>
 
-        <Animated.View style={[styles.aiResponse, { transform: [{ translateX: slideAnim }], width: screenWidth * 0.85 }]}>
-          <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
-        </Animated.View>
-
-        {!isLastQuestion && (
-          <Animated.View
-            style={{
-              transform: [{ scale: cloudScale }],
-              opacity: cloudAnim,
-              width: screenWidth * 0.6,
-              height: screenWidth * 0.3,
-              marginBottom: '5%',
-              alignSelf: 'center',
-            }}
-          >
-            <Image
-              source={require('../../assets/images/구름.png')}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode="contain"
-            />
+          <Animated.View style={[styles.aiResponse, { transform: [{ translateX: slideAnim }], width: screenWidth * 0.85 }]}>
+            <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
           </Animated.View>
-        )}
 
-        {isLastQuestion && (
-          <View style={styles.bambooContainer}>
-            <Animated.Image
-              source={require('../../assets/images/bamboo_head.png')}
-              style={[
-                styles.bambooImage,
-                {
-                  width: screenWidth * 0.4,
-                  height: screenWidth * 0.4,
-                  transform: [{ scale: bambooScale }],
-                },
-              ]}
-              resizeMode="contain"
-            />
-            <TextInput
-              style={[styles.nameInput, { width: screenWidth * 0.8 }]}
-              value={bambooName}
-              onChangeText={setBambooName}
-              placeholder="밤부의 이름을 입력하세요"
-              placeholderTextColor="#999"
-            />
-
-            <View style={styles.navigationButtons}>
-              {currentQuestionIndex > 0 && (
-                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
-                  <Text style={styles.navButtonText}>이전</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={[styles.navButton, { paddingVertical: screenHeight * 0.02, backgroundColor: bambooName.trim() ? '#00f' : '#ccc' }]}
-                onPress={handleConfirm}
-                disabled={!bambooName.trim()}
+          {!isLastQuestion && (
+              <Animated.View
+                  style={{
+                    transform: [{ scale: cloudScale }],
+                    opacity: cloudAnim,
+                    width: screenWidth * 0.6,
+                    height: screenWidth * 0.3,
+                    marginBottom: '5%',
+                    alignSelf: 'center',
+                  }}
               >
-                <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {!isLastQuestion && (
-          <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
-            {currentQuestion.responses.map((response, index) => (
-              <Animated.View key={index} style={[styles.responseButton, { transform: [{ translateX: responseAnim }], width: screenWidth * 0.85 }]}>
-                <TouchableOpacity onPress={() => handleResponsePress(response)}>
-                  <Text style={styles.responseText}>{response}</Text>
-                </TouchableOpacity>
+                <Image
+                    source={require('../../assets/images/구름.png')}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="contain"
+                />
               </Animated.View>
-            ))}
-            {currentQuestionIndex > 0 && (
-              <View style={styles.navigationButtons}>
-                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
-                  <Text style={styles.navButtonText}>이전</Text>
-                </TouchableOpacity>
+          )}
+
+          {isLastQuestion && (
+              <View style={styles.chatbotContainer}>
+                <Animated.Image
+                    source={require('../../assets/images/bamboo_head.png')}
+                    style={[
+                      styles.chatbotImage,
+                      {
+                        width: screenWidth * 0.4,
+                        height: screenWidth * 0.4,
+                        transform: [{ scale: chatbotScale }],
+                      },
+                    ]}
+                    resizeMode="contain"
+                />
+                <TextInput
+                    style={[styles.nameInput, { width: screenWidth * 0.8 }]}
+                    value={chatbotName}
+                    onChangeText={setChatbotName}
+                    placeholder="밤부의 이름을 입력하세요"
+                    placeholderTextColor="#999"
+                />
+
+                <View style={styles.navigationButtons}>
+                  {currentQuestionIndex > 0 && (
+                      <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
+                        <Text style={styles.navButtonText}>이전</Text>
+                      </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                      style={[styles.navButton, { paddingVertical: screenHeight * 0.02, backgroundColor: chatbotName.trim() ? '#00f' : '#ccc' }]}
+                      onPress={handleConfirm}
+                      disabled={!chatbotName.trim()}
+                  >
+                    <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
-    </JoinBG>
+          )}
+
+          {!isLastQuestion && (
+              <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
+                {currentQuestion.responses.map((response, index) => (
+                    <Animated.View key={index} style={[styles.responseButton, { transform: [{ translateX: responseAnim }], width: screenWidth * 0.85 }]}>
+                      <TouchableOpacity onPress={() => handleResponsePress(index)}>
+                        <Text style={styles.responseText}>{response}</Text>
+                      </TouchableOpacity>
+                    </Animated.View>
+                ))}
+                {currentQuestionIndex > 0 && (
+                    <View style={styles.navigationButtons}>
+                      <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
+                        <Text style={styles.navButtonText}>이전</Text>
+                      </TouchableOpacity>
+                    </View>
+                )}
+              </View>
+          )}
+        </ScrollView>
+      </JoinBG>
   );
 };
 
@@ -302,11 +321,11 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'center',
   },
-  bambooContainer: {
+  chatbotContainer: {
     alignItems: 'center',
     marginVertical: '5%',
   },
-  bambooImage: {
+  chatbotImage: {
     marginBottom: 20,
   },
   nameInput: {
@@ -337,7 +356,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3.84,
     elevation: 5,
-
   },
   aiResponseText: {
     fontSize: 16,

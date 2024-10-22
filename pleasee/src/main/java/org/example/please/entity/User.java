@@ -34,6 +34,7 @@ public class User {
 
     // 생년월일
     @Column(name = "user_birthdate")
+    @Temporal(TemporalType.DATE)
     private Date userBirthdate;
 
     // 방해금지 시작
