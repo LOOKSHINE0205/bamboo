@@ -3,6 +3,7 @@ package org.example.please.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -12,35 +13,50 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 @ToString
-@Table(name ="user_tb")
+@Table(name = "user_tb")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
+
     // 사용자 ID
     @Id
+    @Column(name = "user_email")
     @EqualsAndHashCode.Include
-    private String user_id;
+    private String userEmail;
 
     // 비밀번호
-    private String user_pw;
+    @Column(name = "user_pw")
+    private String userPw;
+
+    // 유저 닉네임
+    @Column(name = "user_nick")
+    private String userNick;
+
 
     // 생년월일
-    private Date user_birthdate;
+    @Column(name = "user_birthdate")
+    private Date userBirthdate;
 
-    // 방해금지시작
-    private Timestamp quiet_start_time;
+    // 방해금지 시작
+    @Column(name = "quiet_start_time", nullable = false, insertable = false)
+    private Time quietStartTime;
 
     // 방해금지 끝
-    private Timestamp quiet_end_time;
+    @Column(name = "quiet_end_time", nullable = false, insertable = false)
+    private Time quietEndTime;
 
     // 챗봇 타입
-    private String chatbot_type;
+    @Column(name = "chatbot_type")
+    private String chatbotType;
 
     // 가입 일자
-    private Timestamp joined_at;
+    @Column(name = "joined_at", nullable = false, insertable = false)
+    private Timestamp joinedAt;
 
     // 챗봇 이름
-    private String chatbot_name;
+    @Column(name = "chatbot_name")
+    private String chatbotName;
 
     // 챗봇 레벨
-    private int chatbot_level;
+    @Column(name = "chatbot_level")
+    private int chatbotLevel;
 }

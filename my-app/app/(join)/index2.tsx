@@ -20,32 +20,34 @@ const KeywordSelectionScreen = () => {
   const questions = [
     {
       question: question,
-      aiResponse: "아 바보야",
+      aiResponse: "나는 '무인도에 떨어지면 어떡하지?' 같은 생각을",
       responses: [
-        '응..',
-        '뭐라고 했나',
-        '네가바보라는건인정할수가없군',
-        '솔직히 바보는 너인거 같아..'
+        '종종 있다',
+        '없거나 드물다',
       ]
     },
     {
       question: "다음 질문입니다.\n어떻게 생각하시나요?",
-      aiResponse: "흠... 어렵네요",
+      aiResponse: "당신이 무인도에 떨어진다면",
       responses: [
-        '그렇군요',
-        '동의합니다',
-        '잘 모르겠어요',
-        '다시 설명해주세요'
+        '혼자라서 너무 외로울것 같다',
+        '무섭지만 혼자라 편할 것 같기도 하다',
       ]
     },
     {
       question: "마지막 질문입니다.\n이 대화가 도움이 되셨나요?",
-      aiResponse: "솔직히 말씀해 주세요",
+      aiResponse: "같이 무인도에 떨어진 사람이 계속 울고있다. 이때 나는?",
       responses: [
-        '네, 많은 도움이 되었어요',
-        '조금 도움이 되었어요',
-        '별로 도움이 되지 않았어요',
-        '전혀 도움이 되지 않았어요'
+        '무섭긴 하겠지만.. 빨리 일을 시작해야 하는데.. 약간 답답하다',
+        '나도 무서워.. 옆에 앉아서 같이 운다',
+      ]
+    },
+    {
+      question: "마지막 질문입니다.\n이 대화가 도움이 되셨나요?",
+      aiResponse: "무인도에서 계속 살아가야 한다면 나는",
+      responses: [
+        '이렇게 된 김에 자유로운 삶을 산다',
+        '안정적으로 살기 위해 집도 짓고 시설을 설치한다',
       ]
     },
     {
@@ -335,6 +337,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3.84,
     elevation: 5,
+
   },
   aiResponseText: {
     fontSize: 16,

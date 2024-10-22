@@ -1,8 +1,6 @@
 package org.example.please.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Timestamp;
@@ -13,21 +11,25 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity
 @ToString
-@Table(name ="alarm_tb")
+@Table(name = "alarm_tb")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Alarm {
 
     // 알림 ID
     @Id
+    @Column(name = "alarm_id")
     @EqualsAndHashCode.Include
-    private int alarm_id;
+    private int alarmId;
 
     // 사용자 ID
-    private String user_email;
+    @Column(name = "user_email")
+    private String userEmail;
 
     // 알림 시간
-    private Timestamp alarm_time;
+    @Column(name = "alarm_time")
+    private Timestamp alarmTime;
 
     // 알림 메시지
-    private String alarm_msg;
+    @Column(name = "alarm_msg")
+    private String alarmMsg;
 }

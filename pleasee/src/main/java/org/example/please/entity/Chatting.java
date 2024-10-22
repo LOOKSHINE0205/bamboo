@@ -1,8 +1,6 @@
 package org.example.please.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Timestamp;
@@ -13,32 +11,40 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity
 @ToString
-@Table(name ="chatting_tb")
+@Table(name = "chatting_tb")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Chatting {
     @Id
+    @Column(name = "chat_idx")
     @EqualsAndHashCode.Include
     // 채팅 식별자
-    private int chat_idx;
+    private int chatIdx;
 
     // 방 식별자
-    private int croom_idx;
+    @Column(name = "croom_idx")
+    private int croomIdx;
 
     // 발화자
+    @Column(name = "chatter")
     private String chatter;
 
     // 발화 내용
-    private String chat_content;
+    @Column(name = "chat_content")
+    private String chatContent;
 
     // 발화 이모티콘
-    private String chat_emoticon;
+    @Column(name = "chat_emoticon")
+    private String chatEmoticon;
 
     // 발화 파일
-    private String chat_file;
+    @Column(name = "chat_file")
+    private String chatFile;
 
     // 발화 시간
-    private Timestamp created_at;
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
     // 감정 태그
-    private String emotion_tag;
+    @Column(name = "emotion_tag")
+    private String emotionTag;
 }

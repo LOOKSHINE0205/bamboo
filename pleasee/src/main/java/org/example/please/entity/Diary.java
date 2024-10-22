@@ -1,8 +1,6 @@
 package org.example.please.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Timestamp;
@@ -13,23 +11,28 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity
 @ToString
-@Table(name ="diary_tb")
+@Table(name = "diary_tb")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Diary {
     @Id
+    @Column(name = "diary_idx")
     @EqualsAndHashCode.Include
     // 일기 ID
-    private int diary_idx;
+    private int diaryIdx;
 
     // 사용자 ID
-    private String user_email;
+    @Column(name = "user_email")
+    private String userEmail;
 
     // 감정 태그
-    private String emotion_tag;
+    @Column(name = "emotion_tag")
+    private String emotionTag;
 
     // 일기 내용
-    private String diary_content;
+    @Column(name = "diary_content")
+    private String diaryContent;
 
     // 작성 일자
-    private Timestamp created_at;
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 }
