@@ -25,6 +25,13 @@ export default function Layout() {
                headerShown: true,
              }}
            />
+       <Stack.Screen
+             name="index3"
+             options={{
+               title: "사용 설명서",
+               headerShown: true,
+             }}
+           />
     </Stack>
   );
 }
