@@ -5,62 +5,46 @@ import JoinBG from '../../components/JoinBG';
 
 const KeywordSelectionScreen = () => {
   const router = useRouter();
-  const { userData: initialUserData } = useLocalSearchParams();  // 회원정보 데이터
+  const { userData: initialUserData } = useLocalSearchParams();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [testResults, setTestResults] = useState<string>('');  // 테스트 결과를 저장하는 문자열s
+  const [testResults, setTestResults] = useState<string>('');
   const [chatbotName, setChatbotName] = useState('');
 
-  // 응답 선택 시 0 또는 1을 testResults에 추가하는 함수
   const handleSelectResult = (value: '0' | '1') => {
-    setTestResults((prevResults) => prevResults + value);  // 기존 결과에 선택한 값을 추가
+    setTestResults((prevResults) => prevResults + value);
   };
 
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const responseAnim = useRef(new Animated.Value(screenWidth)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const cloudAnim = useRef(new Animated.Value(1)).current;
-  const cloudScale = useRef(new Animated.Value(0.3)).current;  // 초기 구름 크기는 30%
+  const cloudScale = useRef(new Animated.Value(0.1)).current;
   const chatbotScale = useRef(new Animated.Value(0)).current;
 
-  const question = '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.';
   const questions = [
     {
-      question: question,
+      question: '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.',
       aiResponse: "나는 '무인도에 떨어지면 어떡하지?' 같은 생각을",
-      responses: [
-        '종종 있다',
-        '없거나 드물다',
-      ]
+      responses: ['종종 있다', '없거나 드물다'],
     },
     {
-      question: "다음 질문입니다.\n어떻게 생각하시나요?",
-      aiResponse: "당신이 무인도에 떨어진다면",
-      responses: [
-        '혼자라서 너무 외로울것 같다',
-        '무섭지만 혼자라 편할 것 같기도 하다',
-      ]
+      question: '다음 질문입니다.\n어떻게 생각하시나요?',
+      aiResponse: '당신이 만약 \n무인도에 떨어진다면',
+      responses: ['혼자라서 너무 외로울것 같다', '무섭지만 혼자라 편할 것 같기도 하다'],
     },
     {
-      question: "마지막 질문입니다.\n이 대화가 도움이 되셨나요?",
-      aiResponse: "같이 무인도에 떨어진 사람이 계속 울고있다. 이때 나는?",
-      responses: [
-        '무섭긴 하겠지만.. 빨리 일을 시작해야 하는데.. 약간 답답하다',
-        '나도 무서워.. 옆에 앉아서 같이 운다',
-      ]
+      question: '마지막 질문입니다.\n이 대화가 도움이 되셨나요?',
+      aiResponse: '같이 무인도에 떨어진 사람이 계속 울고있다. 이때 나는?',
+      responses: ['무섭긴 하겠지만.. 빨리 일을 시작해야 하는데.. 약간 답답하다', '나도 무서워.. 옆에 앉아서 같이 운다'],
     },
     {
-      question: "마지막 질문입니다.\n이 대화가 도움이 되셨나요?",
-      aiResponse: "무인도에서 계속 살아가야 한다면 나는",
-      responses: [
-        '이렇게 된 김에 자유로운 삶을 산다\n',
-        '안정적으로 살기 위해 집도 짓고 시설을 설치한다\n',
-      ]
+      question: '마지막 질문입니다.\n이 대화가 도움이 되셨나요?',
+      aiResponse: '무인도에서 계속 살아가야 한다면 나는',
+      responses: ['이렇게 된 김에 자유로운 삶을 산다', '안정적으로 살기 위해 집도 짓고 시설을 설치한다'],
     },
-
     {
-      question: "밤부의 이름을 지어주세요",
-      aiResponse: "좋은 이름을 기대할게요!",
+      question: '밤부의 이름을 지어주세요',
+      aiResponse: '좋은 이름을 기대할게요!',
       responses: [],
     },
   ];
@@ -79,79 +63,78 @@ const KeywordSelectionScreen = () => {
     }).start();
   };
 
+  const hideChatbotAnimation = (callback: () => void) => {
+    Animated.timing(chatbotScale, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(callback);
+  };
+
   const handleResponsePress = (index: number) => {
-    handleSelectResult(index === 0 ? '0' : '1');  // 인덱스에 따라 0 또는 1 추가
+    handleSelectResult(index === 0 ? '0' : '1');
 
     if (currentQuestionIndex === questions.length - 2) {
       startCloudAnimation();
     }
 
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: -screenWidth,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(responseAnim, {
-        toValue: screenWidth,
-        duration: 300,
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      slideAnim.setValue(-screenWidth);
-      responseAnim.setValue(screenWidth);
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
 
-      resetCloudAnimation();
-
-      Animated.sequence([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.delay(500),
-        Animated.timing(responseAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        })
-      ]).start();
+      updateCloudScale(currentQuestionIndex + 1);
     });
   };
 
   const handlePrevious = () => {
     if (!isFirstQuestion) {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: screenWidth,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(responseAnim, {
-          toValue: -screenWidth,
-          duration: 300,
-          useNativeDriver: true,
-        })
-      ]).start(() => {
-        setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-
-        slideAnim.setValue(-screenWidth);
-        responseAnim.setValue(screenWidth);
-
-        Animated.sequence([
-          Animated.timing(slideAnim, {
+      if (currentQuestionIndex === questions.length - 1) {
+        cloudAnim.setValue(1);
+        hideChatbotAnimation(() => {
+          Animated.timing(fadeAnim, {
             toValue: 0,
             duration: 300,
             useNativeDriver: true,
-          }),
-          Animated.timing(responseAnim, {
-            toValue: 0,
+          }).start(() => {
+            const newIndex = currentQuestionIndex - 1;
+            setCurrentQuestionIndex(newIndex);
+            fadeAnim.setValue(0);
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }).start();
+
+            updateCloudScale(newIndex);
+          });
+        });
+      } else {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          const newIndex = currentQuestionIndex - 1;
+          setCurrentQuestionIndex(newIndex);
+          fadeAnim.setValue(0);
+          Animated.timing(fadeAnim, {
+            toValue: 1,
             duration: 300,
             useNativeDriver: true,
-          }),
-        ]).start();
-      });
+          }).start();
+
+          updateCloudScale(newIndex);
+        });
+      }
     }
   };
 
@@ -163,15 +146,12 @@ const KeywordSelectionScreen = () => {
     }).start();
   };
 
-  const resetCloudAnimation = () => {
-    cloudAnim.setValue(1);
-  };
-
-  const updateCloudScale = () => {
+  const updateCloudScale = (index: number) => {
     let targetScale = 1;
-    if (validIndex === 0) targetScale = 0.3;
-    else if (validIndex === 1) targetScale = 0.6;
-    else if (validIndex === 2) targetScale = 1;
+    if (index === 0) targetScale = 0.1;
+    else if (index === 1) targetScale = 0.3;
+    else if (index === 2) targetScale = 0.6;
+    else if (index > 2) targetScale = 1;
 
     Animated.timing(cloudScale, {
       toValue: targetScale,
@@ -181,32 +161,21 @@ const KeywordSelectionScreen = () => {
   };
 
   useEffect(() => {
-    startResponseAnimation();
-
     if (isLastQuestion) {
       startChatbotAnimation();
     } else {
-      updateCloudScale();
+      chatbotScale.setValue(0);
     }
   }, [currentQuestionIndex]);
-
-  const startResponseAnimation = () => {
-    responseAnim.setValue(screenWidth);
-    Animated.timing(responseAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
 
   const handleConfirm = () => {
     if (chatbotName.trim()) {
       router.push({
         pathname: './sendUserInfo',
         params: {
-          userData: initialUserData,  // 기존 사용자 정보
-          testResults: testResults,   // testResults 문자열로 전달
-          chatbotName,  // 챗봇 이름 전달
+          userData: initialUserData,
+          testResults: testResults,
+          chatbotName,
         },
       });
     } else {
@@ -215,94 +184,96 @@ const KeywordSelectionScreen = () => {
   };
 
   return (
-      <JoinBG>
-        <ScrollView contentContainerStyle={[styles.container, { paddingVertical: screenHeight * 0.05 }]}>
-          <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
-            <Text style={styles.chatText}>{currentQuestion.question}</Text>
-          </View>
+    <JoinBG>
+      <ScrollView contentContainerStyle={[styles.container, { paddingVertical: screenHeight * 0.05 }]}>
+        <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
+          <Text style={styles.chatText}>{currentQuestion.question}</Text>
+        </View>
 
-          <Animated.View style={[styles.aiResponse, { transform: [{ translateX: slideAnim }], width: screenWidth * 0.85 }]}>
-            <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
+          <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+        </Animated.View>
+
+        {!isLastQuestion && (
+          <Animated.View
+            style={[
+              styles.cloudContainer,
+              {
+                transform: [{ scale: cloudScale }],
+                opacity: cloudAnim,
+                width: screenWidth * 0.6,
+                height: screenWidth * 0.3,
+                alignSelf: 'center',
+              },
+            ]}
+          >
+            <Image
+              source={require('../../assets/images/구름.png')}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+            />
           </Animated.View>
+        )}
 
-          {!isLastQuestion && (
-              <Animated.View
-                  style={{
-                    transform: [{ scale: cloudScale }],
-                    opacity: cloudAnim,
-                    width: screenWidth * 0.6,
-                    height: screenWidth * 0.3,
-                    marginBottom: '5%',
-                    alignSelf: 'center',
-                  }}
+        {isLastQuestion && (
+          <View style={styles.chatbotContainer}>
+            <Animated.Image
+              source={require('../../assets/images/bamboo_head.png')}
+              style={[
+                styles.chatbotImage,
+                {
+                  width: screenWidth * 0.4,
+                  height: screenWidth * 0.4,
+                  transform: [{ scale: chatbotScale }],
+                },
+              ]}
+              resizeMode="contain"
+            />
+            <TextInput
+              style={[styles.nameInput, { width: screenWidth * 0.8 }]}
+              value={chatbotName}
+              onChangeText={setChatbotName}
+              placeholder="밤부의 이름을 입력하세요"
+              placeholderTextColor="#999"
+            />
+
+            <View style={styles.navigationButtons}>
+              {currentQuestionIndex > 0 && (
+                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
+                  <Text style={styles.navButtonText}>이전</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[styles.navButton, { paddingVertical: screenHeight * 0.02, backgroundColor: chatbotName.trim() ? '#4a9960' : '#ccc' }]}
+                onPress={handleConfirm}
+                disabled={!chatbotName.trim()}
               >
-                <Image
-                    source={require('../../assets/images/구름.png')}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode="contain"
-                />
+                <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {!isLastQuestion && (
+          <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: isFirstQuestion ? '11%' : '0%' }]}>
+            {currentQuestion.responses.map((response, index) => (
+              <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
+                <TouchableOpacity onPress={() => handleResponsePress(index)}>
+                  <Text style={styles.responseText}>{response}</Text>
+                </TouchableOpacity>
               </Animated.View>
-          )}
-
-          {isLastQuestion && (
-              <View style={styles.chatbotContainer}>
-                <Animated.Image
-                    source={require('../../assets/images/bamboo_head.png')}
-                    style={[
-                      styles.chatbotImage,
-                      {
-                        width: screenWidth * 0.4,
-                        height: screenWidth * 0.4,
-                        transform: [{ scale: chatbotScale }],
-                      },
-                    ]}
-                    resizeMode="contain"
-                />
-                <TextInput
-                    style={[styles.nameInput, { width: screenWidth * 0.8 }]}
-                    value={chatbotName}
-                    onChangeText={setChatbotName}
-                    placeholder="밤부의 이름을 입력하세요"
-                    placeholderTextColor="#999"
-                />
-
-                <View style={styles.navigationButtons}>
-                  {currentQuestionIndex > 0 && (
-                      <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
-                        <Text style={styles.navButtonText}>이전</Text>
-                      </TouchableOpacity>
-                  )}
-                  <TouchableOpacity
-                      style={[styles.navButton, { paddingVertical: screenHeight * 0.02, backgroundColor: chatbotName.trim() ? '#00f' : '#ccc' }]}
-                      onPress={handleConfirm}
-                      disabled={!chatbotName.trim()}
-                  >
-                    <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
-                  </TouchableOpacity>
-                </View>
+            ))}
+            {currentQuestionIndex > 0 && (
+              <View style={styles.navigationButtons}>
+                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
+                  <Text style={styles.navButtonText}>이전</Text>
+                </TouchableOpacity>
               </View>
-          )}
-
-          {!isLastQuestion && (
-              <View style={[styles.responseContainer, { width: screenWidth * 0.9 }]}>
-                {currentQuestion.responses.map((response, index) => (
-                    <Animated.View key={index} style={[styles.responseButton, { transform: [{ translateX: responseAnim }], width: screenWidth * 0.85 }]}>
-                      <TouchableOpacity onPress={() => handleResponsePress(index)}>
-                        <Text style={styles.responseText}>{response}</Text>
-                      </TouchableOpacity>
-                    </Animated.View>
-                ))}
-                {currentQuestionIndex > 0 && (
-                    <View style={styles.navigationButtons}>
-                      <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
-                        <Text style={styles.navButtonText}>이전</Text>
-                      </TouchableOpacity>
-                    </View>
-                )}
-              </View>
-          )}
-        </ScrollView>
-      </JoinBG>
+            )}
+          </View>
+        )}
+      </ScrollView>
+    </JoinBG>
   );
 };
 

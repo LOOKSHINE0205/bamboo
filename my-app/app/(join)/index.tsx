@@ -57,7 +57,7 @@ export default function JoinScreen() {
 
     // 패스 버튼 핸들러 추가
     const handlePass = () => {
-        router.push('/sendUserInfo');
+        router.push('/index2');
     };
 
     const handleBirthdateChange = (text: string) => {
