@@ -26,6 +26,13 @@ export default function Layout() {
              }}
            />
        <Stack.Screen
+             name="sendUserInfo"
+             options={{
+               title: "회원 가입",
+               headerShown: true,
+             }}
+           />
+       <Stack.Screen
              name="index3"
              options={{
                title: "사용 설명서",

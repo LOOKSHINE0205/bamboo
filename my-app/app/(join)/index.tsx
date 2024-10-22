@@ -9,49 +9,58 @@ export default function JoinScreen() {
     const [userPw, setPassword] = useState('');
     const [userNick, setNickname] = useState('');
     const [userBirthdate, setBirthdate] = useState('');
+    const [message, setMessage] = useState('');
 
     const handleJoin = async () => {
         let birthdateString;
 
-        // 20010503 형식으로 입력된 user_birthdate를 YYYY-MM-DD 형식으로 변환
         if (userBirthdate.length === 8) {
-            const year = userBirthdate.slice(0, 4);  // 연도 추출
-            const month = userBirthdate.slice(4, 6); // 월 추출
-            const day = userBirthdate.slice(6, 8);   // 일 추출
+            const year = userBirthdate.slice(0, 4);
+            const month = userBirthdate.slice(4, 6);
+            const day = userBirthdate.slice(6, 8);
 
-            birthdateString = `${year}-${month}-${day}T00:00:00`;  // YYYY-MM-DD 형식으로 변환
+            birthdateString = `${year}-${month}-${day}T00:00:00`;
         } else {
-            birthdateString = null;  // 날짜 형식이 올바르지 않으면 null 처리
+            birthdateString = null;
         }
 
         const userData = {
-            userEmail: userEmail,
-            userPw: userPw,
-            userNick: userNick,
+            userEmail,
+            userPw,
+            userNick,
             userBirthdate: birthdateString,
         };
 
         try {
-            const response = await fetch('http://10.0.2.2:8082/api/users/join', {
+            const response = await fetch('http://10.0.2.2:8082/api/users/checkEmail', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(userData), // 데이터를 JSON으로 변환하여 전송
+                body: JSON.stringify(userData),
             });
 
-            const result = await response.text(); // 서버의 응답 받기
-            Alert.alert('Response', result); // 응답 메시지를 알림창으로 표시
-            router.push('/index2'); // 회원가입 성공 시 화면 전환
+            const result = await response.text();
+            setMessage(result);
+            if (result !== '중복된 이메일입니다') {
+                router.push({
+                    pathname: '/index2',
+                    params: { userData: JSON.stringify(userData) },
+                });
+            }
 
         } catch (error) {
-            console.error('Error:', error); // 에러가 발생하면 콘솔에 출력
-            Alert.alert('Error', 'Something went wrong!'); // 에러 메시지 표시
+            console.error('Error:', error);
+            Alert.alert('Error', 'Something went wrong!');
         }
     };
 
+    // 패스 버튼 핸들러 추가
+    const handlePass = () => {
+        router.push('/sendUserInfo');
+    };
+
     const handleBirthdateChange = (text: string) => {
-        // 숫자만 입력 가능하도록 필터링하고 최대 8자리까지 제한
         const filteredText = text.replace(/[^0-9]/g, '').slice(0, 8);
         setBirthdate(filteredText);
     };
@@ -65,7 +74,9 @@ export default function JoinScreen() {
                 <ScrollView contentContainerStyle={styles.scrollView}>
                     <View style={styles.formContainer}>
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>이메일</Text>
+                            <Text style={styles.label}>이메일
+                                {message ? <Text style={styles.message}>{message}</Text> : null}</Text>
+
                             <TextInput
                                 style={styles.input}
                                 value={userEmail}
@@ -73,6 +84,7 @@ export default function JoinScreen() {
                                 placeholder="이메일 주소를 입력하세요"
                                 keyboardType="email-address"
                             />
+
                             <Text style={styles.label}>비밀번호</Text>
                             <TextInput
                                 style={styles.input}
@@ -103,6 +115,15 @@ export default function JoinScreen() {
                         >
                             <Text style={styles.buttonText}>다음</Text>
                         </TouchableOpacity>
+
+                        {/* 패스 버튼 추가 */}
+                        <TouchableOpacity
+                            style={[styles.button, styles.passButton]}
+                            onPress={handlePass}
+                        >
+                            <Text style={styles.buttonText}>패스</Text>
+                        </TouchableOpacity>
+
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -145,10 +166,19 @@ const styles = StyleSheet.create({
         padding: 15,
         alignItems: 'center',
         justifyContent: 'center',
+        marginBottom: 10, // 버튼 사이 간격 추가
+    },
+    passButton: {
+        backgroundColor: '#f5f5f5', // 패스 버튼 배경색 변경
     },
     buttonText: {
         color: '#000000',
         fontSize: 16,
         fontWeight: 'bold',
     },
+    message: {
+        marginTop: 20,
+        color: 'red',
+        textAlign: 'left',
+    }
 });
