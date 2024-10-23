@@ -9,6 +9,7 @@ const KeywordSelectionScreen = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [testResults, setTestResults] = useState<string>('');
   const [chatbotName, setChatbotName] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSelectResult = (value: '0' | '1') => {
     setTestResults((prevResults) => prevResults + value);
@@ -33,12 +34,12 @@ const KeywordSelectionScreen = () => {
       responses: ['혼자라서 너무 외로울것 같다', '무섭지만 혼자라 편할 것 같기도 하다'],
     },
     {
-      question: '마지막 질문입니다.\n이 대화가 도움이 되셨나요?',
+      question: '다음 질문입니다.\n어떻게 생각하시나요?',
       aiResponse: '같이 무인도에 떨어진 사람이 계속 울고있다. 이때 나는?',
       responses: ['무섭긴 하겠지만.. 빨리 일을 시작해야 하는데.. 약간 답답하다', '나도 무서워.. 옆에 앉아서 같이 운다'],
     },
     {
-      question: '마지막 질문입니다.\n이 대화가 도움이 되셨나요?',
+      question: '마지막 질문입니다.\n어떻게 생각하시나요?',
       aiResponse: '무인도에서 계속 살아가야 한다면 나는',
       responses: ['이렇게 된 김에 자유로운 삶을 산다', '안정적으로 살기 위해 집도 짓고 시설을 설치한다'],
     },
@@ -72,6 +73,9 @@ const KeywordSelectionScreen = () => {
   };
 
   const handleResponsePress = (index: number) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     handleSelectResult(index === 0 ? '0' : '1');
 
     if (currentQuestionIndex === questions.length - 2) {
@@ -89,13 +93,18 @@ const KeywordSelectionScreen = () => {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        setIsProcessing(false);
+      });
 
       updateCloudScale(currentQuestionIndex + 1);
     });
   };
 
   const handlePrevious = () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     if (!isFirstQuestion) {
       if (currentQuestionIndex === questions.length - 1) {
         cloudAnim.setValue(1);
@@ -112,7 +121,9 @@ const KeywordSelectionScreen = () => {
               toValue: 1,
               duration: 300,
               useNativeDriver: true,
-            }).start();
+            }).start(() => {
+              setIsProcessing(false);
+            });
 
             updateCloudScale(newIndex);
           });
@@ -130,7 +141,9 @@ const KeywordSelectionScreen = () => {
             toValue: 1,
             duration: 300,
             useNativeDriver: true,
-          }).start();
+          }).start(() => {
+            setIsProcessing(false);
+          });
 
           updateCloudScale(newIndex);
         });
@@ -186,12 +199,36 @@ const KeywordSelectionScreen = () => {
   return (
     <JoinBG>
       <ScrollView contentContainerStyle={[styles.container, { paddingVertical: screenHeight * 0.05 }]}>
-        <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
-          <Text style={styles.chatText}>{currentQuestion.question}</Text>
+      <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
+        <Text style={styles.chatText}>{currentQuestion.question}</Text>
+      </View>
+
+      {!isLastQuestion && (
+        <View style={styles.progressContainer}>
+          {questions.slice(0, -1).map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                currentQuestionIndex === index && styles.activeDot,
+              ]}
+            />
+          ))}
         </View>
+      )}
 
         <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
-          <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+          {!isLastQuestion ? (
+            <TouchableOpacity
+              style={styles.aiResponseButton}
+              onPress={() => !isProcessing && handleResponsePress(0)}
+              disabled={isProcessing}
+            >
+              <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+          )}
         </Animated.View>
 
         {!isLastQuestion && (
@@ -209,13 +246,13 @@ const KeywordSelectionScreen = () => {
           >
             <Image
               source={require('../../assets/images/구름.png')}
-              style={{ width: '100%', height: '100%' }}
+              style={styles.cloudImage}
               resizeMode="contain"
             />
           </Animated.View>
         )}
 
-        {isLastQuestion && (
+        {isLastQuestion ? (
           <View style={styles.chatbotContainer}>
             <Animated.Image
               source={require('../../assets/images/bamboo_head.png')}
@@ -224,59 +261,75 @@ const KeywordSelectionScreen = () => {
                 {
                   width: screenWidth * 0.4,
                   height: screenWidth * 0.4,
+                  top: 80,
                   transform: [{ scale: chatbotScale }],
                 },
               ]}
               resizeMode="contain"
             />
             <TextInput
-              style={[styles.nameInput, { width: screenWidth * 0.8 }]}
+              style={[styles.nameInput, { width: screenWidth * 0.8, top: 100 }]}
               value={chatbotName}
               onChangeText={setChatbotName}
               placeholder="밤부의 이름을 입력하세요"
               placeholderTextColor="#999"
             />
 
-            <View style={styles.navigationButtons}>
+            <View style={[styles.navigationButtons, { top: 120 }]}>
               {currentQuestionIndex > 0 && (
-                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
+                <TouchableOpacity
+                  style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]}
+                  onPress={handlePrevious}
+                  disabled={isProcessing}
+                >
                   <Text style={styles.navButtonText}>이전</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.navButton, { paddingVertical: screenHeight * 0.02, backgroundColor: chatbotName.trim() ? '#4a9960' : '#ccc' }]}
+                style={[
+                  styles.navButton,
+                  {
+                    paddingVertical: screenHeight * 0.02,
+                    backgroundColor: chatbotName.trim() ? '#4a9960' : '#ccc'
+                  }
+                ]}
                 onPress={handleConfirm}
-                disabled={!chatbotName.trim()}
+                disabled={!chatbotName.trim() || isProcessing}
               >
                 <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
               </TouchableOpacity>
             </View>
           </View>
-        )}
-
-        {!isLastQuestion && (
-          <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: isFirstQuestion ? '11%' : '0%' }]}>
-            {currentQuestion.responses.map((response, index) => (
-              <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
-                <TouchableOpacity onPress={() => handleResponsePress(index)}>
-                  <Text style={styles.responseText}>{response}</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            ))}
-            {currentQuestionIndex > 0 && (
-              <View style={styles.navigationButtons}>
-                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious}>
-                  <Text style={styles.navButtonText}>이전</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
+        ) : (
+            <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: isFirstQuestion ? '11%' : '0%' }]}>
+              {currentQuestion.responses.map((response, index) => (
+                <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
+                  <TouchableOpacity
+                    style={styles.responseButtonTouchable}
+                    onPress={() => !isProcessing && handleResponsePress(index)}
+                    disabled={isProcessing}
+                  >
+                    <Text style={styles.responseText}>{response}</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
+              {currentQuestionIndex > 0 && (
+                <View style={styles.navigationButtons}>
+                  <TouchableOpacity
+                    style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]}
+                    onPress={handlePrevious}
+                    disabled={isProcessing}
+                  >
+                    <Text style={styles.navButtonText}>이전</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
       </ScrollView>
     </JoinBG>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -315,18 +368,43 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: '5%',
   },
+  contentContainer: {
+    position: 'relative',
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 20,
+    height: 200, // 고정된 높이 설정
+  },
   aiResponse: {
     backgroundColor: '#E8E8E8',
     borderRadius: 20,
     padding: '4%',
-    alignSelf: 'center',
-    marginBottom: '5%',
-    maxWidth: '50%',
+    position: 'absolute',
+    top: 120,
+    zIndex: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  aiResponseButton: {
+    width: '100%',
+    padding: 10,
+  },
+  responseButtonTouchable: {
+    width: '100%',
+    padding: 10,
+  },
+  cloudContainer: {
+    position: 'absolute',
+    top: 300, // aiResponse 아래에 고정된 위치
+    alignSelf: 'center',
+    zIndex: 1,
+  },
+  cloudImage: {
+    width: '100%',
+    height: '100%',
   },
   aiResponseText: {
     fontSize: 16,
@@ -361,6 +439,27 @@ const styles = StyleSheet.create({
   navButtonText: {
     fontSize: 14,
     color: '#000',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: '5%',
+    marginTop: '-2%',  // 응답 버블과의 간격 조정
+    height:700,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E8E8E8',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#4a9960',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });
 
