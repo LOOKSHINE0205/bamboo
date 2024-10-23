@@ -19,17 +19,26 @@ public class UserController {
 
     @PostMapping("/checkEmail")
     public ResponseEntity<?> checkEmail(@RequestBody User user) {
-        String response = userService.checkEmail(user);
-        if(response.equals("중복")){
-            return ResponseEntity.badRequest().body(response);
+        boolean response = userService.checkEmail(user);
+        if(response){
+            return ResponseEntity.badRequest().body("중복된 이메일입니다.");
         }
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.ok().body("사용 가능한 이메일입니다.");
     }
-
     @PostMapping("/join")
     public ResponseEntity<String> join(@RequestBody User user) {
         userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공");  // 201 Created 응답
+    }
+
+    // 로그인.
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody User user) {
+        boolean response = userService.login(user);
+        if(response){
+            return ResponseEntity.ok().body("로그인 성공");
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패");
     }
 
 }

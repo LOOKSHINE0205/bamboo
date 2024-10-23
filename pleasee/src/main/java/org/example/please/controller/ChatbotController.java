@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/chat")
-public class ChatController {
+public class ChatbotController {
 
     @PostMapping("/message")
     public String getChatResponse(@RequestBody String message) {
