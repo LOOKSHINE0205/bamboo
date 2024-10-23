@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 public class Diary {
     @Id
     @Column(name = "diary_idx")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     // 일기 ID
     private int diaryIdx;

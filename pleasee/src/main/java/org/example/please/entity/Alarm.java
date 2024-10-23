@@ -17,6 +17,7 @@ public class Alarm {
 
     // 알림 ID
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "alarm_id")
     @EqualsAndHashCode.Include
     private int alarmId;
@@ -29,7 +30,7 @@ public class Alarm {
     @Column(name = "alarm_time")
     private Timestamp alarmTime;
 
-    // 알림 메시지
+    // 선톡 메시지
     @Column(name = "alarm_msg")
     private String alarmMsg;
 }
