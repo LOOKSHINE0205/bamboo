@@ -9,18 +9,17 @@ export default function JoinScreen() {
     const [userPw, setPassword] = useState('');
     const [userNick, setNickname] = useState('');
     const [userBirthdate, setBirthdate] = useState('');
-    const [message, setMessage] = useState('');  // 메시지 상태
+    const [message, setMessage] = useState('');
 
     const handleJoin = async () => {
         let birthdateString;
 
-        // 20010503 형식으로 입력된 user_birthdate를 YYYY-MM-DD 형식으로 변환
         if (userBirthdate.length === 8) {
-            const year = userBirthdate.slice(0, 4);  // 연도 추출
-            const month = userBirthdate.slice(4, 6); // 월 추출
-            const day = userBirthdate.slice(6, 8);   // 일 추출
+            const year = userBirthdate.slice(0, 4);
+            const month = userBirthdate.slice(4, 6);
+            const day = userBirthdate.slice(6, 8);
 
-            birthdateString = `${year}-${month}-${day}T00:00:00`;  // YYYY-MM-DD 형식으로 변환
+            birthdateString = `${year}-${month}-${day}T00:00:00`;
         } else {
             birthdateString = null;
         }
@@ -51,8 +50,8 @@ export default function JoinScreen() {
             }
 
         } catch (error) {
-            console.error('Error:', error); // 에러가 발생하면 콘솔에 출력
-            Alert.alert('Error', 'Something went wrong!'); // 에러 메시지 표시
+            console.error('Error:', error);
+            Alert.alert('Error', 'Something went wrong!');
         }
     };
 
@@ -62,6 +61,7 @@ export default function JoinScreen() {
     };
 
     const handleBirthdateChange = (text: string) => {
+        // 숫자만 입력 가능하도록 필터링하고 최대 8자리까지 제한
         const filteredText = text.replace(/[^0-9]/g, '').slice(0, 8);
         setBirthdate(filteredText);
     };
