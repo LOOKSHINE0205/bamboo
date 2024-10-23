@@ -62,6 +62,7 @@ export default function JoinScreen() {
     };
 
     const handleBirthdateChange = (text: string) => {
+        // 숫자만 입력 가능하도록 필터링하고 최대 8자리까지 제한
         const filteredText = text.replace(/[^0-9]/g, '').slice(0, 8);
         setBirthdate(filteredText);
     };

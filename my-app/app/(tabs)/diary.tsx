@@ -65,7 +65,12 @@ export default function DiaryScreen() {
                 </ScrollView>
 
                 {/* Modal for selecting emoji */}
-                <Modal visible={emojiModalVisible} transparent={true} animationType="slide" onRequestClose={() => setEmojiModalVisible(false)}>
+                <Modal
+                    visible={emojiModalVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setEmojiModalVisible(false)}
+                >
                     <View style={styles.modalContainer}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.headerText}>오늘은 어떤 하루였나요?</Text>
@@ -208,7 +213,11 @@ const styles = StyleSheet.create({
         padding: 20,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
-        maxHeight: '30%',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
     },
     emojiContainer: {
         flexDirection: 'row',
