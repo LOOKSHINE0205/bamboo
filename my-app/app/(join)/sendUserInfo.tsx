@@ -36,7 +36,8 @@ const SendUserInfo = () => {
                     chatbotLevel: 1,
                 };
 
-                const response = await fetch('http://10.0.2.2:8082/api/users/join', {
+//                 const response = await fetch('http://10.0.2.2:8082/api/users/join', {
+                const response = await fetch('http://192.168.21.23:8082/api/users/join', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -109,7 +110,6 @@ const styles = StyleSheet.create({
     bambooImage: {
         width: 100,
         height: 100,
-        borderRadius: 50,
         resizeMode: 'contain',
     },
     emotionImage: {

@@ -32,6 +32,7 @@ export default function JoinScreen() {
         };
 
         try {
+//             const response = await fetch('http://192.168.21.23:8082/api/users/checkEmail', {
             const response = await fetch('http://10.0.2.2:8082/api/users/checkEmail', {
                 method: 'POST',
                 headers: {
@@ -57,7 +58,7 @@ export default function JoinScreen() {
 
     // 패스 버튼 핸들러 추가
     const handlePass = () => {
-        router.push('/index2');
+        router.push('/sendUserInfo');
     };
 
     const handleBirthdateChange = (text: string) => {
