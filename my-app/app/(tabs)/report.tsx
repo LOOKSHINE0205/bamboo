@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, Dimensions, Pressable, Modal, ScrollView, Image} from 'react-native';
+import React, {useState, useRef} from 'react';
+import {View, Text, StyleSheet, Dimensions, Pressable, ScrollView, Image} from 'react-native';
 import {VictoryChart, VictoryBar, VictoryAxis, VictoryTheme, VictoryLabel} from 'victory-native';
 
 // 이모티콘 이미지 import
@@ -25,7 +25,6 @@ const EMOTIONS = {
 };
 
 // 커스텀 바 레이블 컴포넌트
-// 커스텀 바 레이블 컴포넌트 수정
 const CustomBarLabel = ({x, y, datum}) => {
     return (
         <View style={[{
@@ -74,9 +73,14 @@ const MOCK_DATA = {
 };
 
 export default function EmotionReport() {
-    const currentMonth = `${new Date().getMonth() + 1}`;
-    const [value, setValue] = useState(currentMonth);
-    const [modalVisible, setModalVisible] = useState(false);
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
+    const scrollViewRef = useRef(null);
+    const emotionChartRef = useRef(null);
 
     const data = [...MOCK_DATA.emotions]
         .sort((a, b) => a.count - b.count)
@@ -86,68 +90,59 @@ export default function EmotionReport() {
             fill: EMOTIONS[item.emotion_tag].color,
         }));
 
-    const monthItems = [
-        {label: '1월', value: '1'},
-        {label: '2월', value: '2'},
-        {label: '3월', value: '3'},
-        {label: '4월', value: '4'},
-        {label: '5월', value: '5'},
-        {label: '6월', value: '6'},
-        {label: '7월', value: '7'},
-        {label: '8월', value: '8'},
-        {label: '9월', value: '9'},
-        {label: '10월', value: '10'},
-        {label: '11월', value: '11'},
-        {label: '12월', value: '12'},
-    ];
+    const handlePrevYear = () => {
+        setSelectedYear(prev => prev - 1);
+    };
+
+    const handleNextYear = () => {
+        setSelectedYear(prev => prev + 1);
+    };
+
+    const handlePrevMonth = () => {
+        setSelectedMonth(prev => prev === 1 ? 12 : prev - 1);
+        if (selectedMonth === 1) {
+            setSelectedYear(prev => prev - 1);
+        }
+    };
+
+    const handleNextMonth = () => {
+        setSelectedMonth(prev => prev === 12 ? 1 : prev + 1);
+        if (selectedMonth === 12) {
+            setSelectedYear(prev => prev + 1);
+        }
+    };
 
     return (
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={styles.scrollView} ref={scrollViewRef}>
             <View style={styles.container}>
                 <View style={styles.sectionContainer}>
                     <View style={styles.header}>
                         <Text style={styles.title}>{MOCK_DATA.user_nick}님의 감정상태</Text>
-                        <Pressable style={styles.dropdownTrigger} onPress={() => setModalVisible(true)}>
-                            <Text style={styles.selectedValue}>{value}월 ▼</Text>
-                        </Pressable>
+                        <View style={styles.yearSelector}>
+                            <Pressable onPress={handlePrevYear} style={styles.arrowButton}>
+                                <Text style={styles.arrowButtonText}>◀</Text>
+                            </Pressable>
+                            <Text style={styles.yearText}>{selectedYear}년</Text>
+                            <Pressable onPress={handleNextYear} style={styles.arrowButton}>
+                                <Text style={styles.arrowButtonText}>▶</Text>
+                            </Pressable>
+                        </View>
                     </View>
                 </View>
 
-                <Modal visible={modalVisible} transparent animationType="fade">
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            {monthItems.map((item) => (
-                                <Pressable
-                                    key={item.value}
-                                    onPress={() => {
-                                        setValue(item.value);
-                                        setModalVisible(false);
-                                    }}
-                                    style={[
-                                        styles.modalItem,
-                                        {
-                                            backgroundColor: value === item.value ? '#F0F0F0' : '#fff',
-                                        }
-                                    ]}
-                                >
-                                    <Text style={[
-                                        styles.modalItemText,
-                                        {
-                                            fontSize: 16,
-                                            color: value === item.value ? '#007AFF' : '#333',
-                                            fontWeight: value === item.value ? '600' : 'normal',
-                                        }
-                                    ]}>
-                                        {item.label}
-                                    </Text>
-                                </Pressable>
-                            ))}
+                <View style={styles.sectionContainer} ref={emotionChartRef}>
+                    <View style={styles.chartHeader}>
+                        <Text style={styles.subtitle}>월간 감정 분포</Text>
+                        <View style={styles.monthSelector}>
+                            <Pressable onPress={handlePrevMonth} style={styles.arrowButton}>
+                                <Text style={styles.arrowButtonText}>◀</Text>
+                            </Pressable>
+                            <Text style={styles.monthText}>{selectedMonth}월</Text>
+                            <Pressable onPress={handleNextMonth} style={styles.arrowButton}>
+                                <Text style={styles.arrowButtonText}>▶</Text>
+                            </Pressable>
                         </View>
                     </View>
-                </Modal>
-
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.subtitle}>월간 감정 분포</Text>
                     <View style={styles.chartContainer}>
                         <VictoryChart
                             theme={VictoryTheme.material}
@@ -193,7 +188,7 @@ export default function EmotionReport() {
                                         zIndex: 0
                                     }
                                 }}
-                                animate={false}  // 애니메이션 비활성화
+                                animate={false}
                                 alignment="middle"
                             />
                         </VictoryChart>
@@ -205,25 +200,15 @@ export default function EmotionReport() {
 }
 
 const styles = StyleSheet.create({
-
-    modalItem: {
-        fontSize: 20,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        backgroundColor: '#fff',
-        margin: 5,
-        borderRadius: 5,
-        textAlign: 'center',
-        width: 60,
-    },
-    modalItemText: {
-        textAlign: 'center',
+    scrollView: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
     },
     container: {
         flex: 1,
         padding: 15,
         backgroundColor: '#FFFFFF',
-        gap: 15,
+        gap: 0,
     },
     sectionContainer: {
         backgroundColor: '#F5F5F5',
@@ -234,60 +219,76 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between', // 변경
+        justifyContent: 'space-between',
         width: '100%',
     },
+    chartHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+        paddingHorizontal: 10,
+    },
     title: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '600',
         color: '#000',
-        marginRight: 10,
     },
     subtitle: {
         fontSize: 18,
         fontWeight: '600',
+        left:-8,
         color: '#000',
-        marginBottom: 10,
-        marginLeft: 10,
     },
-    dropdownTrigger: {
-        paddingHorizontal: 10,
-        marginLeft: 'auto', // 추가
-    },
-    selectedValue: {
-        fontSize: 18,
-        color: '#333',
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
+    yearSelector: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#FFF',
-        borderRadius: 10,
-        padding: 10,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 8,
+        paddingVertical: 4,
+        height: 36,
+        width: 140,  // 고정 너비 추가
+        justifyContent: 'center', // 중앙 정렬 추가
     },
-    modalItem: {
-        fontSize: 20,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        backgroundColor: '#fff',
-        margin: 5,
-        borderRadius: 5,
+    monthSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 8,
+        paddingVertical: 4,
+        height: 36,
+        right:-10,
+        width: 140,  // yearSelector와 동일한 너비
+        justifyContent: 'center', // 중앙 정렬 추가
+    },
+    arrowButton: {
+        padding: 4,
+        width: 28,
+        height: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    arrowButtonText: {
+        fontSize: 16,
+        color: '#000',
+    },
+    yearText: {
+        fontSize: 16,
+        fontWeight: '500',
+        marginHorizontal: 12,
+        color: '#333',
+        minWidth: 60,
         textAlign: 'center',
-        width: 60,
+    },
+    monthText: {
+        fontSize: 16,
+        fontWeight: '500',
+        marginHorizontal: 12,
+        color: '#333',
+        minWidth: 60,
+        textAlign: 'center',
     },
     chartContainer: {
         marginVertical: -10,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
+    }
 });
