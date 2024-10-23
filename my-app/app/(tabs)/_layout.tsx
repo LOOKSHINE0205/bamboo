@@ -35,7 +35,7 @@ export default function TabLayout() {
                     title: "일기",
                     tabBarLabel: '',
                     tabBarIcon: ({ color, focused }) => (
-                        <TabBarIcon name={focused ? 'journal' : 'journal-outline'} color={color} />
+                        <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
                     ),
                 }}
             />
