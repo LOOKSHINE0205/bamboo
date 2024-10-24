@@ -1,7 +1,6 @@
-import React, { useState, useRef, useMemo  } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView, Image } from 'react-native';
 import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryLabel, VictoryScatter, VictoryBar } from 'victory-native';
-
 
 // 이모티콘 이미지 import
 import em_happy from "../../assets/images/기쁨2.png";
@@ -12,6 +11,7 @@ import em_sad from "../../assets/images/슬픔2.png";
 import em_dislike from "../../assets/images/싫음2.png";
 import em_soso from "../../assets/images/쏘쏘2.png";
 
+// 화면의 너비를 가져옴
 const screenWidth = Dimensions.get("window").width;
 
 // 감정별 색상 및 데이터 정의
@@ -26,7 +26,7 @@ const EMOTIONS = {
     "두려움": { color: "#758694", icon: em_fear, order: 7 },
 };
 
-// 월간 데이터 Mock
+// 월간 데이터 Mock (데이터가 없는 경우를 대비한 가짜 데이터)
 const MOCK_DATA = {
     user_nick: "김철수",
     emotions: [
@@ -40,7 +40,7 @@ const MOCK_DATA = {
     ]
 };
 
-// 주간 데이터 Mock
+// 주간 데이터 Mock (가짜 주간 데이터)
 const MOCK_WEEKLY_DATA = {
     emotions: [
         { day: "월", emotion: "기쁨", value: 35 },
@@ -53,8 +53,7 @@ const MOCK_WEEKLY_DATA = {
     ]
 };
 
-
-// 커스텀 데이터 포인트 컴포넌트
+// 커스텀 데이터 포인트 컴포넌트 (VictoryScatter에서 사용)
 const CustomDataPoint = ({ x, y, datum }) => {
     const emotion = EMOTIONS[datum.y];
     if (!emotion) return null;
@@ -78,7 +77,8 @@ const CustomDataPoint = ({ x, y, datum }) => {
         </View>
     );
 };
-// 커스텀 바 레이블 컴포넌트
+
+// 커스텀 바 레이블 컴포넌트 (VictoryBar에서 사용)
 const CustomBarLabel = ({ x, y, datum }) => {
     const emotion = EMOTIONS[datum.x];
     if (!emotion) return null;
@@ -115,14 +115,17 @@ export default function EmotionReport() {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
 
+    // 현재 선택된 연도, 월, 주차를 상태로 관리
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
     const [selectedWeek, setSelectedWeek] = useState(1);
     const [activeTooltip, setActiveTooltip] = useState(null);
 
+    // 스크롤뷰 및 차트 참조 (차트 영역으로 이동할 때 사용)
     const scrollViewRef = useRef(null);
     const emotionChartRef = useRef(null);
-    // 툴팁 컴포넌트
+
+    // 툴팁 컴포넌트 (차트 포인트 클릭 시 표시)
     const Tooltip = ({ x, y, datum }) => {
         if (!activeTooltip || activeTooltip.x !== datum.x) return null;
 
@@ -144,28 +147,35 @@ export default function EmotionReport() {
             </View>
         );
     };
+
+    // 월간 감정 데이터 정렬 및 필터링
     const data = [...MOCK_DATA.emotions]
-        .sort((a, b) => a.count - b.count)
+        .sort((a, b) => a.count - b.count) // 감정의 횟수를 기준으로 정렬
         .map(item => ({
             x: item.emotion_tag,
             y: item.count,
             fill: EMOTIONS[item.emotion_tag].color,
         }));
 
+    // 주간 감정 데이터 변환
     const weeklyData = MOCK_WEEKLY_DATA.emotions.map(item => ({
         x: item.day,
         y: item.emotion,
         value: item.value,
         color: EMOTIONS[item.emotion].color
     }));
+
+    // 이전 연도로 이동
     const handlePrevYear = () => {
         setSelectedYear(prev => prev - 1);
     };
 
+    // 다음 연도로 이동
     const handleNextYear = () => {
         setSelectedYear(prev => prev + 1);
     };
 
+    // 이전 월로 이동
     const handlePrevMonth = () => {
         setSelectedMonth(prev => prev === 1 ? 12 : prev - 1);
         if (selectedMonth === 1) {
@@ -173,18 +183,22 @@ export default function EmotionReport() {
         }
     };
 
+    // 다음 월로 이동
     const handleNextMonth = () => {
         setSelectedMonth(prev => prev === 12 ? 1 : prev + 1);
         if (selectedMonth === 12) {
             setSelectedYear(prev => prev + 1);
         }
     };
+
+    // 데이터가 없을 때 표시할 컴포넌트
     const NoDataView = () => (
         <View style={styles.noDataContainer}>
             <Text style={styles.noDataText}>해당 주차의 데이터가 없습니다.</Text>
         </View>
     );
-    // 메모이제이션 추가
+
+    // 메모이제이션 추가 (데이터 변경 시만 재계산)
     const memoizedWeeklyData = useMemo(() => {
         return MOCK_WEEKLY_DATA.emotions.map(item => ({
             x: item.day,
@@ -192,12 +206,11 @@ export default function EmotionReport() {
             value: item.value,
             color: EMOTIONS[item.emotion].color
         }));
-    }, [selectedWeek]); // selectedWeek가 변경될 때만 재계산
+    }, [selectedWeek]);
 
-    // 컴포넌트 메모이제이션
+    // 컴포넌트 메모이제이션 (불필요한 렌더링 방지)
     const MemoizedCustomDataPoint = React.memo(CustomDataPoint);
     const MemoizedTooltip = React.memo(Tooltip);
-
 
     return (
         <ScrollView style={styles.scrollView} ref={scrollViewRef}>
@@ -305,7 +318,7 @@ export default function EmotionReport() {
                             width={screenWidth - 40}
                             height={300}
                             domainPadding={{ x: 20, y: 30 }}
-                            padding={{ left: 100, right: 50, top: 30, bottom: 50 }}
+                            padding={{ left: 80, right: 80, top: 30, bottom: 50 }} // 좌우 패딩을 동일하게 조정
                             animate={{
                                 duration: 500,
                                 onLoad: { duration: 300 },
@@ -404,165 +417,218 @@ export default function EmotionReport() {
                         ))}
                     </View>
                 </View>
+                {/* 감정 키워드 섹션 */}
+                <View style={styles.sectionContainer}>
+                    <View style={styles.chartHeader}>
+                        <Text style={styles.subtitle}>감정 키워드</Text>
+                        {/* 필요한 경우 여기에 컨트롤러 추가 */}
+                    </View>
+                    <View style={styles.wordCloudContainer}>
+                        <Text style={styles.placeholderText}>워드클라우드가 들어갈 예정입니다.</Text>
+                    </View>
+                </View>
             </View>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    // styles 객체에 추가
+    // 워드 클라우드가 들어갈 컨테이너 스타일
+    wordCloudContainer: {
+        width: '100%', // 컨테이너의 너비를 전체 너비로 설정
+        height: 200, // 고정된 높이 설정
+        backgroundColor: '#FFFFFF', // 배경색 흰색
+        borderRadius: 10, // 둥근 모서리 적용
+        justifyContent: 'center', // 수직 중앙 정렬
+        alignItems: 'center', // 가로 중앙 정렬
+        padding: 15, // 내부 여백 설정
+        marginTop: 10, // 상단 여백
+        borderWidth: 1, // 테두리 두께 설정
+        borderColor: '#E5E5E5', // 테두리 색상 설정
+    },
+    // 워드 클라우드의 자리 표시자 텍스트 스타일
+    placeholderText: {
+        fontSize: 14, // 텍스트 크기 설정
+        color: '#666666', // 텍스트 색상 설정 (회색)
+        textAlign: 'center', // 텍스트 가운데 정렬
+    },
+    // 주차 선택 컨트롤러 스타일
     weekSelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 8,
-        paddingVertical: 4,
-        height: 36,
-        width: 120,
-        justifyContent: 'center',
+        flexDirection: 'row', // 버튼과 텍스트를 가로로 정렬
+        alignItems: 'center', // 수직 중앙 정렬
+        backgroundColor: '#FFFFFF', // 배경색 흰색
+        borderRadius: 8, // 둥근 모서리 적용
+        paddingVertical: 4, // 위아래 여백
+        height: 36, // 높이 설정
+        width: 120, // 너비 설정
+        justifyContent: 'center', // 가로 중앙 정렬
     },
+    // 주차 선택 텍스트 스타일
     weekText: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginHorizontal: 12,
-        color: '#333',
-        minWidth: 50,
-        textAlign: 'center',
+        fontSize: 16, // 텍스트 크기 설정
+        fontWeight: '500', // 텍스트 굵기 설정 (중간 굵기)
+        marginHorizontal: 12, // 좌우 여백
+        color: '#333', // 텍스트 색상 설정 (어두운 회색)
+        minWidth: 50, // 최소 너비 설정
+        textAlign: 'center', // 텍스트 가운데 정렬
     },
+    // 데이터가 없을 때 표시할 컨테이너 스타일
     noDataContainer: {
-        height: 200,
-        justifyContent: 'center',
-        alignItems: 'center',
+        height: 200, // 고정된 높이 설정
+        justifyContent: 'center', // 수직 중앙 정렬
+        alignItems: 'center', // 가로 중앙 정렬
     },
+    // 데이터가 없을 때 표시할 텍스트 스타일
     noDataText: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
+        fontSize: 14, // 텍스트 크기 설정
+        color: '#666', // 텍스트 색상 설정 (회색)
+        textAlign: 'center', // 텍스트 가운데 정렬
     },
+    // 툴팁 컨테이너 스타일
     tooltipContainer: {
-        position: 'absolute',
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        padding: 10,
-        borderRadius: 5,
-        zIndex: 1000,
+        position: 'absolute', // 부모 요소에 상대적으로 위치 설정
+        backgroundColor: 'rgba(0,0,0,0.8)', // 반투명한 검은색 배경
+        padding: 10, // 내부 여백
+        borderRadius: 5, // 둥근 모서리 적용
+        zIndex: 1000, // 툴팁을 다른 요소보다 앞에 표시
     },
+    // 툴팁 텍스트 스타일
     tooltipText: {
-        color: 'white',
-        fontSize: 12,
-        textAlign: 'center',
+        color: 'white', // 텍스트 색상 흰색
+        fontSize: 12, // 텍스트 크기 설정
+        textAlign: 'center', // 텍스트 가운데 정렬
     },
-    // styles 객체에 추가
+    // 범례 컨테이너 스타일
     legendContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        marginTop: 20,
-        gap: 10,
+        flexDirection: 'row', // 가로 정렬
+        flexWrap: 'wrap', // 여러 줄로 감싸서 표시
+        justifyContent: 'center', // 가로 중앙 정렬
+        marginTop: 20, // 상단 여백
+        gap: 10, // 각 항목 사이의 간격
     },
+    // 범례 항목 스타일
     legendItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginHorizontal: 5,
+        flexDirection: 'row', // 색상과 텍스트를 가로로 정렬
+        alignItems: 'center', // 수직 중앙 정렬
+        marginHorizontal: 5, // 좌우 여백
     },
+    // 범례 색상 표시 스타일
     legendColor: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        marginRight: 5,
+        width: 12, // 색상 사각형의 너비
+        height: 12, // 색상 사각형의 높이
+        borderRadius: 6, // 둥근 모서리 적용
+        marginRight: 5, // 텍스트와의 간격
     },
+    // 범례 텍스트 스타일
     legendText: {
-        fontSize: 12,
-        color: '#333',
+        fontSize: 12, // 텍스트 크기 설정
+        color: '#333', // 텍스트 색상 설정 (어두운 회색)
     },
+    // 전체 ScrollView 스타일
     scrollView: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
+        flex: 1, // 전체 화면을 채우도록 설정
+        backgroundColor: '#FFFFFF', // 배경색 흰색
     },
+    // 전체 컨테이너 스타일
     container: {
-        flex: 1,
-        padding: 15,
-        backgroundColor: '#FFFFFF',
-        gap: 0,
+        flex: 1, // 전체 화면을 채우도록 설정
+        padding: 15, // 내부 여백
+        backgroundColor: '#FFFFFF', // 배경색 흰색
+        gap: 0, // 요소 간 간격 없음
     },
+    // 각 섹션을 감싸는 컨테이너 스타일
     sectionContainer: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 15,
-        padding: 15,
-        marginBottom: 10,
+        backgroundColor: '#F5F5F5', // 연한 회색 배경
+        borderRadius: 15, // 둥근 모서리 적용
+        padding: 15, // 내부 여백
+        marginBottom: 10, // 하단 여백
     },
+    // 헤더 스타일
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
+        flexDirection: 'row', // 가로 정렬
+        alignItems: 'center', // 수직 중앙 정렬
+        justifyContent: 'space-between', // 좌우 끝에 배치
+        width: '100%', // 전체 너비 사용
     },
+    // 차트 헤더 스타일
     chartHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-        paddingHorizontal: 10,
+        flexDirection: 'row', // 가로 정렬
+        alignItems: 'center', // 수직 중앙 정렬
+        justifyContent: 'space-between', // 좌우 끝에 배치
+        marginBottom: 10, // 하단 여백
+        paddingHorizontal: 10, // 좌우 여백
     },
+    // 제목 텍스트 스타일
     title: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#000',
+        fontSize: 18, // 텍스트 크기 설정
+        fontWeight: '600', // 텍스트 두껍게 설정
+        color: '#000', // 텍스트 색상 검정
     },
+    // 부제목 텍스트 스타일
     subtitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        left: -8,
-        color: '#000',
+        fontSize: 18, // 텍스트 크기 설정
+        fontWeight: '600', // 텍스트 두껍게 설정
+        left: -8, // 왼쪽으로 약간 위치 조정
+        color: '#000', // 텍스트 색상 검정
     },
+    // 연도 선택기 스타일
     yearSelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 8,
-        paddingVertical: 4,
-        height: 36,
-        width: 140,
-        justifyContent: 'center',
+        flexDirection: 'row', // 가로 정렬
+        alignItems: 'center', // 수직 중앙 정렬
+        backgroundColor: '#FFFFFF', // 배경색 흰색
+        borderRadius: 8, // 둥근 모서리 적용
+        paddingVertical: 4, // 위아래 여백
+        height: 36, // 높이 설정
+        width: 140, // 너비 설정
+        justifyContent: 'center', // 가로 중앙 정렬
     },
+    // 월 선택기 스타일
     monthSelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 8,
-        paddingVertical: 4,
-        height: 36,
-        right: -10,
-        width: 140,
-        justifyContent: 'center',
+        flexDirection: 'row', // 가로 정렬
+        alignItems: 'center', // 수직 중앙 정렬
+        backgroundColor: '#FFFFFF', // 배경색 흰색
+        borderRadius: 8, // 둥근 모서리 적용
+        paddingVertical: 4, // 위아래 여백
+        height: 36, // 높이 설정
+        right: -10, // 오른쪽으로 위치 조정
+        width: 140, // 너비 설정
+        justifyContent: 'center', // 가로 중앙 정렬
     },
+    // 화살표 버튼 스타일
     arrowButton: {
-        padding: 4,
-        width: 28,
-        height: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
+        padding: 4, // 내부 여백
+        width: 28, // 너비 설정
+        height: 28, // 높이 설정
+        alignItems: 'center', // 수직 중앙 정렬
+        justifyContent: 'center', // 가로 중앙 정렬
     },
+    // 화살표 버튼 텍스트 스타일
     arrowButtonText: {
-        fontSize: 16,
-        color: '#000',
+        fontSize: 16, // 텍스트 크기 설정
+        color: '#000', // 텍스트 색상 검정
     },
+    // 연도 텍스트 스타일
     yearText: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginHorizontal: 12,
-        color: '#333',
-        minWidth: 60,
-        textAlign: 'center',
+        fontSize: 16, // 텍스트 크기 설정
+        fontWeight: '500', // 텍스트 굵기 설정 (중간 굵기)
+        marginHorizontal: 12, // 좌우 여백
+        color: '#333', // 텍스트 색상 설정 (어두운 회색)
+        minWidth: 60, // 최소 너비 설정
+        textAlign: 'center', // 텍스트 가운데 정렬
     },
+    // 월 텍스트 스타일
     monthText: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginHorizontal: 12,
-        color: '#333',
-        minWidth: 60,
-        textAlign: 'center',
+        fontSize: 16, // 텍스트 크기 설정
+        fontWeight: '500', // 텍스트 굵기 설정 (중간 굵기)
+        marginHorizontal: 12, // 좌우 여백
+        color: '#333', // 텍스트 색상 설정 (어두운 회색)
+        minWidth: 60, // 최소 너비 설정
+        textAlign: 'center', // 텍스트 가운데 정렬
     },
+    // 차트 컨테이너 스타일
     chartContainer: {
         marginVertical: -10,
-    }
+        alignItems: 'center', // 가운데 정렬 추가
+        width: '100%', // 전체 너비 사용
+    },
 });
