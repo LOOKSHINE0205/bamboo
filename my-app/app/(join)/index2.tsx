@@ -199,7 +199,7 @@ const KeywordSelectionScreen = () => {
   return (
     <JoinBG>
       <ScrollView contentContainerStyle={[styles.container, { paddingVertical: screenHeight * 0.05 }]}>
-      <View style={[styles.chatBubble, { width: screenWidth * 0.9 }]}>
+      <View style={[styles.chatBubble, { width: screenWidth * 0.9, top:'0%' }]}>
         <Text style={styles.chatText}>{currentQuestion.question}</Text>
       </View>
 
@@ -217,7 +217,7 @@ const KeywordSelectionScreen = () => {
         </View>
       )}
 
-        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
+        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85, top:'15%' }]}>
           {!isLastQuestion ? (
             <TouchableOpacity
               style={styles.aiResponseButton}
@@ -261,14 +261,14 @@ const KeywordSelectionScreen = () => {
                 {
                   width: screenWidth * 0.4,
                   height: screenWidth * 0.4,
-                  top: 80,
+                  top: 110,
                   transform: [{ scale: chatbotScale }],
                 },
               ]}
               resizeMode="contain"
             />
             <TextInput
-              style={[styles.nameInput, { width: screenWidth * 0.8, top: 100 }]}
+              style={[styles.nameInput, { width: screenWidth * 0.8, top: 120 }]}
               value={chatbotName}
               onChangeText={setChatbotName}
               placeholder="밤부의 이름을 입력하세요"
@@ -301,7 +301,7 @@ const KeywordSelectionScreen = () => {
             </View>
           </View>
         ) : (
-            <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: isFirstQuestion ? '11%' : '0%' }]}>
+            <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: isFirstQuestion ? '11%' : '0%', top:'80%' }]}>
               {currentQuestion.responses.map((response, index) => (
                 <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
                   <TouchableOpacity
@@ -316,7 +316,7 @@ const KeywordSelectionScreen = () => {
               {currentQuestionIndex > 0 && (
                 <View style={styles.navigationButtons}>
                   <TouchableOpacity
-                    style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]}
+                    style={[styles.navButton]}
                     onPress={handlePrevious}
                     disabled={isProcessing}
                   >
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: '4%',
     position: 'absolute',
-    top: 120,
+    top: 180,
     zIndex: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
