@@ -3,6 +3,7 @@ package org.example.please.controller;
 import org.example.please.entity.Diary;
 import org.example.please.service.DiaryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,11 +24,18 @@ public class DiaryController {
         return ResponseEntity.ok(diaries);  // 200 OK 응답
     }
 
+    // 사용자로부터 일기 데이터를 받아 데이터베이스에 저장
+    @PostMapping("/create")
+    public ResponseEntity<Diary> createDiary(@RequestBody Diary diary) {
+        Diary newDiary = diaryService.createDiary(diary);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
+    }
+
     // 모든 일기 조회
     @GetMapping
     public ResponseEntity<List<Diary>> getAllDiaries() {
         List<Diary> diaries = diaryService.getAllDiaries();
-        return ResponseEntity.ok(diaries);  // 200 OK 응답
+        return ResponseEntity.ok(diaries);
     }
 
     // 특정 일기 조회
@@ -39,13 +47,6 @@ public class DiaryController {
         } else {
             return ResponseEntity.notFound().build();  // 404 Not Found 응답
         }
-    }
-
-    // 일기 작성
-    @PostMapping
-    public ResponseEntity<Diary> createDiary(@RequestBody Diary diary) {
-        Diary createdDiary = diaryService.createDiary(diary);
-        return ResponseEntity.status(201).body(createdDiary);  // 201 Created 응답
     }
 
     // 일기 삭제

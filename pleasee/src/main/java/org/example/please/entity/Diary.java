@@ -36,4 +36,14 @@ public class Diary {
     // 작성 일자
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    //날씨
+    @Column(name ="diary_weather")
+    private String weather;
+
+    //사진
+    @Column(name = "diary_photo")
+    private String photo;
+
+
 }
