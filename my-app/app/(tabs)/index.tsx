@@ -5,16 +5,23 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 // @ts-ignore
 import BambooHead from '../../assets/images/bamboo_head.png';
 
+interface Message {
+    sender: string;
+    text: string;
+    avatar: any;
+    name: string;
+    timestamp: string;
+}
+
+
 export default function ChatbotPage() {
-    const [messages, setMessages] = useState<{ sender: string, text: string, avatar: any, name: string }[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]); // Message 인터페이스 사용
     const [input, setInput] = useState('');
     const [userName, setUserName] = useState<string>('');
     const [chatbotName, setChatbotName] = useState<string>('');
     const scrollViewRef = useRef<ScrollView>(null);
 
-//     const serverUrl = 'http://192.168.21.23:8082/api/chat/message';
     const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
-//     const userInfoUrl = 'http://192.168.21.23:8082/api/user/info';
     const userInfoUrl = 'http://10.0.2.2:8082/api/user/info';
 
     useEffect(() => {
@@ -31,24 +38,36 @@ export default function ChatbotPage() {
         fetchUserData();
     }, []);
 
-    // 메시지가 추가될 때마다 스크롤을 아래로 이동
     useEffect(() => {
         if (scrollViewRef.current && messages.length > 0) {
             scrollViewRef.current.scrollToEnd({ animated: true });
         }
     }, [messages]);
 
+    const getCurrentTime = (): string => {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? '오후' : '오전';
+
+        // 12시간제로 변환
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0시를 12시로 표시
+
+        return `${ampm} ${hours}:${minutes}`;
+    };
+
     const sendMessage = async () => {
         if (input.trim()) {
-            setMessages([
-                ...messages,
-                {
-                    sender: 'user',
-                    text: input,
-                    avatar: BambooHead,
-                    name: userName || '사용자',
-                },
-            ]);
+            const userMessage: Message = {
+                sender: 'user',
+                text: input.trim(),
+                avatar: BambooHead,
+                name: userName || '사용자',
+                timestamp: getCurrentTime(),
+            };
+
+            setMessages(prevMessages => [...prevMessages, userMessage]);
             setInput('');
 
             try {
@@ -56,27 +75,30 @@ export default function ChatbotPage() {
                     headers: { 'Content-Type': 'text/plain' },
                 });
 
-                const botResponse = {
+                const botMessage: Message = {
                     sender: 'bot',
                     text: response.data,
                     avatar: BambooHead,
                     name: chatbotName || '챗봇',
+                    timestamp: getCurrentTime(),
                 };
-                setMessages((prevMessages) => [...prevMessages, botResponse]);
+
+                setMessages(prevMessages => [...prevMessages, botMessage]);
             } catch (error) {
                 console.error('Error:', error);
-                setMessages((prevMessages) => [
-                    ...prevMessages,
-                    {
-                        sender: 'bot',
-                        text: '챗봇 응답을 가져올 수 없습니다.',
-                        avatar: BambooHead,
-                        name: chatbotName || '챗봇',
-                    },
-                ]);
+                const errorMessage: Message = {
+                    sender: 'bot',
+                    text: '챗봇 응답을 가져올 수 없습니다.',
+                    avatar: BambooHead,
+                    name: chatbotName || '챗봇',
+                    timestamp: getCurrentTime(),
+                };
+
+                setMessages(prevMessages => [...prevMessages, errorMessage]);
             }
         }
     };
+
 
     return (
         <View style={styles.container}>
@@ -84,7 +106,7 @@ export default function ChatbotPage() {
                 ref={scrollViewRef}
                 style={styles.chatArea}
                 contentContainerStyle={styles.chatContent}
-                showsVerticalScrollIndicator={false}  // 스크롤바 숨기기
+                showsVerticalScrollIndicator={false}
             >
                 {messages.map((msg, index) => (
                     <View
@@ -109,18 +131,30 @@ export default function ChatbotPage() {
                             ]}>
                                 {msg.name}
                             </Text>
-                            <View
-                                style={[
-                                    styles.message,
-                                    msg.sender === 'user' ? styles.userMessage : styles.botMessage,
-                                ]}
-                            >
-                                <Text style={[
-                                    styles.messageText,
-                                    msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
-                                ]}>
-                                    {msg.text}
-                                </Text>
+                            <View style={styles.messageTimeContainer}>
+                                {msg.sender === 'user' && (
+                                    <Text style={styles.timeText}>
+                                        {msg.timestamp}
+                                    </Text>
+                                )}
+                                <View
+                                    style={[
+                                        styles.message,
+                                        msg.sender === 'user' ? styles.userMessage : styles.botMessage,
+                                    ]}
+                                >
+                                    <Text style={[
+                                        styles.messageText,
+                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
+                                    ]}>
+                                        {msg.text}
+                                    </Text>
+                                </View>
+                                {msg.sender === 'bot' && (
+                                    <Text style={styles.timeText}>
+                                        {msg.timestamp}
+                                    </Text>
+                                )}
                             </View>
                         </View>
                         {msg.sender === 'user' && (
@@ -137,7 +171,7 @@ export default function ChatbotPage() {
                     value={input}
                     onChangeText={setInput}
                     placeholder="이야기 입력하기.."
-                    onSubmitEditing={sendMessage}  // Enter 키로도 메시지 전송 가능하도록
+                    onSubmitEditing={sendMessage}
                 />
                 <TouchableOpacity onPress={sendMessage} style={styles.iconButton}>
                     <Ionicons name="volume-high" size={24} color="#fff" />
@@ -159,6 +193,10 @@ const styles = StyleSheet.create({
         padding: 8,
         width: '100%',
     },
+    chatContent: {
+        paddingVertical: 10,
+        flexGrow: 1,
+    },
     messageContainer: {
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -174,20 +212,18 @@ const styles = StyleSheet.create({
     avatarContainer: {
         width: 36,
         height: 36,
-        top: 2,
         borderRadius: 18,
         overflow: 'hidden',
+        marginTop: 2,
     },
     avatar: {
         width: '100%',
         height: '100%',
-        top:2,
         resizeMode: 'contain',
     },
     messageContent: {
         maxWidth: '70%',
-        marginHorizontal: -3,
-        position: 'relative',  // 꼬리 위치 지정을 위해 추가
+        marginHorizontal: 8,
     },
     userMessageContent: {
         alignItems: 'flex-end',
@@ -195,21 +231,19 @@ const styles = StyleSheet.create({
     botMessageContent: {
         alignItems: 'flex-start',
     },
-    chatContent: {
-        paddingVertical: 10,  // 스크롤 영역 상하 여백 추가
-        flexGrow: 1,  // 컨텐츠가 적을 때도 스크롤 가능하도록
+    messageTimeContainer: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        gap: 2,
     },
     senderName: {
         fontSize: 13,
         fontWeight: 'bold',
         marginBottom: 2,
         color: '#555',
-        paddingLeft: 1,  // 말풍선 꼬리 공간 확보
     },
     userSenderName: {
         textAlign: 'right',
-        paddingLeft: 0,
-        paddingRight: 1,  // 사용자 메시지의 경우 오른쪽에 패딩
     },
     botSenderName: {
         textAlign: 'left',
@@ -217,34 +251,15 @@ const styles = StyleSheet.create({
     message: {
         padding: 8,
         borderRadius: 15,
-        position: 'relative',  // 꼬리 위치 지정을 위해 추가
+        maxWidth: '100%',
     },
     userMessage: {
         backgroundColor: '#4a9960',
-        marginLeft: 12,  // 말풍선 꼬리 공간 확보
-        borderTopRightRadius: 3,  // 꼬리 쪽 모서리 더 날카롭게
+        borderTopRightRadius: 3,
     },
     botMessage: {
         backgroundColor: '#ECECEC',
-        marginRight: 12,  // 말풍선 꼬리 공간 확보
-        borderTopLeftRadius: 3,  // 꼬리 쪽 모서리 더 날카롭게
-    },
-    messageTail: {
-        position: 'absolute',
-        width: 0,
-        height: 0,
-        borderStyle: 'solid',
-        borderWidth: 6,
-    },
-    userMessageTail: {
-        right: -8,
-        top: 8,
-        borderColor: 'transparent transparent transparent #4a9960',
-    },
-    botMessageTail: {
-        left: -8,
-        top: 8,
-        borderColor: 'transparent #ECECEC transparent transparent',
+        borderTopLeftRadius: 3,
     },
     messageText: {
         fontSize: 16,
@@ -254,6 +269,12 @@ const styles = StyleSheet.create({
     },
     botMessageText: {
         color: '#000000',
+    },
+    timeText: {
+        fontSize: 12,
+        color: '#999',
+        paddingBottom: 4,
+        marginHorizontal: 2,
     },
     inputArea: {
         flexDirection: 'row',
@@ -269,7 +290,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 20,
-        paddingHorizontal: 10,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
     },
     iconButton: {
         backgroundColor: '#4a9960',
