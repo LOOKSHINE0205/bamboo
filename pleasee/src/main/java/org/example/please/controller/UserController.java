@@ -41,4 +41,11 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패");
     }
 
+    // 비밀번호만 업데이트
+    @PostMapping("/updatePassword")
+    public ResponseEntity<String> updatePassword(@RequestBody User user) {
+        userService.updatePassword(user);
+        return ResponseEntity.status(HttpStatus.OK).body("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
 }

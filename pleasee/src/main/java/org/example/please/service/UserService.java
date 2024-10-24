@@ -39,4 +39,22 @@ public class UserService {
         return foundUser.filter(value -> passwordEncoder.matches(user.getUserPw(), value.getUserPw())).isPresent();
     }
 
+    // 비밀번호만 업데이트
+    public void updatePassword(User user) {
+        Optional<User> optionalUser = userRepository.findByUserEmail(user.getUserEmail());
+
+        if (optionalUser.isPresent()) {
+            User existingUser = optionalUser.get();
+
+            // 비밀번호가 입력된 경우 암호화하여 업데이트
+            if (user.getUserPw() != null && !user.getUserPw().isEmpty()) {
+                String encodedPassword = passwordEncoder.encode(user.getUserPw());
+                existingUser.setUserPw(encodedPassword);  // 비밀번호만 변경
+            }
+
+            // 업데이트된 정보 저장
+            userRepository.save(existingUser);
+        }
+    }
+
 }

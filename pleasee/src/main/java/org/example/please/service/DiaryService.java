@@ -52,8 +52,12 @@ public class DiaryService {
         return diaryRepository.findAll();
     }
 
-    // 일기 작성
+    // 일기 작성 로직
     public Diary createDiary(Diary diary) {
+        // 작성 시간 자동 설정 (만약 클라이언트에서 제공하지 않았다면)
+        if (diary.getCreatedAt() == null) {
+            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        }
         return diaryRepository.save(diary);
     }
 
