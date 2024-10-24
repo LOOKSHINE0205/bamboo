@@ -46,4 +46,26 @@ public class DiaryService {
 
         return diariesByUser;
     }
+
+    // 모든 일기 조회
+    public List<Diary> getAllDiaries() {
+        return diaryRepository.findAll();
+    }
+
+    // 일기 작성
+    public Diary createDiary(Diary diary) {
+        return diaryRepository.save(diary);
+    }
+
+    // 특정 일기 조회
+    public Diary getDiaryById(int id) {
+        return diaryRepository.findById(id).orElse(null);
+    }
+
+    // 일기 삭제
+    public void deleteDiary(int id) {
+        diaryRepository.deleteById(id);
+    }
+
+
 }
