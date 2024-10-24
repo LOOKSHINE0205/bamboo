@@ -268,12 +268,15 @@ const KeywordSelectionScreen = () => {
               resizeMode="contain"
             />
             <TextInput
-              style={[styles.nameInput, { width: screenWidth * 0.8, top: 120 }]}
+              style={[styles.nameInput, { width: screenWidth * 0.8, top: 140 }]}
               value={chatbotName}
               onChangeText={setChatbotName}
               placeholder="밤부의 이름을 입력하세요"
               placeholderTextColor="#999"
             />
+
+            {/* 경고 메시지 추가 */}
+            <Text style={styles.warningText}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
 
             <View style={[styles.navigationButtons, { top: 120 }]}>
               {currentQuestionIndex > 0 && (
@@ -301,36 +304,44 @@ const KeywordSelectionScreen = () => {
             </View>
           </View>
         ) : (
-            <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: isFirstQuestion ? '11%' : '0%', top:'80%' }]}>
-              {currentQuestion.responses.map((response, index) => (
-                <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
-                  <TouchableOpacity
-                    style={styles.responseButtonTouchable}
-                    onPress={() => !isProcessing && handleResponsePress(index)}
-                    disabled={isProcessing}
-                  >
-                    <Text style={styles.responseText}>{response}</Text>
-                  </TouchableOpacity>
-                </Animated.View>
-              ))}
-              {currentQuestionIndex > 0 && (
-                <View style={styles.navigationButtons}>
-                  <TouchableOpacity
-                    style={[styles.navButton]}
-                    onPress={handlePrevious}
-                    disabled={isProcessing}
-                  >
-                    <Text style={styles.navButtonText}>이전</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          )}
+          <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: isFirstQuestion ? '11%' : '0%', top:'80%' }]}>
+            {currentQuestion.responses.map((response, index) => (
+              <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85 }]}>
+                <TouchableOpacity
+                  style={styles.responseButtonTouchable}
+                  onPress={() => !isProcessing && handleResponsePress(index)}
+                  disabled={isProcessing}
+                >
+                  <Text style={styles.responseText}>{response}</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+            {currentQuestionIndex > 0 && (
+              <View style={styles.navigationButtons}>
+                <TouchableOpacity
+                  style={[styles.navButton]}
+                  onPress={handlePrevious}
+                  disabled={isProcessing}
+                >
+                  <Text style={styles.navButtonText}>이전</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+
       </ScrollView>
     </JoinBG>
   );
 };
 const styles = StyleSheet.create({
+  warningText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 10,
+    fontSize: 14,
+    top:'15%',
+  },
   container: {
     flexGrow: 1,
     alignItems: 'center',
