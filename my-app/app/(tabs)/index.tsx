@@ -131,7 +131,7 @@ export default function ChatbotPage() {
                 >
                     <Ionicons
                         name={message.evaluation === 'like' ? "thumbs-up" : "thumbs-up-outline"}
-                        size={18}
+                        size={14}  // 작은 크기의 아이콘
                         color={message.evaluation === 'like' ? "#4a9960" : "#666"}
                     />
                 </TouchableOpacity>
@@ -144,7 +144,7 @@ export default function ChatbotPage() {
                 >
                     <Ionicons
                         name={message.evaluation === 'dislike' ? "thumbs-down" : "thumbs-down-outline"}
-                        size={18}
+                        size={14}  // 작은 크기의 아이콘
                         color={message.evaluation === 'dislike' ? "#e74c3c" : "#666"}
                     />
                 </TouchableOpacity>
@@ -232,6 +232,7 @@ export default function ChatbotPage() {
                             msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
                         ]}
                     >
+                        {/* 챗봇 아바타 */}
                         {msg.sender === 'bot' && (
                             <View style={styles.avatarContainer}>
                                 <Image source={msg.avatar} style={styles.avatar} />
@@ -241,6 +242,7 @@ export default function ChatbotPage() {
                             styles.messageContent,
                             msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
                         ]}>
+                            {/* 발신자 이름 */}
                             <Text style={[
                                 styles.senderName,
                                 msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
@@ -248,11 +250,13 @@ export default function ChatbotPage() {
                                 {msg.name}
                             </Text>
                             <View style={styles.messageTimeContainer}>
+                                {/* 사용자 메시지 시간 표시 */}
                                 {msg.sender === 'user' && msg.showTimestamp && (
                                     <Text style={styles.timeText}>
                                         {msg.timestamp}
                                     </Text>
                                 )}
+                                {/* 메시지 버블 */}
                                 <View
                                     style={[
                                         styles.message,
@@ -266,22 +270,56 @@ export default function ChatbotPage() {
                                         {msg.text}
                                     </Text>
                                 </View>
+                                {/* 챗봇 메시지 시간과 평가 버튼 */}
                                 {msg.sender === 'bot' && msg.showTimestamp && (
-                                    <Text style={styles.timeText}>
-                                        {msg.timestamp}
-                                    </Text>
+                                    <View style={styles.timeContainer}>
+                                        {/* 평가 버튼 컨테이너 */}
+                                        <View style={styles.evaluationContainer}>
+                                            <TouchableOpacity
+                                                onPress={() => handleEvaluation(index, 'like')}
+                                                style={[
+                                                    styles.evaluationButton,
+                                                    msg.evaluation === 'like' && styles.evaluationButtonActive
+                                                ]}
+                                            >
+                                                <Ionicons
+                                                    name={msg.evaluation === 'like' ? "thumbs-up" : "thumbs-up-outline"}
+                                                    size={14}
+                                                    color={msg.evaluation === 'like' ? "#4a9960" : "#666"}
+                                                />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() => handleEvaluation(index, 'dislike')}
+                                                style={[
+                                                    styles.evaluationButton,
+                                                    msg.evaluation === 'dislike' && styles.evaluationButtonActive
+                                                ]}
+                                            >
+                                                <Ionicons
+                                                    name={msg.evaluation === 'dislike' ? "thumbs-down" : "thumbs-down-outline"}
+                                                    size={14}
+                                                    color={msg.evaluation === 'dislike' ? "#e74c3c" : "#666"}
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                        {/* 시간 표시 */}
+                                        <Text style={styles.timeText}>
+                                            {msg.timestamp}
+                                        </Text>
+                                    </View>
                                 )}
                             </View>
                         </View>
+                        {/* 사용자 아바타 */}
                         {msg.sender === 'user' && (
                             <View style={styles.avatarContainer}>
                                 <Image source={msg.avatar} style={styles.avatar} />
                             </View>
                         )}
-                        <EvaluationButtons message={msg} index={index} />
                     </View>
                 ))}
             </ScrollView>
+            {/* 입력 영역 */}
             <View style={styles.inputArea}>
                 <TextInput
                     style={styles.input}
@@ -299,67 +337,73 @@ export default function ChatbotPage() {
 }
 
 const styles = StyleSheet.create({
+    // 시간과 평가 버튼을 함께 감싸는 컨테이너
+    timeContainer: {
+        flexDirection: 'column', // 평가 버튼과 시간을 세로로 정렬
+        alignItems: 'flex-start', // 왼쪽 정렬
+        gap: 2, // 평가 버튼과 시간 사이 간격
+    },
+
     // 평가 버튼을 감싸는 컨테이너
     evaluationContainer: {
         flexDirection: 'row', // 버튼들을 가로로 정렬
         alignItems: 'center', // 버튼들을 수직으로 중앙 정렬
-        position: 'absolute', // 부모 요소에 상대적으로 위치 설정
-        bottom: -50, // 말풍선 아래에 위치
-        right: 300, // 말풍선 오른쪽에 위치
         backgroundColor: 'white', // 배경색 흰색
-        borderRadius: 15, // 둥근 모서리 적용
-        padding: 4, // 내부 여백
+        borderRadius: 12, // 모서리 둥글게
+        padding: 2, // 내부 여백
+        marginBottom: 2, // 시간과의 세로 간격
         shadowColor: "#000", // 그림자 색상
+        left:-5,
         shadowOffset: {
             width: 0,
-            height: 1, // 아래쪽으로 그림자 위치
+            height: 1,
         },
-        shadowOpacity: 0.18, // 그림자 투명도
-        shadowRadius: 1.0, // 그림자 퍼짐 정도
-        elevation: 1, // 안드로이드에서의 그림자 효과
+        shadowOpacity: 0.18,
+        shadowRadius: 1.0,
+        elevation: 1,
     },
     // 평가 버튼의 스타일
     evaluationButton: {
-        padding: 4, // 버튼의 내부 여백
-        marginHorizontal: 4, // 버튼 사이 간격
+        padding: 2,
+        marginHorizontal: 2,
     },
+
     // 활성화된 평가 버튼의 스타일
     evaluationButtonActive: {
-        backgroundColor: '#f8f9fa', // 활성화된 버튼의 배경색
-        borderRadius: 12, // 둥근 모서리 적용
+        backgroundColor: '#f8f9fa',
+        borderRadius: 8,
     },
+
     // 메시지와 시간 텍스트를 감싸는 컨테이너
     messageTimeContainer: {
-        flexDirection: 'row', // 시간과 메시지를 가로로 정렬
-        alignItems: 'flex-end', // 메시지를 수직으로 아래 정렬
-        gap: 0, // 요소 간 간격 설정 (지원되는 플랫폼에서만 사용 가능)
+       flexDirection: 'row', // 시간과 메시지를 가로로 정렬
+       alignItems: 'flex-end', // 메시지를 수직으로 아래 정렬
+       gap: 0, // 요소 간 간격 설정
+       marginTop: -3, // 이름과의 간격을 좁히기 위해 위치를 위로 조정
     },
+
     // 메시지 시간 텍스트 스타일
     timeText: {
         fontSize: 12, // 텍스트 크기
         color: '#999', // 텍스트 색상
-        marginBottom: -1, // 아래쪽 여백을 음수로 설정해 위치 조정
-        marginRight: -5, // 사용자 메시지 시간을 위한 음수 마진
-        marginLeft: -5, // 봇 메시지 시간을 위한 음수 마진
+        marginTop: 2, // 평가 버튼과의 간격
     },
+
     // 메시지의 기본 스타일
     message: {
         padding: 8, // 내부 여백
         borderRadius: 15, // 둥근 모서리 적용
         maxWidth: '100%', // 최대 너비 100%
     },
+
     // 사용자 메시지의 스타일
     userMessage: {
         backgroundColor: '#4a9960', // 사용자 메시지 배경색
         marginLeft: 12,  // 말풍선 꼬리 공간 확보
         borderTopRightRadius: 3, // 오른쪽 상단 모서리를 더 둥글게
+        top:5,
     },
-    // 봇 메시지의 스타일
-    botMessage: {
-        backgroundColor: '#ECECEC', // 봇 메시지 배경색
-        marginRight: 12,  // 말풍선 꼬리 공간 확보
-        borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
-    },
+
     // 전체 컨테이너 스타일
     container: {
         flex: 1, // 화면을 가득 채움
@@ -367,27 +411,34 @@ const styles = StyleSheet.create({
         justifyContent: 'center', // 세로 중앙 정렬
         alignItems: 'center', // 가로 중앙 정렬
     },
+
     // 채팅 영역 스타일
     chatArea: {
         flex: 1, // 화면을 가득 채움
         padding: 8, // 내부 여백
         width: '100%', // 전체 너비 사용
     },
+
     // 메시지 컨테이너 스타일
     messageContainer: {
         flexDirection: 'row', // 메시지와 아바타를 가로로 정렬
         alignItems: 'flex-start', // 수직으로 위쪽 정렬
         marginVertical: 4, // 위아래 여백
+        marginBottom: 24, // 메시지 간격
         paddingHorizontal: 6, // 좌우 여백
+        position: 'relative', // 자식 요소의 위치 설정
     },
+
     // 사용자 메시지 컨테이너 스타일
     userMessageContainer: {
         justifyContent: 'flex-end', // 오른쪽 정렬
     },
+
     // 봇 메시지 컨테이너 스타일
     botMessageContainer: {
         justifyContent: 'flex-start', // 왼쪽 정렬
     },
+
     // 아바타 컨테이너 스타일
     avatarContainer: {
         width: 36, // 아바타 너비
@@ -396,6 +447,7 @@ const styles = StyleSheet.create({
         borderRadius: 18, // 원형 모양
         overflow: 'hidden', // 넘치는 부분을 숨김
     },
+
     // 아바타 이미지 스타일
     avatar: {
         width: '100%', // 아바타 너비 100%
@@ -403,43 +455,62 @@ const styles = StyleSheet.create({
         top: 2, // 약간 위로 위치 조정
         resizeMode: 'contain', // 이미지가 컨테이너에 맞춰 조정됨
     },
+
     // 메시지 컨텐츠 스타일
     messageContent: {
         maxWidth: '70%', // 메시지 최대 너비
         marginHorizontal: -3, // 좌우 마진
-        position: 'relative', // 자식 요소의 위치 설정을 위한 상대 위치
+        position: 'relative', // 자식 요소의 위치 설정
     },
+
     // 사용자 메시지 컨텐츠 정렬 스타일
     userMessageContent: {
         alignItems: 'flex-end', // 오른쪽 정렬
     },
+
     // 봇 메시지 컨텐츠 정렬 스타일
     botMessageContent: {
-        alignItems: 'flex-start', // 왼쪽 정렬
+       alignItems: 'flex-start', // 왼쪽 정렬
+       marginTop: -2, // 이름과 메시지 버블 사이의 간격을 줄이기 위한 위치 조정
     },
+
     // 채팅 컨텐츠 스타일
     chatContent: {
         paddingVertical: 10, // 위아래 여백
         flexGrow: 1, // 컨텐츠가 적을 때도 스크롤 가능하도록
     },
+
+    // 봇 메시지 컨텐츠 정렬 스타일
+    botMessage: {
+       backgroundColor: '#ECECEC', // 배경색 설정
+       marginRight: 12, // 말풍선 꼬리 공간 확보
+       borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
+       position: 'relative', // 상대적 위치 설정으로 정확한 배치 가능
+       top: 5, // 기본 위치 설정 (위치 조정이 필요한 경우 수정)
+       marginBottom:7,
+    },
+
     // 발신자 이름 텍스트 스타일
     senderName: {
-        fontSize: 13, // 텍스트 크기
-        fontWeight: 'bold', // 텍스트 두껍게
-        marginBottom: 2, // 아래 여백
-        color: '#555', // 텍스트 색상
-        paddingLeft: 1, // 말풍선 꼬리 공간 확보
+       fontSize: 13, // 텍스트 크기
+       fontWeight: 'bold', // 텍스트 두껍게
+       marginBottom: 2, // 버블과의 간격을 최소화
+       color: '#555', // 텍스트 색상
+       paddingLeft: 1, // 말풍선 꼬리 공간 확보
     },
+
+    // 봇 발신자 이름 정렬 스타일
+    botSenderName: {
+        textAlign: 'left', // 텍스트 왼쪽 정렬
+    },
+
     // 사용자 발신자 이름 정렬 스타일
     userSenderName: {
         textAlign: 'right', // 텍스트 오른쪽 정렬
         paddingLeft: 0, // 왼쪽 여백 제거
         paddingRight: 1, // 오른쪽 여백
     },
-    // 봇 발신자 이름 정렬 스타일
-    botSenderName: {
-        textAlign: 'left', // 텍스트 왼쪽 정렬
-    },
+
     // 메시지 꼬리 스타일
     messageTail: {
         position: 'absolute',
@@ -448,30 +519,36 @@ const styles = StyleSheet.create({
         borderStyle: 'solid',
         borderWidth: 6,
     },
+
     // 사용자 메시지 꼬리 스타일
     userMessageTail: {
         right: -8,
         top: 8,
         borderColor: 'transparent transparent transparent #4a9960',
     },
+
     // 봇 메시지 꼬리 스타일
     botMessageTail: {
         left: -8,
         top: 8,
         borderColor: 'transparent #ECECEC transparent transparent',
     },
+
     // 메시지 텍스트 스타일
     messageText: {
         fontSize: 16, // 텍스트 크기
     },
+
     // 사용자 메시지 텍스트 색상
     userMessageText: {
         color: '#FFFFFF', // 흰색 텍스트
     },
+
     // 봇 메시지 텍스트 색상
     botMessageText: {
         color: '#000000', // 검은색 텍스트
     },
+
     // 입력 영역 스타일
     inputArea: {
         flexDirection: 'row', // 입력창과 버튼을 가로로 정렬
@@ -481,6 +558,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff', // 배경색 흰색
         width: '100%', // 전체 너비 사용
     },
+
     // 입력창 스타일
     input: {
         flex: 1, // 남은 공간 모두 사용
@@ -490,6 +568,7 @@ const styles = StyleSheet.create({
         borderRadius: 20, // 둥근 모서리
         paddingHorizontal: 10, // 좌우 여백
     },
+
     // 아이콘 버튼 스타일 (메시지 전송 버튼)
     iconButton: {
         backgroundColor: '#4a9960', // 버튼 배경색
