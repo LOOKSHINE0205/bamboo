@@ -21,7 +21,7 @@ public class Diary {
     // 일기 ID
     private int diaryIdx;
 
-    // 사용자 ID
+    // 사용자 이메일
     @Column(name = "user_email")
     private String userEmail;
 
@@ -37,13 +37,11 @@ public class Diary {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    //날씨
+    // 날씨
     @Column(name ="diary_weather")
     private String weather;
 
-    //사진
+    // 사진 경로
     @Column(name = "diary_photo")
     private String photo;
-
-
 }

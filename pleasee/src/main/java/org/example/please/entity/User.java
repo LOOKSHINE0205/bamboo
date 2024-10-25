@@ -60,4 +60,8 @@ public class User {
     // 챗봇 레벨
     @Column(name = "chatbot_level")
     private int chatbotLevel;
+
+    //유저 프로필
+    @Column(name = "user_profile")
+    private String profileImage;
 }
