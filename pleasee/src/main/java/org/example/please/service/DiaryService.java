@@ -4,19 +4,31 @@ import org.example.please.entity.Diary;
 import org.example.please.repository.DiaryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.net.URL;
 
 @Service
 public class DiaryService {
 
     @Autowired
     private DiaryRepository diaryRepository;
+
+    // 파일을 저장할 경로 설정 (실제 경로로 설정해야 함)
+    private final String uploadDir = "C:/uploads/";  // 파일 저장 경로를 실제 경로로 변경해야 합니다.
 
     // 전날과 오늘의 모든 사용자의 일기 가져오기
     public Map<String, List<Diary>> getDiariesForYesterdayAndToday() {
@@ -52,14 +64,79 @@ public class DiaryService {
         return diaryRepository.findAll();
     }
 
-    // 일기 작성 로직
+    // 일기 작성 로직 (사진 파일 포함)
+    public Diary createDiary(Diary diary, MultipartFile photoFile) throws IOException {
+        // 작성 시간 자동 설정 (만약 클라이언트에서 제공하지 않았다면)
+        if (diary.getCreatedAt() == null) {
+            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        }
+
+        // 사진 파일 처리
+        if (photoFile != null && !photoFile.isEmpty()) {
+            String fileName = savePhoto(photoFile);
+            diary.setPhoto(fileName);  // 사진 경로 설정
+        }
+
+        return diaryRepository.save(diary);
+    }
+
+    // 사진 없이 일기 작성 로직
     public Diary createDiary(Diary diary) {
         // 작성 시간 자동 설정 (만약 클라이언트에서 제공하지 않았다면)
         if (diary.getCreatedAt() == null) {
             diary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         }
+
         return diaryRepository.save(diary);
     }
+
+    // 사진 파일 저장 로직
+    private String savePhoto(MultipartFile photoFile) throws IOException {
+        // 파일 이름을 UUID로 생성하여 저장
+        String fileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
+        File targetFile = new File(uploadDir + fileName);
+
+        // 파일 저장 디렉터리가 없으면 생성
+        if (!targetFile.exists()) {
+            targetFile.mkdirs();
+        }
+
+        // 파일 저장
+        photoFile.transferTo(targetFile);
+
+        // 저장된 파일 경로 반환
+        return fileName;
+    }
+
+    // URL을 통해 이미지 다운로드 및 저장
+    public void downloadAndSavePhoto(String imageUrl, String fileName) throws IOException {
+        // URL에서 이미지를 다운로드
+        URL url = new URL(imageUrl);
+        BufferedImage img = ImageIO.read(url);
+
+        // 파일 저장 경로 설정
+        File outputFile = new File(uploadDir + fileName);
+
+        // 이미지 파일 저장 (jpg 형식으로 저장)
+        ImageIO.write(img, "jpg", outputFile);
+    }
+
+    // 일기 작성 로직 (URL을 통해 사진 처리)
+    public Diary createDiaryFromUrl(Diary diary, String imageUrl) throws IOException {
+        if (diary.getCreatedAt() == null) {
+            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        }
+
+        // URL을 통해 파일 다운로드 및 저장
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            String fileName = UUID.randomUUID().toString() + ".jpg";  // 파일 이름 생성
+            downloadAndSavePhoto(imageUrl, fileName);
+            diary.setPhoto(fileName);  // 사진 파일 이름 설정
+        }
+
+        return diaryRepository.save(diary);  // 일기 저장
+    }
+
 
     // 특정 일기 조회
     public Diary getDiaryById(int id) {
@@ -70,6 +147,4 @@ public class DiaryService {
     public void deleteDiary(int id) {
         diaryRepository.deleteById(id);
     }
-
-
 }
