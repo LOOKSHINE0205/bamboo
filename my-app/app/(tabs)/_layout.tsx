@@ -1,74 +1,81 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
-
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Tabs } from 'expo-router';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Ionicons } from '@expo/vector-icons';
+import { useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function TabLayout() {
-    const colorScheme = useColorScheme();
+function CustomTabBar({ state, descriptors, navigation }) {
+    const { width } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
 
     return (
+        <View style={[styles.tabContainer, { paddingBottom: insets.bottom, width }]}>
+            {state.routes.map((route, index) => {
+                const { options } = descriptors[route.key];
+                const label = options.title || route.name;
+
+                const isFocused = state.index === index;
+                const onPress = () => {
+                    const event = navigation.emit({
+                        type: 'tabPress',
+                        target: route.key,
+                    });
+
+                    if (!event.defaultPrevented) {
+                        navigation.navigate(route.name);
+                    }
+                };
+
+                const iconName = route.name === 'index' ? (isFocused ? 'chatbubbles' : 'chatbubbles-outline') :
+                    route.name === 'diary' ? (isFocused ? 'calendar' : 'calendar-outline') :
+                    route.name === 'myPage' ? (isFocused ? 'person' : 'person-outline') :
+                    route.name === 'report' ? (isFocused ? 'analytics' : 'analytics-outline') :
+                    route.name === 'setting' ? (isFocused ? 'settings' : 'settings-outline') : '';
+
+                return (
+                    <TouchableOpacity
+                        key={route.key}
+                        accessibilityRole="button"
+                        accessibilityLabel={options.tabBarAccessibilityLabel}
+                        testID={options.tabBarTestID}
+                        onPress={onPress}
+                        style={styles.tabItem}
+                    >
+                        <TabBarIcon name={iconName} color={isFocused ? '#4a9960' : '#999'} size={28} />
+                    </TouchableOpacity>
+                );
+            })}
+        </View>
+    );
+}
+
+export default function TabLayout() {
+    return (
         <Tabs
-            screenOptions={{
-                tabBarActiveTintColor: '#4a9960', // 대나무 색깔로 설정
-                headerShown: true, // 각 탭의 헤더를 보여줍니다
-                tabBarStyle: {
-                    height: 60,
-                    paddingTop: 10,
-                },
-            }}
+            tabBar={(props) => <CustomTabBar {...props} />}
         >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: "대화하기",
-                    tabBarLabel: '', // 텍스트 숨김
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabBarIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="diary"
-                options={{
-                    title: "일기",
-                    tabBarLabel: '',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="myPage"
-                options={{
-                    title: "마이 페이지",
-                    tabBarLabel: '',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="report"
-                options={{
-                    title: "보고서",
-                    tabBarLabel: '',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabBarIcon name={focused ? 'analytics' : 'analytics-outline'} color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="setting"
-                options={{
-                    title: "설정",
-                    tabBarLabel: '',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabBarIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
-                    ),
-                }}
-            />
+            <Tabs.Screen name="index" options={{ title: "대화하기" }} />
+            <Tabs.Screen name="diary" options={{ title: "일기" }} />
+            <Tabs.Screen name="myPage" options={{ title: "마이 페이지" }} />
+            <Tabs.Screen name="report" options={{ title: "보고서" }} />
+            <Tabs.Screen name="setting" options={{ title: "설정" }} />
         </Tabs>
     );
 }
+
+const styles = StyleSheet.create({
+    tabContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        height: 60,
+        backgroundColor: '#ffffff',
+        borderTopWidth: 1,
+        borderColor: '#e0e0e0',
+    },
+    tabItem: {
+        flex: 1,
+        alignItems: 'center',
+    },
+});
