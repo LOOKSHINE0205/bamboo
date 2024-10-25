@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 
 export default function JoinScreen() {
@@ -13,6 +13,16 @@ export default function JoinScreen() {
     const [passwordMessage, setPasswordMessage] = useState('');
     const [isEmailValid, setIsEmailValid] = useState(false); // 이메일 유효성 상태
     const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
+
+    // 타이머 정리를 위한 useEffect
+    useEffect(() => {
+        // 컴포넌트가 언마운트되거나 debounceTimeout이 변경될 때 타이머를 클리어
+        return () => {
+            if (debounceTimeout) {
+                clearTimeout(debounceTimeout);
+            }
+        };
+    }, [debounceTimeout]);
 
     const handleEmailChange = (email: string) => {
         setEmail(email);
@@ -37,7 +47,7 @@ export default function JoinScreen() {
         }
 
         try {
-            const response = await fetch('http://192.168.21.142:8082/api/users/checkEmail', {
+            const response = await fetch('http://10.0.2.2:8082/api/users/checkEmail', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,11 +71,12 @@ export default function JoinScreen() {
                 setIsEmailValid(false);
             }
         } catch (error) {
-            console.error('Error:', error);
-            setEmailMessage('이메일 확인 중 오류가 발생했습니다.');
-            setIsEmailValid(false);
+            console.error('Error during email availability check:', error);
+            Alert.alert('오류', '이메일 확인 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.');
         }
+
     };
+
 
 
 
@@ -194,7 +205,9 @@ export default function JoinScreen() {
                                 onChangeText={handleBirthdateChange}
                                 placeholder="YYYYMMDD"
                                 keyboardType="numeric"
+                                maxLength={8} // 최대 길이 제한 추가
                             />
+
                         </View>
                         <TouchableOpacity
                             style={[styles.button, !isEmailValid && styles.buttonDisabled]}
@@ -204,12 +217,6 @@ export default function JoinScreen() {
                             <Text style={styles.buttonText}>다음</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={[styles.button, styles.passButton]}
-                            onPress={handlePass}
-                        >
-                            <Text style={styles.buttonText}>패스</Text>
-                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -266,9 +273,7 @@ const styles = StyleSheet.create({
     buttonDisabled: {
         backgroundColor: '#e0e0e0',
         borderColor: '#999',
-    },
-    passButton: {
-        backgroundColor: '#f5f5f5',
+        color: '#888', // 텍스트 색상을 흐리게
     },
     buttonText: {
         color: '#000000',
