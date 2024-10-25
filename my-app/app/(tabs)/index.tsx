@@ -26,23 +26,35 @@ export default function ChatbotPage() {
     const scrollViewRef = useRef<ScrollView>(null); // 스크롤뷰 참조
 
     // 서버 URL
-    const serverUrl = 'http://192.168.21.142:8082/api/chat/message';
-    const userInfoUrl = 'http://10.0.2.2:8082/api/user/info';
+    const serverUrl = 'http://192.168.21.123:8082/api/chat/message';
+    const userInfoUrl = 'http://192.168.21.123:8082/api/user/info';
 
     // 사용자 정보 가져오기
     useEffect(() => {
         const fetchUserData = async () => {
             try {
+                console.log('Fetching user data from API...');
                 const response = await axios.get(userInfoUrl);
+                console.log('User data response:', response.data);
                 setUserName(response.data.userName);
                 setChatbotName(response.data.chatbotName);
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
+                if (error.response) {
+                    console.error('Response data:', error.response.data);
+                    console.error('Response status:', error.response.status);
+                    console.error('Response headers:', error.response.headers);
+                } else if (error.request) {
+                    console.error('Request made but no response:', error.request);
+                } else {
+                    console.error('Axios setup error:', error.message);
+                }
             }
         };
 
         fetchUserData();
     }, []);
+
 
     // 메시지가 추가될 때 스크롤을 하단으로 자동 이동
     useEffect(() => {
@@ -54,11 +66,12 @@ export default function ChatbotPage() {
     // 챗봇 응답을 서버에서 가져오는 함수
     const sendBotResponse = async (userInput: string) => {
         try {
+            console.log('Sending bot response request with input:', userInput);
             const response = await axios.post(serverUrl, userInput, {
                 headers: { 'Content-Type': 'text/plain' },
             });
+            console.log('Bot response data:', response.data);
 
-            // 챗봇 응답 메시지 생성
             const botMessage: Message = {
                 sender: 'bot',
                 text: response.data,
@@ -68,7 +81,6 @@ export default function ChatbotPage() {
                 showTimestamp: true,
             };
 
-            // 메시지 리스트 업데이트 및 시간 표시 여부 설정
             setMessages(prevMessages => {
                 const newMessages = [...prevMessages, botMessage];
                 return newMessages.map((msg, index) => ({
@@ -76,10 +88,19 @@ export default function ChatbotPage() {
                     showTimestamp: shouldShowTimestamp(index, msg, newMessages)
                 }));
             });
-            setUserMessageCount(0); // 사용자 메시지 개수 초기화
+            setUserMessageCount(0);
         } catch (error) {
-            console.error('Error:', error);
-            // 오류 발생 시 챗봇 응답 대체 메시지
+            console.error('Error while sending bot response:', error);
+            if (error.response) {
+                console.error('Response data:', error.response.data);
+                console.error('Response status:', error.response.status);
+                console.error('Response headers:', error.response.headers);
+            } else if (error.request) {
+                console.error('Request made but no response:', error.request);
+            } else {
+                console.error('Axios setup error:', error.message);
+            }
+
             const errorMessage: Message = {
                 sender: 'bot',
                 text: '챗봇 응답을 가져올 수 없습니다.',
@@ -96,9 +117,10 @@ export default function ChatbotPage() {
                     showTimestamp: shouldShowTimestamp(index, msg, newMessages)
                 }));
             });
-            setUserMessageCount(0); // 사용자 메시지 개수 초기화
+            setUserMessageCount(0);
         }
     };
+
 
     // 사용자가 메시지에 좋아요/싫어요 평가를 할 수 있게 하는 함수
     const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {

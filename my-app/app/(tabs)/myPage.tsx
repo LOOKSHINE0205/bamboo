@@ -86,12 +86,6 @@ export default function HomeScreen() {
                 style={styles.background}
                 resizeMode="stretch"
             >
-                <TouchableOpacity
-                    style={styles.settingsButton}
-                    onPress={() => router.push('../(setting)')}
-                >
-                    <Ionicons name="settings-outline" size={30} color="white" />
-                </TouchableOpacity>
 
                 {/* 애니메이션 추가 */}
                 <CloudAnimation />
@@ -153,12 +147,6 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
         height: '100%',
-    },
-    settingsButton: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        padding: 10,
     },
     bambooBody: {
         position: 'absolute',
