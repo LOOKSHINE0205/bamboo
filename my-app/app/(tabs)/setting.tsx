@@ -1,20 +1,47 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Switch, Button, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Switch, Button, StyleSheet, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import axios from 'axios';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingsScreen = () => {
   const router = useRouter();
-  const [nickname, setNickname] = useState('천동이부');
-  const [email, setEmail] = useState('sun1003@gmail.com');
-  const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState(''); // 비밀번호 업데이트용
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
   const [profileImage, setProfileImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      // AsyncStorage에서 저장된 이메일 가져오기
+      const storedEmail = await AsyncStorage.getItem('userEmail');
+      if (!storedEmail) {
+        Alert.alert("오류", "이메일 정보를 찾을 수 없습니다.");
+        return;
+      }
+
+      const response = await axios.get(`http://192.168.21.207:8082/api/users/me?email=${storedEmail}`);
+      const { user_nick: userNickname, user_email: email } = response.data; // 데이터베이스 필드에 맞게 수정
+      setNickname(userNickname);  // 닉네임 상태 업데이트
+      setEmail(email);           // 이메일 상태 업데이트
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
+    } finally {
+      setIsLoading(false); // 데이터 로드 완료 후 로딩 종료
+    }
+  };
 
   const handleImagePicker = () => {
-    // 이미지 선택 기능은 실제 구현 시 추가
     Alert.alert('알림', '이미지 선택 기능은 추후 구현될 예정입니다.');
   };
 
@@ -22,19 +49,15 @@ const SettingsScreen = () => {
     setNotificationsEnabled(previousState => !previousState);
   };
 
-  // 시간 형식 검증 함수 (HH:mm)
-  const isValidTimeFormat = (time: string) => {
+  const isValidTimeFormat = (time) => {
     const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
     return timeRegex.test(time);
   };
 
-  // 시작 시간 변경 처리
-  const handleStartTimeChange = (text: string) => {
-    // 숫자와 콜론만 입력 가능하도록
+  const handleStartTimeChange = (text) => {
     const filteredText = text.replace(/[^\d:]/g, '');
     setStartTime(filteredText);
 
-    // 입력이 완료되었을 때 (5자리) 형식 검증
     if (filteredText.length === 5) {
       if (!isValidTimeFormat(filteredText)) {
         Alert.alert('알림', '올바른 시간 형식이 아닙니다.\n00:00 ~ 23:59 형식으로 입력해주세요.');
@@ -43,8 +66,7 @@ const SettingsScreen = () => {
     }
   };
 
-  // 종료 시간 변경 처리
-  const handleEndTimeChange = (text: string) => {
+  const handleEndTimeChange = (text) => {
     const filteredText = text.replace(/[^\d:]/g, '');
     setEndTime(filteredText);
 
@@ -56,36 +78,39 @@ const SettingsScreen = () => {
     }
   };
 
-  // 시간 포맷 자동 변환 (2자리 입력 후 콜론 추가)
-  const formatTimeInput = (text: string, setter: (text: string) => void) => {
-    if (text.length === 2 && !text.includes(':')) {
-      setter(text + ':');
-    }
-  };
-
-  const handleSave = () => {
-    // 시간 형식 검증
+  const handleSave = async () => {
     if (notificationsEnabled && (!isValidTimeFormat(startTime) || !isValidTimeFormat(endTime))) {
       Alert.alert('알림', '올바른 시간 형식으로 입력해주세요.');
       return;
     }
 
-    // 시간 범위 검증
     if (notificationsEnabled && startTime >= endTime) {
       Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
       return;
     }
 
-    const settings = {
-      nickname,
-      notificationsEnabled,
-      notificationTimeRange: notificationsEnabled ? {
-        start: startTime,
-        end: endTime
-      } : null
-    };
-    console.log('저장된 설정:', settings);
-    Alert.alert('알림', '설정이 저장되었습니다.');
+    try {
+      const settings = {
+        nickname,
+        notificationsEnabled,
+        notificationTimeRange: notificationsEnabled ? {
+          start: startTime,
+          end: endTime
+        } : null
+      };
+
+      // 비밀번호가 있을 때 업데이트
+      if (password) {
+        const userData = { userEmail: email, userPw: password };
+        await axios.post('http://192.168.21.207:8082/api/users/updatePassword', userData);
+      }
+
+      console.log('저장된 설정:', settings);
+      Alert.alert('알림', '설정이 저장되었습니다.');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      Alert.alert("오류", "설정 저장 중 문제가 발생했습니다.");
+    }
   };
 
   const handleLogout = () => {
@@ -93,10 +118,18 @@ const SettingsScreen = () => {
     router.push('../(init)');
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4a9960" />
+        <Text>사용자 정보를 불러오는 중...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        {/* 프로필 이미지 섹션 */}
         <View style={styles.profileImageSection}>
           <TouchableOpacity
             style={styles.profileImageContainer}
@@ -117,11 +150,12 @@ const SettingsScreen = () => {
             </View>
           </TouchableOpacity>
         </View>
+
         <Text style={styles.label}>닉네임</Text>
         <TextInput
           style={styles.input}
           value={nickname}
-          onChangeText={setNickname}
+          editable={false}
         />
 
         <Text style={styles.label}>이메일</Text>
@@ -157,10 +191,7 @@ const SettingsScreen = () => {
               <TextInput
                 style={styles.timeInputField}
                 value={startTime}
-                onChangeText={(text) => {
-                  handleStartTimeChange(text);
-                  formatTimeInput(text, setStartTime);
-                }}
+                onChangeText={handleStartTimeChange}
                 placeholder="00:00"
                 keyboardType="numeric"
                 maxLength={5}
@@ -172,10 +203,7 @@ const SettingsScreen = () => {
               <TextInput
                 style={styles.timeInputField}
                 value={endTime}
-                onChangeText={(text) => {
-                  handleEndTimeChange(text);
-                  formatTimeInput(text, setEndTime);
-                }}
+                onChangeText={handleEndTimeChange}
                 placeholder="00:00"
                 keyboardType="numeric"
                 maxLength={5}
@@ -187,7 +215,7 @@ const SettingsScreen = () => {
 
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
-          <Button title="저장" onPress={handleSave} color="#4a9960" />
+          <Button title="설정 저장" onPress={handleSave} color="#4a9960" />
         </View>
         <View style={styles.button}>
           <Button title="로그아웃" onPress={handleLogout} color="#4a9960" />
@@ -206,7 +234,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  // 프로필 이미지 관련 스타일
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   profileImageSection: {
     alignItems: 'center',
     marginVertical: 20,
@@ -248,7 +280,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#fff',
   },
-  // 기존 스타일 유지
   label: {
     fontSize: 18,
     fontWeight: 'bold',

@@ -3,6 +3,7 @@ package org.example.please.service;
 import org.example.please.entity.User;
 import org.example.please.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,10 +16,13 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -26,8 +30,9 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // 파일 저장 경로 설정 (실제 경로로 수정하세요)
-    private final String profileImageDir = "C:/uploads/profile/images/";
+    // 파일 저장 경로를 환경 변수로 설정
+    @Value("${user.profile.image.dir:C:/uploads/profile/images/}")
+    private String profileImageDir;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -38,30 +43,31 @@ public class UserService {
         return userRepository.existsByUserEmail(user.getUserEmail());
     }
 
-    // DB insert
+    // 회원 저장 (회원가입)
     public void saveUser(User user) {
-        String encodedPassword = passwordEncoder.encode(user.getUserPw());
-        user.setUserPw(encodedPassword);
+        user.setUserPw(passwordEncoder.encode(user.getUserPw()));
         userRepository.save(user);
+        logger.info("New user registered with email: {}", user.getUserEmail());
     }
 
-    // 로그인
+    // 로그인 로직
     public boolean login(User user) {
         Optional<User> foundUser = userRepository.findByUserEmail(user.getUserEmail());
-        return foundUser.filter(value -> passwordEncoder.matches(user.getUserPw(), value.getUserPw())).isPresent();
+        boolean isAuthenticated = foundUser.filter(value -> passwordEncoder.matches(user.getUserPw(), value.getUserPw())).isPresent();
+        logger.info("User login attempt for email: {} - {}", user.getUserEmail(), isAuthenticated ? "SUCCESS" : "FAILURE");
+        return isAuthenticated;
     }
 
     // 비밀번호 업데이트
     public void updatePassword(User user) {
         Optional<User> optionalUser = userRepository.findByUserEmail(user.getUserEmail());
-
-        if (optionalUser.isPresent()) {
+        if (optionalUser.isPresent() && user.getUserPw() != null && !user.getUserPw().isEmpty()) {
             User existingUser = optionalUser.get();
-            if (user.getUserPw() != null && !user.getUserPw().isEmpty()) {
-                String encodedPassword = passwordEncoder.encode(user.getUserPw());
-                existingUser.setUserPw(encodedPassword);
-            }
+            existingUser.setUserPw(passwordEncoder.encode(user.getUserPw()));
             userRepository.save(existingUser);
+            logger.info("Password updated for user: {}", user.getUserEmail());
+        } else {
+            logger.warn("Password update failed - user not found or invalid new password for email: {}", user.getUserEmail());
         }
     }
 
@@ -74,25 +80,33 @@ public class UserService {
             User user = optionalUser.get();
 
             // 기존 프로필 이미지 삭제
-            if (user.getProfileImage() != null) {
-                deleteOldProfileImage(user.getProfileImage());
-            }
+            deleteOldProfileImage(user.getProfileImage());
 
             // 새 프로필 이미지 저장
             String fileName = saveProfileImage(photoFile);
             user.setProfileImage(fileName);
             userRepository.save(user);
 
-            System.out.println("Updated profile image for user: " + user.getUserEmail());
+            logger.info("Updated profile image for user: {}", user.getUserEmail());
         } else {
-            System.out.println("User not found with email: " + email);
+            logger.warn("User not found with email: {}", email);
         }
     }
 
     // 기존 프로필 이미지 삭제
-    private void deleteOldProfileImage(String fileName) throws IOException {
-        Path oldImagePath = Paths.get(profileImageDir, fileName);
-        Files.deleteIfExists(oldImagePath);
+    private void deleteOldProfileImage(String fileName) {
+        try {
+            if (fileName != null) {
+                Path oldImagePath = Paths.get(profileImageDir, fileName);
+                if (Files.deleteIfExists(oldImagePath)) {
+                    logger.info("Deleted old profile image: {}", fileName);
+                } else {
+                    logger.warn("Old profile image not found for deletion: {}", fileName);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Failed to delete old profile image: {}", fileName, e);
+        }
     }
 
     // 프로필 이미지 저장
@@ -100,11 +114,19 @@ public class UserService {
         String fileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
         File targetFile = new File(profileImageDir + fileName);
 
+        // 디렉토리가 없으면 생성
         if (!targetFile.exists()) {
             targetFile.mkdirs();
         }
 
         photoFile.transferTo(targetFile);
+        logger.info("Saved new profile image: {}", fileName);
         return fileName;
+    }
+
+    // 이메일로 사용자 조회
+    public Optional<User> findByEmail(String email) {
+        logger.info("Searching for user by email: {}", email);
+        return userRepository.findByUserEmail(email);
     }
 }

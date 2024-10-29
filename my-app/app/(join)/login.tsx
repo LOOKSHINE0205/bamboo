@@ -1,16 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // 뒤로 가기 아이콘을 위해 추가
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    // 로그인 요청 함수
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert('경고', '이메일과 비밀번호를 모두 입력하세요.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const response = await fetch('http://10.0.2.2:8082/api/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userEmail: email, userPw: password }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                if (result.message === "로그인 성공") {
+                    await AsyncStorage.setItem('userEmail', email); // 이메일 저장
+                    Alert.alert('성공', '로그인에 성공했습니다!');
+                    router.push('/(tabs)'); // 다음 페이지로 이동
+                } else {
+                    Alert.alert('실패', '이메일 또는 비밀번호가 잘못되었습니다.');
+                }
+            } else {
+                Alert.alert('오류', '서버에 문제가 발생했습니다. 다시 시도해주세요.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Alert.alert('오류', '네트워크 오류가 발생했습니다. 인터넷 연결을 확인하세요.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
-
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>이메일</Text>
                 <TextInput
@@ -30,10 +69,11 @@ export default function LoginScreen() {
                 />
             </View>
             <TouchableOpacity
-              style={styles.button}
-              onPress={() => router.push('/(tabs)')} // 대화하기 페이지로 이동
+                style={[styles.button, isLoading && styles.buttonDisabled]}
+                onPress={handleLogin}
+                disabled={isLoading}
             >
-              <Text style={styles.buttonText}>다음</Text>
+                <Text style={styles.buttonText}>{isLoading ? '로그인 중...' : '다음'}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -76,6 +116,10 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
+    },
+    buttonDisabled: {
+        backgroundColor: '#e0e0e0',
+        borderColor: '#999',
     },
     buttonText: {
         color: '#000000',
