@@ -9,6 +9,11 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // DEBUG: 패스 버튼 핸들러
+    const handlePass = () => {
+        router.push('/(tabs)/myPage');
+    };
+
     // 로그인 요청 함수
     const handleLogin = async () => {
         if (!email || !password) {
@@ -31,9 +36,9 @@ export default function LoginScreen() {
 
             if (response.ok) {
                 if (result.message === "로그인 성공") {
-                    await AsyncStorage.setItem('userEmail', email); // 이메일 저장
+                    await AsyncStorage.setItem('userEmail', email);
                     Alert.alert('성공', '로그인에 성공했습니다!');
-                    router.push('/(tabs)'); // 다음 페이지로 이동
+                    router.push('/(tabs)');
                 } else {
                     Alert.alert('실패', '이메일 또는 비밀번호가 잘못되었습니다.');
                 }
@@ -74,6 +79,14 @@ export default function LoginScreen() {
                 disabled={isLoading}
             >
                 <Text style={styles.buttonText}>{isLoading ? '로그인 중...' : '다음'}</Text>
+            </TouchableOpacity>
+
+            {/* DEBUG: 패스 버튼 - 개발 완료 후 제거 */}
+            <TouchableOpacity
+                style={[styles.passButton]}
+                onPress={handlePass}
+            >
+                <Text style={styles.passButtonText}>패스</Text>
             </TouchableOpacity>
         </View>
     );
@@ -123,6 +136,19 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#000000',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    // DEBUG: 패스 버튼 스타일 - 개발 완료 후 제거
+    passButton: {
+        backgroundColor: '#ff9800',
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    passButtonText: {
+        color: '#ffffff',
         fontSize: 16,
         fontWeight: 'bold',
     },

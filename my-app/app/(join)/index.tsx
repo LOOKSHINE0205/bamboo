@@ -119,7 +119,7 @@ export default function JoinScreen() {
         if (text && text !== userPw) {
             setPasswordMessage('비밀번호가 다릅니다.');
         } else {
-            setPasswordMessage('');
+            setPasswordMessage('비밀번호가 일치합니다.');
         }
     };
 
@@ -151,7 +151,10 @@ export default function JoinScreen() {
                             <View style={styles.passwordLabelContainer}>
                                 <Text style={styles.label}>비밀번호</Text>
                                 {passwordMessage && (
-                                    <Text style={[styles.message, styles.errorMessage]}>
+                                    <Text style={[
+                                        styles.message,
+                                        passwordMessage.trim() === '비밀번호가 일치합니다.' ? styles.successMessage : styles.errorMessage
+                                    ]}>
                                         {passwordMessage}
                                     </Text>
                                 )}
