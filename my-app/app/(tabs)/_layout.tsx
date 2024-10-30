@@ -28,7 +28,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
                 };
 
                 const iconName = route.name === 'index' ? (isFocused ? 'chatbubbles' : 'chatbubbles-outline') :
-                    route.name === 'diary' ? (isFocused ? 'calendar' : 'calendar-outline') :
+                    route.name === '(diary)' ? (isFocused ? 'calendar' : 'calendar-outline') :
                     route.name === 'myPage' ? (isFocused ? 'person' : 'person-outline') :
                     route.name === 'report' ? (isFocused ? 'analytics' : 'analytics-outline') :
                     route.name === 'setting' ? (isFocused ? 'settings' : 'settings-outline') : '';
@@ -56,7 +56,7 @@ export default function TabLayout() {
             tabBar={(props) => <CustomTabBar {...props} />}
         >
             <Tabs.Screen name="index" options={{ title: "대화하기" }} />
-            <Tabs.Screen name="diary" options={{ title: "일기" }} />
+            <Tabs.Screen name="(diary)" options={{ title: "다이어리" }} />
             <Tabs.Screen name="myPage" options={{ title: "마이 페이지" }} />
             <Tabs.Screen name="report" options={{ title: "보고서" }} />
             <Tabs.Screen name="setting" options={{ title: "설정" }} />
