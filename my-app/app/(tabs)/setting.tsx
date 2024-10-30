@@ -29,7 +29,7 @@ const SettingsScreen = () => {
         return;
       }
 
-      const response = await axios.get(`http://192.168.21.207:8082/api/users/me?email=${storedEmail}`);
+      const response = await axios.get(`http://10.0.2.2:8082/api/users/me?email=${storedEmail}`);
       const { user_nick: userNickname, user_email: email } = response.data; // 데이터베이스 필드에 맞게 수정
       setNickname(userNickname);  // 닉네임 상태 업데이트
       setEmail(email);           // 이메일 상태 업데이트
@@ -102,7 +102,7 @@ const SettingsScreen = () => {
       // 비밀번호가 있을 때 업데이트
       if (password) {
         const userData = { userEmail: email, userPw: password };
-        await axios.post('http://192.168.21.207:8082/api/users/updatePassword', userData);
+        await axios.post('http://10.0.2.2:8082/api/users/updatePassword', userData);
       }
 
       console.log('저장된 설정:', settings);
