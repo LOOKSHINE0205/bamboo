@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
 function CustomTabBar({ state, descriptors, navigation }) {
     const { width } = useWindowDimensions();
     const insets = useSafeAreaInsets();
+    const transition = useSharedValue(0);
+
+    useEffect(() => {
+        transition.value = withTiming(state.index, { duration: 300 });
+    }, [state.index]);
 
     return (
         <View style={[styles.tabContainer, { paddingBottom: insets.bottom, width }]}>
@@ -33,6 +39,14 @@ function CustomTabBar({ state, descriptors, navigation }) {
                     route.name === 'report' ? (isFocused ? 'analytics' : 'analytics-outline') :
                     route.name === 'setting' ? (isFocused ? 'settings' : 'settings-outline') : '';
 
+                const animatedStyle = useAnimatedStyle(() => ({
+                    transform: [
+                        {
+                            scale: withTiming(isFocused ? 1.2 : 1, { duration: 200 }),
+                        },
+                    ],
+                }));
+
                 return (
                     <TouchableOpacity
                         key={route.key}
@@ -42,7 +56,9 @@ function CustomTabBar({ state, descriptors, navigation }) {
                         onPress={onPress}
                         style={styles.tabItem}
                     >
-                        <TabBarIcon name={iconName} color={isFocused ? '#4a9960' : '#999'} size={28} />
+                        <Animated.View style={animatedStyle}>
+                            <TabBarIcon name={iconName} color={isFocused ? '#4a9960' : '#999'} size={28} />
+                        </Animated.View>
                     </TouchableOpacity>
                 );
             })}
