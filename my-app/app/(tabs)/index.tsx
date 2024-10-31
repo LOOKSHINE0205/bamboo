@@ -26,9 +26,7 @@ export default function ChatbotPage() {
     const scrollViewRef = useRef<ScrollView>(null); // 스크롤뷰 참조
 
     // 서버 URL
-    const serverUrl = 'http://192.168.21.123:8082/api/chat/message';
-    const userInfoUrl = 'http://192.168.21.123:8082/api/user/info';
-
+    const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
     // 사용자 정보 가져오기
     useEffect(() => {
         const fetchUserData = async () => {

@@ -3,18 +3,18 @@ import { View, Text, TextInput, Switch, Button, StyleSheet, Alert, Image, Toucha
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserEmail, clearUserData } from '../../storage/storageHelper'; // storageHelper에서 함수 불러오기
 
 const SettingsScreen = () => {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); // 비밀번호 업데이트용
+  const [password, setPassword] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
   const [profileImage, setProfileImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchUserData();
@@ -22,22 +22,21 @@ const SettingsScreen = () => {
 
   const fetchUserData = async () => {
     try {
-      // AsyncStorage에서 저장된 이메일 가져오기
-      const storedEmail = await AsyncStorage.getItem('userEmail');
+      const storedEmail = await getUserEmail(); // 이메일 가져오기
       if (!storedEmail) {
         Alert.alert("오류", "이메일 정보를 찾을 수 없습니다.");
         return;
       }
 
       const response = await axios.get(`http://10.0.2.2:8082/api/users/me?email=${storedEmail}`);
-      const { user_nick: userNickname, user_email: email } = response.data; // 데이터베이스 필드에 맞게 수정
-      setNickname(userNickname);  // 닉네임 상태 업데이트
-      setEmail(email);           // 이메일 상태 업데이트
+      const { user_nick: userNickname, user_email: userEmail } = response.data;
+      setNickname(userNickname);
+      setEmail(userEmail);
     } catch (error) {
       console.error('Error fetching user data:', error);
       Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
     } finally {
-      setIsLoading(false); // 데이터 로드 완료 후 로딩 종료
+      setIsLoading(false);
     }
   };
 
@@ -58,11 +57,9 @@ const SettingsScreen = () => {
     const filteredText = text.replace(/[^\d:]/g, '');
     setStartTime(filteredText);
 
-    if (filteredText.length === 5) {
-      if (!isValidTimeFormat(filteredText)) {
-        Alert.alert('알림', '올바른 시간 형식이 아닙니다.\n00:00 ~ 23:59 형식으로 입력해주세요.');
-        setStartTime('');
-      }
+    if (filteredText.length === 5 && !isValidTimeFormat(filteredText)) {
+      Alert.alert('알림', '올바른 시간 형식이 아닙니다.\n00:00 ~ 23:59 형식으로 입력해주세요.');
+      setStartTime('');
     }
   };
 
@@ -70,11 +67,9 @@ const SettingsScreen = () => {
     const filteredText = text.replace(/[^\d:]/g, '');
     setEndTime(filteredText);
 
-    if (filteredText.length === 5) {
-      if (!isValidTimeFormat(filteredText)) {
-        Alert.alert('알림', '올바른 시간 형식이 아닙니다.\n00:00 ~ 23:59 형식으로 입력해주세요.');
-        setEndTime('');
-      }
+    if (filteredText.length === 5 && !isValidTimeFormat(filteredText)) {
+      Alert.alert('알림', '올바른 시간 형식이 아닙니다.\n00:00 ~ 23:59 형식으로 입력해주세요.');
+      setEndTime('');
     }
   };
 
@@ -99,7 +94,6 @@ const SettingsScreen = () => {
         } : null
       };
 
-      // 비밀번호가 있을 때 업데이트
       if (password) {
         const userData = { userEmail: email, userPw: password };
         await axios.post('http://10.0.2.2:8082/api/users/updatePassword', userData);
@@ -113,7 +107,8 @@ const SettingsScreen = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await clearUserData(); // 사용자 정보 제거
     Alert.alert('알림', '로그아웃 되었습니다.');
     router.push('../(init)');
   };
@@ -136,10 +131,7 @@ const SettingsScreen = () => {
             onPress={handleImagePicker}
           >
             {profileImage ? (
-              <Image
-                source={{ uri: profileImage }}
-                style={styles.profileImage}
-              />
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
             ) : (
               <View style={styles.defaultProfileImage}>
                 <Ionicons name="person" size={50} color="#cccccc" />
@@ -152,25 +144,17 @@ const SettingsScreen = () => {
         </View>
 
         <Text style={styles.label}>닉네임</Text>
-        <TextInput
-          style={styles.input}
-          value={nickname}
-          editable={false}
-        />
+        <TextInput style={styles.input} value={nickname} editable={false} />
 
         <Text style={styles.label}>이메일</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          editable={false}
-        />
+        <TextInput style={styles.input} value={email} editable={false} />
 
         <Text style={styles.label}>비밀번호 수정</Text>
         <TextInput
           style={styles.input}
           value={password}
           onChangeText={setPassword}
-          secureTextEntry={true}
+          secureTextEntry
           placeholder="새 비밀번호 입력"
         />
 
