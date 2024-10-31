@@ -1,4 +1,3 @@
-// app/(init)/login.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -20,7 +19,7 @@ export default function LoginScreen() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://10.0.2.2:8082/api/users/login', {
+            const response = await fetch('http://192.168.20.187:8082/api/users/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userEmail: email, userPw: password }),
@@ -68,6 +67,15 @@ export default function LoginScreen() {
             >
                 <Text style={styles.buttonText}>{isLoading ? '로그인 중...' : '로그인'}</Text>
             </TouchableOpacity>
+
+            {/* DEBUG: 패스 버튼 - 개발 완료 후 제거 */}
+            <TouchableOpacity
+                style={styles.passButton}
+                onPress={() => router.push('/(tabs)')} // 로그인 없이 탭으로 이동
+            >
+                <Text style={styles.passButtonText}>패스</Text>
+            </TouchableOpacity>
+            {/* 여기까지 패스 버튼 */}
         </View>
     );
 }
@@ -77,20 +85,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         backgroundColor: '#ffffff',
-    },
-    backButton: {
-        position: 'absolute',
-        top: 40,
-        left: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginTop: 60,
-        marginBottom: 30,
-    },
-    inputContainer: {
-        marginBottom: 20,
     },
     label: {
         fontSize: 16,
@@ -109,10 +103,6 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
-    },
-    buttonDisabled: {
-        backgroundColor: '#e0e0e0',
-        borderColor: '#999',
     },
     buttonText: {
         color: '#000000',

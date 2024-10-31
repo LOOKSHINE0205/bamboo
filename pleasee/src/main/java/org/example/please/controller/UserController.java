@@ -75,19 +75,7 @@ public class UserController {
         }
     }
 
-    // 프로필 이미지 업로드
-    @PostMapping("/uploadProfile")
-    public ResponseEntity<Map<String, Object>> uploadProfile(@RequestParam("email") String email, @RequestParam("photo") MultipartFile photoFile) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            userService.uploadProfileImage(email, photoFile);
-            response.put("message", "프로필 이미지가 성공적으로 업로드되었습니다.");
-            return ResponseEntity.ok(response);
-        } catch (IOException e) {
-            response.put("message", "이미지 업로드 실패");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getUserInfo(@RequestParam String email) {
@@ -104,4 +92,34 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+
+//    알림시간
+    @GetMapping("/getQuietTime")
+    public ResponseEntity<Map<String, Object>> getQuietTime(@RequestParam String email) {
+        Optional<User> user = userService.findByEmail(email);
+        if (user.isPresent()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("quiet_start_time", user.get().getQuietStartTime());
+            response.put("quiet_end_time", user.get().getQuietEndTime());
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+        }
+    }
+
 }
+
+
+//    // 프로필 이미지 업로드
+//    @PostMapping("/uploadProfile")
+//    public ResponseEntity<Map<String, Object>> uploadProfile(@RequestParam("email") String email, @RequestParam("photo") MultipartFile photoFile) {
+//        Map<String, Object> response = new HashMap<>();
+//        try {
+//            userService.uploadProfileImage(email, photoFile);
+//            response.put("message", "프로필 이미지가 성공적으로 업로드되었습니다.");
+//            return ResponseEntity.ok(response);
+//        } catch (IOException e) {
+//            response.put("message", "이미지 업로드 실패");
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
