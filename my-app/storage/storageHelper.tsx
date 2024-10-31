@@ -19,6 +19,7 @@ export interface User {
 export const saveUserInfo = async (userInfo: User): Promise<void> => {
     try {
         await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
+        console.log('사용자 정보 저장에 성공' ,userInfo.userNick);
     } catch (error) {
         console.error('사용자 정보 저장에 실패했습니다:', error);
     }
@@ -28,6 +29,7 @@ export const saveUserInfo = async (userInfo: User): Promise<void> => {
 export const getUserInfo = async (): Promise<User | null> => {
     try {
         const userInfo = await AsyncStorage.getItem('userInfo');
+
         return userInfo ? JSON.parse(userInfo) : null;
     } catch (error) {
         console.error('사용자 정보 불러오기에 실패했습니다:', error);

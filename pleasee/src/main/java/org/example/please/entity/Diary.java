@@ -39,9 +39,9 @@ public class Diary {
 
     // 날씨
     @Column(name ="diary_weather")
-    private String weather;
+    private String diaryWeather;
 
     // 사진 경로
     @Column(name = "diary_photo")
-    private String photo;
+    private String diaryPhoto;
 }

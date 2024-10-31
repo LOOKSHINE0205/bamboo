@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { saveUserEmail } from '../../storage/storageHelper';  // storageHelper 함수 호출
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveUserInfo } from '../../storage/storageHelper';  // storageHelper 함수 호출
+import axios from "axios"
+import { useNavigation } from '@react-navigation/native';
 
+
+// @ts-ignore
 export default function LoginScreen() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const navigation = useNavigation();
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -19,26 +24,27 @@ export default function LoginScreen() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://192.168.20.187:8082/api/users/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userEmail: email, userPw: password }),
-            });
+            const response = await axios.post('http://10.0.2.2:8082/api/users/login', {
+                userEmail: email,
+                userPw: password,
+            })
 
-            const result = await response.json();
-
-            if (response.ok && result.message === "로그인 성공") {
-                await saveUserEmail(email);  // 이메일 저장
-                Alert.alert('성공', '로그인에 성공했습니다!');
-                router.push('/(tabs)');
+            // 서버에서 받은 응답 데이터를 `AsyncStorage`에 저장
+            const { message, user } = response.data;
+            if (message === '로그인 성공' && user) {
+                await saveUserInfo(user); // 응답에 포함된 사용자 정보 저장
+                navigation.navigate('(tabs)'); // 메인 화면으로 이동
             } else {
-                Alert.alert('실패', '이메일 또는 비밀번호가 잘못되었습니다.');
+                setError('로그인 실패: 서버 응답 확인 필요');
             }
         } catch (error) {
-            console.error('Error:', error);
-            Alert.alert('오류', '네트워크 오류가 발생했습니다.');
-        } finally {
-            setIsLoading(false);
+            console.error('Login failed:', error);
+            if (error.response) {
+                console.error('Server response:', error.response.data); // 서버의 응답 데이터 확인
+                setError(`로그인 실패: ${error.response.data.message || '다시 시도해주세요.'}`);
+            } else {
+                setError('로그인에 실패했습니다. 다시 시도해주세요.');
+            }
         }
     };
 

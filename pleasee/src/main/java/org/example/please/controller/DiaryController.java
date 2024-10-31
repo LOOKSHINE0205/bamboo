@@ -28,12 +28,12 @@ public class DiaryController {
         return ResponseEntity.ok(diaries);  // 200 OK 응답
     }
 
-    // JSON으로 일기 데이터를 받아 데이터베이스에 저장 (사진 없음)
-    @PostMapping("/create")
-    public ResponseEntity<Diary> createDiary(@RequestBody Diary diary) {
-        Diary newDiary = diaryService.createDiary(diary);  // 사진 없는 일기 저장
-        return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
-    }
+//    // JSON으로 일기 데이터를 받아 데이터베이스에 저장 (사진 없음)
+//    @PostMapping("/create")
+//    public ResponseEntity<Diary> createDiary(@RequestBody Diary diary) {
+//        Diary newDiary = diaryService.createDiary(diary);  // 사진 없는 일기 저장
+//        return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
+//    }
 
     // 사진을 포함한 일기 작성
     @PostMapping("/create-with-photo")
@@ -66,28 +66,27 @@ public class DiaryController {
     }
 
 
-    // 모든 일기 조회
-    @GetMapping
-    public ResponseEntity<List<Diary>> getAllDiaries() {
-        List<Diary> diaries = diaryService.getAllDiaries();
-        return ResponseEntity.ok(diaries);
-    }
+//    // 모든 일기 조회
+//    @GetMapping
+//    public ResponseEntity<List<Diary>> getAllDiaries() {
+//        List<Diary> diaries = diaryService.getAllDiaries();
+//        return ResponseEntity.ok(diaries);
+//    }
 
-    // 특정 일기 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<Diary> getDiaryById(@PathVariable int id) {
-        Diary diary = diaryService.getDiaryById(id);
-        if (diary != null) {
-            return ResponseEntity.ok(diary);  // 200 OK 응답
-        } else {
-            return ResponseEntity.notFound().build();  // 404 Not Found 응답
-        }
-    }
+//
+//    // 일기 삭제
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteDiary(@PathVariable int id) {
+//        diaryService.deleteDiary(id);
+//        return ResponseEntity.noContent().build();  // 204 No Content 응답
+//    }
+@GetMapping("/user_diaries")
+public ResponseEntity<List<Diary>> getDiariesByUserEmail(@RequestParam String userEmail) {
+    System.out.println("Received request for userEmail: " + userEmail);
+    List<Diary> diaries = diaryService.getDiariesByUserEmail(userEmail);
+    System.out.println("Diaries found: " + diaries.size());
+    return ResponseEntity.ok(diaries);
+}
 
-    // 일기 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDiary(@PathVariable int id) {
-        diaryService.deleteDiary(id);
-        return ResponseEntity.noContent().build();  // 204 No Content 응답
-    }
+
 }

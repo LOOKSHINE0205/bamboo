@@ -55,7 +55,7 @@ export default function TabLayout() {
         <Tabs
             tabBar={(props) => <CustomTabBar {...props} />}
         >
-            <Tabs.Screen name="index" options={{ title: "대화하기" }} />
+            <Tabs.Screen name="index"  options={{ title: "대화하기" }} />
             <Tabs.Screen name="(diary)" options={{ title: "다이어리" }} />
             <Tabs.Screen name="myPage" options={{ title: "마이 페이지" }} />
             <Tabs.Screen name="report" options={{ title: "보고서" }} />

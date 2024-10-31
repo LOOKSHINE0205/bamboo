@@ -1,8 +1,17 @@
-import React, { useState } from "react";
+import React, { useState,useEffect  } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from "react-native";
 import { Ionicons, Foundation } from "@expo/vector-icons";
 import { router } from "expo-router";
 import DateModal from "../(diary)/dateModal";
+// @ts-ignore
+import DiaryScreen, { Diary } from "@/app/(tabs)/(diary)/diariesInfo";
+
+
+interface DiaryEntry{
+  diaryIdx:number;
+  createdAt:string;
+  emotionTag:string;
+}
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -35,6 +44,12 @@ const Day = React.memo(
 );
 
 export default function CustomDiaryScreen() {
+  const [diaryEntries, setDiaryEntries] = useState<Diary[]>([]);
+  // DiaryScreen의 onEntriesLoaded에서 호출될 함수
+  const handleEntriesLoaded = (entries: Diary[]) => {
+    setDiaryEntries(entries); // 상태 업데이트
+    console.log("Entries loaded:", entries); // 콘솔에 출력
+  };
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -42,8 +57,8 @@ export default function CustomDiaryScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   let alertTimeout;
-
   const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+
 
   // 월의 날짜 배열 생성 함수
   const getDaysInMonth = (year, month) => {
@@ -89,10 +104,12 @@ export default function CustomDiaryScreen() {
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
 
   return (
+
     <View style={styles.container}>
+      <DiaryScreen onEntriesLoaded={handleEntriesLoaded} />
       {/* 상단 아이콘 (검색, 목록) */}
       <View style={styles.headerIcons}>
-        <TouchableOpacity onPress={() => console.log("Search clicked")} style={styles.icon}>
+        <TouchableOpacity onPress={() => console.log("Search clicked",diaryEntries)} style={styles.icon}>
           <Ionicons name="search-outline" size={24} color="#4a9960" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => console.log("List clicked")} style={styles.icon}>

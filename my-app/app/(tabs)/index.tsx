@@ -4,65 +4,60 @@ import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 // @ts-ignore
 import BambooHead from '../../assets/images/bamboo_head.png';
-import { getUserInfo, clearUserData, User } from '../../storage/storageHelper';
-import {userInfo} from "node:os";
+import { getUserInfo, User } from '../../storage/storageHelper';
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
-    sender: string; // 'user' 또는 'bot'을 나타내는 문자열로, 메시지의 발신자를 나타냅니다.
+    sender: string; // 발신자 ('user' 또는 'bot')
     text: string; // 메시지 내용
-    avatar: any; // 발신자의 아바타 이미지 (React Native의 Image 컴포넌트에 사용될 수 있는 이미지)
-    name: string; // 발신자의 이름 (사용자 이름 또는 챗봇 이름)
-    timestamp: string; // 메시지가 전송된 시간을 저장하는 문자열
-    showTimestamp?: boolean; // 시간 표시 여부를 결정하는 플래그 (옵션)
-    evaluation?: 'like' | 'dislike' | null; // 메시지에 대한 평가 상태 ('like', 'dislike', 또는 평가 없음)
+    avatar: any; // 발신자 아바타 이미지
+    name: string; // 발신자 이름
+    timestamp: string; // 메시지 전송 시간
+    showTimestamp?: boolean; // 시간 표시 여부
+    evaluation?: 'like' | 'dislike' | null; // 메시지 평가 상태
 }
 
 export default function ChatbotPage() {
-    // 상태 변수들 정의
-    const [messages, setMessages] = useState<Message[]>([]); // 메시지 리스트
-    const [input, setInput] = useState(''); // 사용자 입력 텍스트
-    const [userName, setUserName] = useState<string>(''); // 사용자 이름
-    const [chatbotName, setChatbotName] = useState<string>(''); // 챗봇 이름
-    const [userMessageCount, setUserMessageCount] = useState(0); // 사용자 메시지 개수 카운트
-    const scrollViewRef = useRef<ScrollView>(null); // 스크롤뷰 참조
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [input, setInput] = useState('');
+    const [userName, setUserName] = useState<string>('');
+    const [chatbotName, setChatbotName] = useState<string>('');
+    const [userMessageCount, setUserMessageCount] = useState(0);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     // 서버 URL
     const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
-    const userInfoUrl = 'http://10.0.2.2:8082/api/user/info';
+
     // 사용자 정보 가져오기
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 const userData: User | null = await getUserInfo();
                 if (userData) {
-                    setUserName(userData.userNick);  // storage에서 사용자 닉네임 가져오기
-                    setChatbotName(userData.chatbotName);  // storage에서 챗봇 이름 가져오기
+                    setUserName(userData.userNick);
+                    setChatbotName(userData.chatbotName);
                 }
             } catch (error) {
                 console.error('Failed to fetch user data from storage:', error);
             }
         };
-
         fetchUserData();
     }, []);
 
-
-    // 메시지가 추가될 때 스크롤을 하단으로 자동 이동
+    // 메시지 추가 시 자동 스크롤
     useEffect(() => {
         if (scrollViewRef.current && messages.length > 0) {
             scrollViewRef.current.scrollToEnd({ animated: true });
         }
     }, [messages]);
 
-    // 챗봇 응답을 서버에서 가져오는 함수
+    // 챗봇 응답 전송
     const sendBotResponse = async (userInput: string) => {
         try {
             console.log('Sending bot response request with input:', userInput);
             const response = await axios.post(serverUrl, userInput, {
                 headers: { 'Content-Type': 'text/plain' },
             });
-            console.log('Bot response data:', response.data);
 
             const botMessage: Message = {
                 sender: 'bot',
@@ -75,90 +70,66 @@ export default function ChatbotPage() {
 
             setMessages(prevMessages => {
                 const newMessages = [...prevMessages, botMessage];
-                return newMessages.map((msg, index) => ({
-                    ...msg,
-                    showTimestamp: shouldShowTimestamp(index, msg, newMessages)
-                }));
+                return updateTimestamps(newMessages);
             });
             setUserMessageCount(0);
         } catch (error) {
-            console.error('Error while sending bot response:', error);
-            if (error.response) {
-                console.error('Response data:', error.response.data);
-                console.error('Response status:', error.response.status);
-                console.error('Response headers:', error.response.headers);
-            } else if (error.request) {
-                console.error('Request made but no response:', error.request);
-            } else {
-                console.error('Axios setup error:', error.message);
-            }
-
-            const errorMessage: Message = {
-                sender: 'bot',
-                text: '챗봇 응답을 가져올 수 없습니다.',
-                avatar: BambooHead,
-                name: chatbotName || '챗봇',
-                timestamp: getCurrentTime(),
-                showTimestamp: true,
-            };
-
-            setMessages(prevMessages => {
-                const newMessages = [...prevMessages, errorMessage];
-                return newMessages.map((msg, index) => ({
-                    ...msg,
-                    showTimestamp: shouldShowTimestamp(index, msg, newMessages)
-                }));
-            });
-            setUserMessageCount(0);
+            handleErrorResponse();
         }
     };
 
+    // 오류 응답 처리
+    const handleErrorResponse = () => {
+        const errorMessage: Message = {
+            sender: 'bot',
+            text: '챗봇 응답을 가져올 수 없습니다.',
+            avatar: BambooHead,
+            name: chatbotName || '챗봇',
+            timestamp: getCurrentTime(),
+            showTimestamp: true,
+        };
 
-    // 사용자가 메시지에 좋아요/싫어요 평가를 할 수 있게 하는 함수
-    const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {
         setMessages(prevMessages => {
-            return prevMessages.map((msg, index) => {
-                if (index === messageIndex) {
-                    // 같은 버튼을 다시 클릭하면 평가 취소
-                    if (msg.evaluation === type) {
-                        return { ...msg, evaluation: null };
-                    }
-                    return { ...msg, evaluation: type };
-                }
-                return msg;
-            });
+            const newMessages = [...prevMessages, errorMessage];
+            return updateTimestamps(newMessages);
         });
+        setUserMessageCount(0);
     };
 
-    // 챗봇 메시지에 대한 평가 버튼 컴포넌트
+    // 평가 처리
+    const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {
+        setMessages(prevMessages =>
+            prevMessages.map((msg, index) => {
+                if (index === messageIndex) {
+                    return { ...msg, evaluation: msg.evaluation === type ? null : type };
+                }
+                return msg;
+            })
+        );
+    };
+
+    // 메시지에 대한 평가 버튼 컴포넌트
     const EvaluationButtons = ({ message, index }: { message: Message; index: number }) => {
         if (message.sender !== 'bot') return null;
-
         return (
             <View style={styles.evaluationContainer}>
                 <TouchableOpacity
                     onPress={() => handleEvaluation(index, 'like')}
-                    style={[
-                        styles.evaluationButton,
-                        message.evaluation === 'like' && styles.evaluationButtonActive
-                    ]}
+                    style={[styles.evaluationButton, message.evaluation === 'like' && styles.evaluationButtonActive]}
                 >
                     <Ionicons
                         name={message.evaluation === 'like' ? "thumbs-up" : "thumbs-up-outline"}
-                        size={14}  // 작은 크기의 아이콘
+                        size={14}
                         color={message.evaluation === 'like' ? "#4a9960" : "#666"}
                     />
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={() => handleEvaluation(index, 'dislike')}
-                    style={[
-                        styles.evaluationButton,
-                        message.evaluation === 'dislike' && styles.evaluationButtonActive
-                    ]}
+                    style={[styles.evaluationButton, message.evaluation === 'dislike' && styles.evaluationButtonActive]}
                 >
                     <Ionicons
                         name={message.evaluation === 'dislike' ? "thumbs-down" : "thumbs-down-outline"}
-                        size={14}  // 작은 크기의 아이콘
+                        size={14}
                         color={message.evaluation === 'dislike' ? "#e74c3c" : "#666"}
                     />
                 </TouchableOpacity>
@@ -166,64 +137,53 @@ export default function ChatbotPage() {
         );
     };
 
-    // 현재 시간을 가져오는 함수 (오전/오후 형식)
+    // 현재 시간 가져오기
     const getCurrentTime = (): string => {
         const now = new Date();
         let hours = now.getHours();
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const ampm = hours >= 12 ? '오후' : '오전';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
+        hours = hours % 12 || 12;
         return `${ampm} ${hours}:${minutes}`;
     };
 
-    // 시간 표시 여부를 결정하는 함수
+    // 시간 표시 여부 결정
     const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
-        // 봇 메시지는 항상 시간 표시
         if (currentMessage.sender === 'bot') return true;
-
-        // 사용자 메시지의 경우, 다음 조건들을 확인
-        let nextMessage = allMessages[messageIndex + 1];
-
-        // 1. 현재 메시지가 마지막 메시지인 경우
+        const nextMessage = allMessages[messageIndex + 1];
         if (!nextMessage) return true;
-
-        // 2. 다음 메시지가 봇 메시지인 경우
         if (nextMessage.sender === 'bot') return true;
-
-        // 3. 다음 메시지와 시간이 다른 경우
         if (nextMessage.timestamp !== currentMessage.timestamp) return true;
-
-        // 그 외의 경우는 시간을 표시하지 않음
         return false;
     };
 
-    // 사용자 메시지를 전송하는 함수
+    // 타임스탬프 업데이트
+    const updateTimestamps = (messages: Message[]): Message[] => {
+        return messages.map((msg, index) => ({
+            ...msg,
+            showTimestamp: shouldShowTimestamp(index, msg, messages)
+        }));
+    };
+
+    // 사용자 메시지 전송
     const sendMessage = () => {
         if (input.trim()) {
-            const currentTime = getCurrentTime();
             const userMessage: Message = {
                 sender: 'user',
                 text: input.trim(),
                 avatar: BambooHead,
-                name: userName || '사용자',
-                timestamp: currentTime,
-                showTimestamp: false, // 초기값은 false로 설정
+                name: userName,
+                timestamp: getCurrentTime(),
+                showTimestamp: false,
             };
 
-            // 메시지 리스트 업데이트 및 시간 표시 여부 설정
             setMessages(prevMessages => {
                 const newMessages = [...prevMessages, userMessage];
-                return newMessages.map((msg, index) => ({
-                    ...msg,
-                    showTimestamp: shouldShowTimestamp(index, msg, newMessages)
-                }));
+                return updateTimestamps(newMessages);
             });
 
             setInput('');
             setUserMessageCount(prev => prev + 1);
-
-            // 사용자 메시지가 2개가 되면 챗봇 응답 전송
             if (userMessageCount + 1 >= 2) {
                 sendBotResponse(input.trim());
             }
@@ -241,90 +201,34 @@ export default function ChatbotPage() {
                 {messages.map((msg, index) => (
                     <View
                         key={index}
-                        style={[
-                            styles.messageContainer,
-                            msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
-                        ]}
+                        style={[styles.messageContainer, msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer]}
                     >
-                        {/* 챗봇 아바타 */}
                         {msg.sender === 'bot' && (
                             <View style={styles.avatarContainer}>
                                 <Image source={msg.avatar} style={styles.avatar} />
                             </View>
                         )}
-                        <View style={[
-                            styles.messageContent,
-                            msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
-                        ]}>
-                            {/* 발신자 이름 */}
-                            <Text style={[
-                                styles.senderName,
-                                msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
-                            ]}>
+                        <View style={[styles.messageContent, msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent]}>
+                            <Text style={[styles.senderName, msg.sender === 'user' ? styles.userSenderName : styles.botSenderName]}>
                                 {msg.name}
                             </Text>
                             <View style={styles.messageTimeContainer}>
-                                {/* 사용자 메시지 시간 표시 */}
                                 {msg.sender === 'user' && msg.showTimestamp && (
-                                    <Text style={styles.timeText}>
-                                        {msg.timestamp}
-                                    </Text>
+                                    <Text style={styles.timeText}>{msg.timestamp}</Text>
                                 )}
-                                {/* 메시지 버블 */}
-                                <View
-                                    style={[
-                                        styles.message,
-                                        msg.sender === 'user' ? styles.userMessage : styles.botMessage,
-                                    ]}
-                                >
-                                    <Text style={[
-                                        styles.messageText,
-                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
-                                    ]}>
+                                <View style={[styles.message, msg.sender === 'user' ? styles.userMessage : styles.botMessage]}>
+                                    <Text style={[styles.messageText, msg.sender === 'user' ? styles.userMessageText : styles.botMessageText]}>
                                         {msg.text}
                                     </Text>
                                 </View>
-                                {/* 챗봇 메시지 시간과 평가 버튼 */}
                                 {msg.sender === 'bot' && msg.showTimestamp && (
                                     <View style={styles.timeContainer}>
-                                        {/* 평가 버튼 컨테이너 */}
-                                        <View style={styles.evaluationContainer}>
-                                            <TouchableOpacity
-                                                onPress={() => handleEvaluation(index, 'like')}
-                                                style={[
-                                                    styles.evaluationButton,
-                                                    msg.evaluation === 'like' && styles.evaluationButtonActive
-                                                ]}
-                                            >
-                                                <Ionicons
-                                                    name={msg.evaluation === 'like' ? "thumbs-up" : "thumbs-up-outline"}
-                                                    size={14}
-                                                    color={msg.evaluation === 'like' ? "#4a9960" : "#666"}
-                                                />
-                                            </TouchableOpacity>
-                                            <TouchableOpacity
-                                                onPress={() => handleEvaluation(index, 'dislike')}
-                                                style={[
-                                                    styles.evaluationButton,
-                                                    msg.evaluation === 'dislike' && styles.evaluationButtonActive
-                                                ]}
-                                            >
-                                                <Ionicons
-                                                    name={msg.evaluation === 'dislike' ? "thumbs-down" : "thumbs-down-outline"}
-                                                    size={14}
-                                                    color={msg.evaluation === 'dislike' ? "#e74c3c" : "#666"}
-                                                />
-                                            </TouchableOpacity>
-                                        </View>
-                                        {/* 시간 표시 */}
-                                        <Text style={styles.timeText}>
-                                            {msg.timestamp}
-                                        </Text>
+                                        <EvaluationButtons message={msg} index={index} />
+                                        <Text style={styles.timeText}>{msg.timestamp}</Text>
                                     </View>
                                 )}
                             </View>
                         </View>
-                        {/* 사용자 아바타 */}
                         {msg.sender === 'user' && (
                             <View style={styles.avatarContainer}>
                                 <Image source={msg.avatar} style={styles.avatar} />
@@ -333,7 +237,6 @@ export default function ChatbotPage() {
                     </View>
                 ))}
             </ScrollView>
-            {/* 입력 영역 */}
             <View style={styles.inputArea}>
                 <TextInput
                     style={styles.input}
@@ -349,6 +252,7 @@ export default function ChatbotPage() {
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     // 시간과 평가 버튼을 함께 감싸는 컨테이너

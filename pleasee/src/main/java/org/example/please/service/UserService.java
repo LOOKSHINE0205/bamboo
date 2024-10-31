@@ -54,11 +54,13 @@ public class UserService {
     }
 
     // 로그인 로직
-    public boolean login(User user) {
+    public User login(User user) {
         Optional<User> foundUser = userRepository.findByUserEmail(user.getUserEmail());
-        boolean isAuthenticated = foundUser.filter(value -> passwordEncoder.matches(user.getUserPw(), value.getUserPw())).isPresent();
-        logger.info("User login attempt for email: {} - {}", user.getUserEmail(), isAuthenticated ? "SUCCESS" : "FAILURE");
-        return isAuthenticated;
+
+        // Optional을 사용해 비밀번호가 일치할 경우 User 객체를 반환하고, 그렇지 않으면 null 반환
+        return foundUser
+                .filter(value -> passwordEncoder.matches(user.getUserPw(), value.getUserPw()))
+                .orElse(null); // 인증 실패 시 null 반환
     }
 
     // 비밀번호 업데이트

@@ -52,11 +52,14 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
-        boolean isAuthenticated = userService.login(user);
-        if (isAuthenticated) {
+        User authenticatedUser = userService.login(user); // User 객체 반환
+
+        if (authenticatedUser != null) {
             response.put("message", "로그인 성공");
+            response.put("user", authenticatedUser); // 사용자 정보 추가
             return ResponseEntity.ok(response);
         }
+
         response.put("message", "로그인 실패");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }

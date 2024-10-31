@@ -1,7 +1,9 @@
 package org.example.please.service;
 
 import org.example.please.entity.Diary;
+import org.example.please.entity.User;
 import org.example.please.repository.DiaryRepository;
+import org.example.please.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,10 +13,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import java.awt.image.BufferedImage;
@@ -29,6 +28,8 @@ public class DiaryService {
 
     // 파일을 저장할 경로 설정 (실제 경로로 설정해야 함)
     private final String uploadDir = "C:/uploads/";  // 파일 저장 경로를 실제 경로로 변경해야 합니다.
+    @Autowired
+    private UserRepository userRepository;
 
     // 전날과 오늘의 모든 사용자의 일기 가져오기
     public Map<String, List<Diary>> getDiariesForYesterdayAndToday() {
@@ -74,7 +75,7 @@ public class DiaryService {
         // 사진 파일 처리
         if (photoFile != null && !photoFile.isEmpty()) {
             String fileName = savePhoto(photoFile);
-            diary.setPhoto(fileName);  // 사진 경로 설정
+            diary.setDiaryPhoto(fileName);  // 사진 경로 설정
         }
 
         return diaryRepository.save(diary);
@@ -131,7 +132,7 @@ public class DiaryService {
         if (imageUrl != null && !imageUrl.isEmpty()) {
             String fileName = UUID.randomUUID().toString() + ".jpg";  // 파일 이름 생성
             downloadAndSavePhoto(imageUrl, fileName);
-            diary.setPhoto(fileName);  // 사진 파일 이름 설정
+            diary.setDiaryPhoto(fileName);  // 사진 파일 이름 설정
         }
 
         return diaryRepository.save(diary);  // 일기 저장
@@ -147,4 +148,16 @@ public class DiaryService {
     public void deleteDiary(int id) {
         diaryRepository.deleteById(id);
     }
+
+    public List<Diary> getDiariesByUserEmail(String userEmail) {
+        // 사용자 이메일로 사용자 정보를 찾기
+        Optional<User> user = userRepository.findByUserEmail(userEmail);
+        if (user.isPresent()) {
+            // 이메일을 기준으로 다이어리 조회
+            return diaryRepository.findDiariesByUserEmail(userEmail);
+        } else {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+    }
+
 }
