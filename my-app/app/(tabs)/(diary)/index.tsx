@@ -57,6 +57,7 @@ export default function CustomDiaryScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   let alertTimeout;
+
   const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
 
 
@@ -182,93 +183,90 @@ export default function CustomDiaryScreen() {
   );
 }
 
+// 스타일 정의
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    backgroundColor: "#ffffff",
+    flex: 1, // 전체 화면을 차지
+    paddingHorizontal: 16, // 수평 패딩 추가
+    paddingVertical: 7, // 수직 패딩 추가
+    backgroundColor: "#ffffff", // 배경색 흰색 설정
   },
   headerIcons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginRight: 15,
-    marginBottom: 10,
+    flexDirection: "row", // 아이콘들을 가로로 정렬
+    justifyContent: "flex-end", // 오른쪽 정렬
+    marginRight: 15, // 오른쪽 마진 추가
+    marginBottom: 10, // 아래쪽 마진 추가
+    top: 12,
   },
   icon: {
-    marginLeft: 10,
+    marginLeft: 10, // 아이콘 간격 설정
   },
   yearMonthContainer: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
+    alignItems: "center", // 수직 정렬
+    flexDirection: "row", // 가로 정렬
+    justifyContent: "center", // 가운데 정렬
+    top: -20,
   },
-  headerText: { // 달력 날짜
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#000000",
-    marginRight: 10,
+  headerText: {
+    fontSize: 17, // 글자 크기 설정
+    fontWeight: "bold", // 굵은 글씨
+    color: "#000000", // 글자색 검정
+    marginRight: 10, // 오른쪽 마진
   },
   daysOfWeekContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-    marginBottom: 10,
+    flexDirection: "row", // 가로로 정렬
+    justifyContent: "space-around", // 공간을 균등하게 배치
+    marginBottom: 8, // 아래쪽 마진 추가
   },
   dayOfWeekText: {
-    color: "#666666",
-    textAlign: "center",
-    width: SCREEN_WIDTH / 8.3,
+    color: "#666666", // 글자색 회색
+    textAlign: "center", // 가운데 정렬
   },
   calendar: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    rowGap: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start', // 왼쪽부터 시작하되
   },
+
   dateContainer: {
-    width: SCREEN_WIDTH / 7.6,
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 12,
+    width: `${100/7}%`, // 전체 너비를 7등분하여 각 날짜가 동일한 공간을 차지하도록 설정
   },
   circle: {
-    width: 43,
-    height: 44,
-    borderRadius: 20,
-    backgroundColor: "#d3d3d3",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 1,
+    width: 43, // 원형 배경의 너비
+    height: 44, // 원형 배경의 높이
+    borderRadius: 20, // 원형 설정
+    backgroundColor: "#d3d3d3", // 회색 배경
+    justifyContent: "center", // 가운데 정렬
+    alignItems: "center", // 가운데 정렬
+    marginBottom: 1, // 아래쪽 마진
   },
   dateText: {
-    color: "#555555",
-    fontSize: 10,
-    textAlign: "center",
+    color: "#555555", // 글자색 어두운 회색
+    fontSize: 10, // 글자 크기
+    textAlign: "center", // 가운데 정렬
   },
   outsideMonth: {
-    opacity: 0,
+    opacity: 0, // 외부 월 날짜를 투명하게 설정
   },
   todayCircle: {
-    backgroundColor: "#4a9960",
+    backgroundColor: "#4a9960", // 오늘 날짜 배경색 녹색
   },
   todayText: {
-    color: "#4a9960",
-    fontWeight: "bold",
+    color: "#4a9960", // 오늘 날짜 글자색 녹색
+    fontWeight: "bold", // 굵은 글씨
   },
   alertContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "center",
-    position: "absolute",
-    bottom: 30,
-  },
-  alertIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
+    flexDirection: "row", // 가로로 정렬
+    alignItems: "center", // 수직 가운데 정렬
+    alignSelf: "center", // 부모에서 가운데 정렬
+    position: "absolute", // 절대 위치 설정
+    bottom: 30, // 화면 하단에서 30px 위에 위치
   },
   alertText: {
-    color: "#666666",
-    fontWeight: "bold",
+    color: "#666666", // 경고 메시지 글자색 회색
+    fontWeight: "bold", // 굵은 글씨
   },
 });
