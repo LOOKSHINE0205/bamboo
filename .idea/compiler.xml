@@ -10,10 +10,5 @@
         <module name="pleasee.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="pleasee" target="17" />
-      <module name="pleasee.main" target="17" />
-      <module name="pleasee.test" target="17" />
-    </bytecodeTargetLevel>
   </component>
 </project>
