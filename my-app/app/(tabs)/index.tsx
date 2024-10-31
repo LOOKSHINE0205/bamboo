@@ -4,6 +4,8 @@ import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 // @ts-ignore
 import BambooHead from '../../assets/images/bamboo_head.png';
+import { getUserInfo, clearUserData, User } from '../../storage/storageHelper';
+import {userInfo} from "node:os";
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
@@ -27,26 +29,18 @@ export default function ChatbotPage() {
 
     // 서버 URL
     const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
+    const userInfoUrl = 'http://10.0.2.2:8082/api/user/info';
     // 사용자 정보 가져오기
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                console.log('Fetching user data from API...');
-                const response = await axios.get(userInfoUrl);
-                console.log('User data response:', response.data);
-                setUserName(response.data.userName);
-                setChatbotName(response.data.chatbotName);
-            } catch (error) {
-                console.error('Failed to fetch user data:', error);
-                if (error.response) {
-                    console.error('Response data:', error.response.data);
-                    console.error('Response status:', error.response.status);
-                    console.error('Response headers:', error.response.headers);
-                } else if (error.request) {
-                    console.error('Request made but no response:', error.request);
-                } else {
-                    console.error('Axios setup error:', error.message);
+                const userData: User | null = await getUserInfo();
+                if (userData) {
+                    setUserName(userData.userNick);  // storage에서 사용자 닉네임 가져오기
+                    setChatbotName(userData.chatbotName);  // storage에서 챗봇 이름 가져오기
                 }
+            } catch (error) {
+                console.error('Failed to fetch user data from storage:', error);
             }
         };
 
@@ -74,7 +68,7 @@ export default function ChatbotPage() {
                 sender: 'bot',
                 text: response.data,
                 avatar: BambooHead,
-                name: chatbotName || '챗봇',
+                name: chatbotName,
                 timestamp: getCurrentTime(),
                 showTimestamp: true,
             };
