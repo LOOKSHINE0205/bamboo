@@ -1,15 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Switch, Button, StyleSheet, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Switch,
+  Button,
+  StyleSheet,
+  Alert,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform
+} from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getUserEmail, clearUserData } from '../../storage/storageHelper'; // storageHelper에서 함수 불러오기
+import { getUserEmail, clearUserData } from '../../storage/storageHelper';
 
 const SettingsScreen = () => {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(''); // 현재 비밀번호 입력
+  const [newPassword, setNewPassword] = useState(''); // 새로운 비밀번호 입력
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
@@ -22,7 +37,7 @@ const SettingsScreen = () => {
 
   const fetchUserData = async () => {
     try {
-      const storedEmail = await getUserEmail(); // 이메일 가져오기
+      const storedEmail = await getUserEmail();
       if (!storedEmail) {
         Alert.alert("오류", "이메일 정보를 찾을 수 없습니다.");
         return;
@@ -94,8 +109,9 @@ const SettingsScreen = () => {
         } : null
       };
 
-      if (password) {
-        const userData = { userEmail: email, userPw: password };
+      // 새 비밀번호가 설정되었을 경우에만 비밀번호 변경 API 호출
+      if (newPassword) {
+        const userData = { userEmail: email, userPw: newPassword };
         await axios.post('http://10.0.2.2:8082/api/users/updatePassword', userData);
       }
 
@@ -108,7 +124,7 @@ const SettingsScreen = () => {
   };
 
   const handleLogout = async () => {
-    await clearUserData(); // 사용자 정보 제거
+    await clearUserData();
     Alert.alert('알림', '로그아웃 되었습니다.');
     router.push('../(init)');
   };
@@ -123,8 +139,11 @@ const SettingsScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.profileImageSection}>
           <TouchableOpacity
             style={styles.profileImageContainer}
@@ -149,11 +168,22 @@ const SettingsScreen = () => {
         <Text style={styles.label}>이메일</Text>
         <TextInput style={styles.input} value={email} editable={false} />
 
-        <Text style={styles.label}>비밀번호 수정</Text>
+        {/* 비밀번호 확인 필드 */}
+        <Text style={styles.label}>비밀번호 확인</Text>
         <TextInput
           style={styles.input}
           value={password}
           onChangeText={setPassword}
+          secureTextEntry
+          placeholder="기존 비밀번호 입력"
+        />
+
+        {/* 비밀번호 변경 필드 */}
+        <Text style={styles.label}>비밀번호 변경</Text>
+        <TextInput
+          style={styles.input}
+          value={newPassword}
+          onChangeText={setNewPassword}
           secureTextEntry
           placeholder="새 비밀번호 입력"
         />
@@ -195,7 +225,7 @@ const SettingsScreen = () => {
             </View>
           </View>
         )}
-      </View>
+      </ScrollView>
 
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
@@ -205,7 +235,7 @@ const SettingsScreen = () => {
           <Button title="로그아웃" onPress={handleLogout} color="#4a9960" />
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
