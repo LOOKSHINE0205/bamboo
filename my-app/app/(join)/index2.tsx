@@ -217,7 +217,7 @@ const KeywordSelectionScreen = () => {
         </View>
       )}
 
-        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85, top:'15%' }]}>
+        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85,top:150 }]}>
           {!isLastQuestion ? (
             <TouchableOpacity
               style={styles.aiResponseButton}
