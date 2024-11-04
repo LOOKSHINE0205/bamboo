@@ -27,7 +27,7 @@ export default function LoginScreen() {
 
         try {
             // 로그인 API 요청
-            const response = await axios.post('http://192.168.20.97:8082/api/users/login', {
+            const response = await axios.post('http://10.0.2.2:8082/api/users/login', {
                 userEmail: email,
                 userPw: password,
             });
