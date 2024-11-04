@@ -18,6 +18,7 @@ import axios from 'axios';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getUserInfo, clearUserData } from '../../storage/storageHelper';
+import * as ImagePicker from 'expo-image-picker';
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -49,8 +50,34 @@ const SettingsScreen = () => {
     }
   };
 
-  const handleImagePicker = () => {
-    Alert.alert('알림', '이미지 선택 기능은 추후 구현될 예정입니다.');
+  const handleImagePicker = async () => {
+    // 카메라 롤 접근 권한 요청
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+      return;
+    }
+
+    // 이미지 선택
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], // 정사각형 비율로 조정
+      quality: 1, // 이미지 품질 설정 (0~1)
+    });
+
+    // 사용자가 이미지를 선택하지 않았을 경우
+    if (result.canceled) {
+      return;
+    }
+
+    // 선택된 이미지를 userInfo에 설정
+    if (result.assets && result.assets.length > 0) {
+      setUserInfo((prev) => ({
+        ...prev,
+        profileImage: result.assets[0].uri,
+      }));
+    }
   };
 
   const toggleSwitch = () => {
