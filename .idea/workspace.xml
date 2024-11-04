@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="일기 정보관련 파일 생성, diary.index 정보 받아오기 로그인한 회원 일기데이터 받아오기 성공 추후 날짜에 맞춰 emotion_tag삽입하기. 이 코드 살려서 다른 페이지들도 동일하게 진행하면됨" />
+    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="일기 정보관련 파일 생성, diary.index 정보 받아오기 로그인한 회원 일기데이터 받아오기 성공 추후 날짜에 맞춰 emotion_tag삽입하기. 이 코드 살려서 다른 페이지들도 동일하게 진행하면됨 돋보기 버튼 누르면 데이터 log 확인가능">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -93,6 +95,7 @@
       <workItem from="1730363915267" duration="1215000" />
       <workItem from="1730367847221" duration="4519000" />
       <workItem from="1730373399697" duration="5939000" />
+      <workItem from="1730686991434" duration="1065000" />
     </task>
     <task id="LOCAL-00001" summary="aasd">
       <option name="closed" value="true" />
