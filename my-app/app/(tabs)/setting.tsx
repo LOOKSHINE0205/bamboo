@@ -79,6 +79,9 @@ const SettingsScreen = () => {
 
       await setUserProfileImage(selectedImageUri);
       console.log("선택한 이미지 저장 완료:", selectedImageUri);
+
+      // 프로필 업데이트 후 데이터 다시 가져오기
+      fetchUserData();
     }
   };
 
@@ -172,7 +175,8 @@ const SettingsScreen = () => {
             onPress={handleImagePicker}
           >
             {userInfo?.profileImage ? (
-              <Image source={{ uri: userInfo.profileImage }} style={styles.profileImage} />
+              <Image source={{ uri: `${userInfo.profileImage}?${new Date().getTime()}` }} style={styles.profileImage} />
+
             ) : (
               <View style={styles.defaultProfileImage}>
                 <Ionicons name="person" size={50} color="#cccccc" />
