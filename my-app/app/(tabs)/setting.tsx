@@ -17,18 +17,16 @@ import {
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getUserEmail, clearUserData } from '../../storage/storageHelper';
+import { getUserInfo, clearUserData } from '../../storage/storageHelper';
 
 const SettingsScreen = () => {
   const router = useRouter();
-  const [nickname, setNickname] = useState('');
-  const [email, setEmail] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
   const [password, setPassword] = useState(''); // 현재 비밀번호 입력
   const [newPassword, setNewPassword] = useState(''); // 새로운 비밀번호 입력
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
-  const [profileImage, setProfileImage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,16 +35,12 @@ const SettingsScreen = () => {
 
   const fetchUserData = async () => {
     try {
-      const storedEmail = await getUserEmail();
-      if (!storedEmail) {
-        Alert.alert("오류", "이메일 정보를 찾을 수 없습니다.");
-        return;
+      const data = await getUserInfo();
+      if (data) {
+        setUserInfo(data);
+      } else {
+        Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
       }
-
-      const response = await axios.get(`http://10.0.2.2:8082/api/users/me?email=${storedEmail}`);
-      const { user_nick: userNickname, user_email: userEmail } = response.data;
-      setNickname(userNickname);
-      setEmail(userEmail);
     } catch (error) {
       console.error('Error fetching user data:', error);
       Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
@@ -101,7 +95,7 @@ const SettingsScreen = () => {
 
     try {
       const settings = {
-        nickname,
+        nickname: userInfo?.userNick,
         notificationsEnabled,
         notificationTimeRange: notificationsEnabled ? {
           start: startTime,
@@ -111,7 +105,7 @@ const SettingsScreen = () => {
 
       // 새 비밀번호가 설정되었을 경우에만 비밀번호 변경 API 호출
       if (newPassword) {
-        const userData = { userEmail: email, userPw: newPassword };
+        const userData = { userEmail: userInfo?.userEmail, userPw: newPassword };
         await axios.post('http://10.0.2.2:8082/api/users/updatePassword', userData);
       }
 
@@ -149,8 +143,8 @@ const SettingsScreen = () => {
             style={styles.profileImageContainer}
             onPress={handleImagePicker}
           >
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            {userInfo?.profileImage ? (
+              <Image source={{ uri: userInfo.profileImage }} style={styles.profileImage} />
             ) : (
               <View style={styles.defaultProfileImage}>
                 <Ionicons name="person" size={50} color="#cccccc" />
@@ -163,12 +157,17 @@ const SettingsScreen = () => {
         </View>
 
         <Text style={styles.label}>닉네임</Text>
-        <TextInput style={styles.input} value={nickname} editable={false} />
+        <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />
 
         <Text style={styles.label}>이메일</Text>
-        <TextInput style={styles.input} value={email} editable={false} />
+        <TextInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} />
 
-        {/* 비밀번호 확인 필드 */}
+        <Text style={styles.label}>생일</Text>
+        <TextInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} />
+
+        <Text style={styles.label}>챗봇 이름</Text>
+        <TextInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} />
+
         <Text style={styles.label}>비밀번호 확인</Text>
         <TextInput
           style={styles.input}
@@ -178,7 +177,6 @@ const SettingsScreen = () => {
           placeholder="기존 비밀번호 입력"
         />
 
-        {/* 비밀번호 변경 필드 */}
         <Text style={styles.label}>비밀번호 변경</Text>
         <TextInput
           style={styles.input}
