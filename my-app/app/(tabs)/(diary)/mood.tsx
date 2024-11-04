@@ -20,10 +20,12 @@ export default function MoodSelectionScreen() {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
+      base64: true,
     });
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
+      const base64Image = result.assets[0].base64;
+      setSelectedImage(base64Image);
     }
   };
 
@@ -89,7 +91,7 @@ export default function MoodSelectionScreen() {
         date,
         weather: selectedWeather,
         mood: selectedMood,
-        imageUri: selectedImage,
+        imageBase64: selectedImage,
       },
     });
   };
