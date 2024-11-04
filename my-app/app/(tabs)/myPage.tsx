@@ -25,6 +25,7 @@ import diary_happy from "../../assets/images/diary_happy.png";
 import diary_neutral from "../../assets/images/diary_neutral.png";
 import diary_sad from "../../assets/images/diary_sad.png";
 import diary_surprise from "../../assets/images/diary_surprise.png";
+import DiaryScreen, { Diary } from "@/app/(tabs)/(diary)/diariesInfo";
 
 // 사용자 정보 가져오는 함수 불러오기
 import { getUserInfo } from '../../storage/storageHelper';
@@ -32,8 +33,8 @@ import { getUserInfo } from '../../storage/storageHelper';
 // 메인 컴포넌트 함수 정의
 export default function MyPage() {
     // === 상태 관리 ===
-    const [level, setLevel] = useState(null); // 대나무 성장 레벨 상태 (초기값 1)
-    const [nickname, setNickname] = useState(''); // 사용자 닉네임 상태
+    const [chatbotLevel, setChatbotLevel] = useState(null); // 대나무 성장 레벨 상태 (초기값 1)
+    const [chatbotName, setChatbotName] = useState(''); // 사용자 닉네임 상태
     const [screenDimensions, setScreenDimensions] = useState(Dimensions.get("window")); // 현재 화면 크기 정보 상태
 
     // === 상수 설정 ===
@@ -43,7 +44,7 @@ export default function MyPage() {
     const gapBetweenHeadAndBody = 0.8;      // 대나무 머리와 몸체 사이의 간격
 
     // === 레벨 관련 계산 ===
-    const displayLevel = level !== null ? (level - 1) % 30 + 1 : 1; // 레벨을 1-30 사이로 순환하도록 계산 (31 -> 1, 32 -> 2, ...)
+    const displayLevel = chatbotLevel !== null ? (chatbotLevel - 1) % 30 + 1 : 1; // 레벨을 1-30 사이로 순환하도록 계산 (31 -> 1, 32 -> 2, ...)
     const treeLevel = `Lv ${displayLevel}`;    // 화면에 표시할 레벨 텍스트 (Lv 1, Lv 2, ...)
     const effectiveLevel = displayLevel;       // 현재 레벨 값으로 실제 렌더링에 사용할 값
 
@@ -64,8 +65,9 @@ export default function MyPage() {
                 const userInfo = await getUserInfo();
                 console.log('Fetched user info:', userInfo); // 디버깅 로그
                 if (userInfo) {
-                    setNickname(userInfo.chatbotName);  // 닉네임 설정
-                    setLevel(userInfo.chatbotLevel);  // 레벨 설정, 기본값 1
+                    setChatbotName(userInfo.chatbotName);  // 닉네임 설정
+                    // @ts-ignore
+                    setChatbotLevel(userInfo.chatbotLevel);  // 레벨 설정, 기본값 1
                 } else {
                     Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
                 }
@@ -82,21 +84,21 @@ export default function MyPage() {
 
     useEffect(() => {
         // 특정 레벨에 도달할 때마다 팬더 크기 증가
-        if (level >= 151) setPandaScale(2.5);  // 151 이상일 때 2.5배 크기
-        else if (level >= 121) setPandaScale(2);     // 121 이상일 때 2배 크기
-        else if (level >= 91) setPandaScale(1.8);     // 91 이상일 때 1.8배 크기
-        else if (level >= 61) setPandaScale(1.4);     // 61 이상일 때 1.4배 크기
-        else if (level >= 31) setPandaScale(1);       // 31 이상일 때 1배 크기
-    }, [level]);
+        if (chatbotLevel >= 151) setPandaScale(2.5);  // 151 이상일 때 2.5배 크기
+        else if (chatbotLevel >= 121) setPandaScale(2);     // 121 이상일 때 2배 크기
+        else if (chatbotLevel >= 91) setPandaScale(1.8);     // 91 이상일 때 1.8배 크기
+        else if (chatbotLevel >= 61) setPandaScale(1.4);     // 61 이상일 때 1.4배 크기
+        else if (chatbotLevel >= 31) setPandaScale(1);       // 31 이상일 때 1배 크기
+    }, [chatbotLevel]);
 
     // 팬더의 오른쪽 위치 조정 함수
     const getPandaPosition = () => {
         // 각 레벨에 따라 팬더의 오른쪽 위치 값을 반환
-        if (level >= 151) return bambooBodyWidth * -2.9;
-        if (level >= 121) return bambooBodyWidth * -2.6;
-        if (level >= 91) return bambooBodyWidth * -2.5;
-        if (level >= 61) return bambooBodyWidth * -2.3;
-        if (level >= 31) return bambooBodyWidth * -2.1;
+        if (chatbotLevel >= 151) return bambooBodyWidth * -2.9;
+        if (chatbotLevel >= 121) return bambooBodyWidth * -2.6;
+        if (chatbotLevel >= 91) return bambooBodyWidth * -2.5;
+        if (chatbotLevel >= 61) return bambooBodyWidth * -2.3;
+        if (chatbotLevel >= 31) return bambooBodyWidth * -2.1;
         return bambooBodyWidth * -2; // 기본 위치
     };
 
@@ -269,7 +271,7 @@ export default function MyPage() {
     return (
         <ImageBackground source={BackgroundImage} style={styles.background}>
             <View style={styles.container}>
-                <Text style={styles.treeNameText}>{nickname}</Text>
+                <Text style={styles.treeNameText}>{chatbotName}</Text>
                 <Text style={styles.levelText}>{treeLevel}</Text>
 
                 <Animated.Image source={CloudImage} style={[styles.cloudImage, { transform: [{ translateX: cloudAnimation1 }] }]} />
