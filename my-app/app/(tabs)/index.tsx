@@ -4,6 +4,7 @@ import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 // @ts-ignore
 import BambooHead from '../../assets/images/bamboo_head.png';
+import BambooPanda from '../../assets/images/bamboo_panda.png';
 import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -25,7 +26,7 @@ export default function ChatbotPage() {
     const [chatbotName, setChatbotName] = useState<string>('챗봇'); // 기본 챗봇 이름 설정
     const [userMessageCount, setUserMessageCount] = useState(0);
     const scrollViewRef = useRef<ScrollView>(null);
-    const [userAvatar, setUserAvatar] = useState(BambooHead); // 기본 아바타
+    const [userAvatar, setUserAvatar] = useState(BambooPanda); // 기본 아바타
     const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
 
     // 사용자 정보 및 프로필 이미지 불러오기
@@ -39,7 +40,7 @@ export default function ChatbotPage() {
                         setChatbotName(userData.chatbotName || '챗봇');
                     }
                     const profileImage = await getUserProfileImage();
-                    setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooHead);
+                    setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
                 } catch (error) {
                     console.error('데이터를 가져오는 데 실패했습니다:', error);
                 }

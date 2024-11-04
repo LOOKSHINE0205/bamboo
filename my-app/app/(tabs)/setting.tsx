@@ -57,33 +57,65 @@ const SettingsScreen = () => {
   };
 
   const handleImagePicker = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
-      return;
-    }
+    Alert.alert(
+      "프로필 이미지 변경",
+      "이미지를 선택하거나 기본 이미지로 재설정할 수 있습니다.",
+      [
+        {
+          text: "기본 이미지로 재설정",
+          onPress: handleResetProfileImage,  // 기본 이미지로 재설정 함수 호출
+        },
+        {
+          text: "갤러리에서 이미지 선택",
+          onPress: async () => {
+            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (!permissionResult.granted) {
+              Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+              return;
+            }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 1,
+            });
 
-    if (!result.canceled && result.assets?.length > 0) {
-      const selectedImageUri = result.assets[0].uri;
+            if (!result.canceled && result.assets?.length > 0) {
+              const selectedImageUri = result.assets[0].uri;
+              setUserInfo((prev) => ({
+                ...prev,
+                profileImage: selectedImageUri,
+              }));
+
+              await setUserProfileImage(selectedImageUri);
+              console.log("선택한 이미지 저장 완료:", selectedImageUri);
+
+              // 프로필 업데이트 후 데이터 다시 가져오기
+              fetchUserData();
+            }
+          },
+        },
+        { text: "취소", style: "cancel" },
+      ]
+    );
+  };
+
+  const handleResetProfileImage = async () => {
+    try {
+      // 프로필 이미지를 기본 이미지로 변경
+      await setUserProfileImage(null);
       setUserInfo((prev) => ({
         ...prev,
-        profileImage: selectedImageUri,
+        profileImage: null,
       }));
-
-      await setUserProfileImage(selectedImageUri);
-      console.log("선택한 이미지 저장 완료:", selectedImageUri);
-
-      // 프로필 업데이트 후 데이터 다시 가져오기
-      fetchUserData();
+      Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
+    } catch (error) {
+      console.error("Error resetting profile image:", error);
+      Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
     }
   };
+
 
   const toggleSwitch = () => {
     setNotificationsEnabled(previousState => !previousState);
