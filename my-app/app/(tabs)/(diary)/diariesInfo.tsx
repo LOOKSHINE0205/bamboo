@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserInfo, User } from '../../../storage/storageHelper';
+import { getUserInfo } from '../../../storage/storageHelper';
 
 export interface Diary {
     diaryIdx: number;

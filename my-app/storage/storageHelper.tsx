@@ -37,7 +37,7 @@ export const getUserInfo = async (): Promise<User | null> => {
             const parsedData: User = JSON.parse(userInfo);
 
             // 파싱된 데이터가 User 인터페이스와 일치하는지 확인
-            if (parsedData.userNick && parsedData.chatbotLevel !== undefined) {
+            if (parsedData.userEmail && parsedData.userPw !== undefined) {
                 console.log('사용자 정보 불러오기 성공:', parsedData);
                 return parsedData;
             } else {

@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="일기장 화면">
+    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="일기 정보관련 파일 생성, diary.index 정보 받아오기 로그인한 회원 일기데이터 받아오기 성공 추후 날짜에 맞춰 emotion_tag삽입하기. 이 코드 살려서 다른 페이지들도 동일하게 진행하면됨">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/mood.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/mood.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/myPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/myPage.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,32 +48,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Build pleasee.executor": "Run",
-    "Gradle.PleaseApplicationTests.executor": "Run",
-    "Gradle.pleasee [:org.example.please.PleaseApplication.main()].executor": "Run",
-    "Gradle.pleasee 빌드.executor": "Run",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "Spring Boot.PleaseApplication.executor": "Run",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/USER/Desktop/ttim",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "ts.external.directory.path": "C:\\Users\\jin\\Desktop\\bamboo\\my-app\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Build pleasee.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.PleaseApplicationTests.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.pleasee [:org.example.please.PleaseApplication.main()].executor&quot;: &quot;Run&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;Spring Boot.PleaseApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Desktop/ttim&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\jin\\Desktop\\bamboo\\my-app\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\USER\Desktop\ttim\my-app\app\(tabs)\diary" />
@@ -114,45 +114,27 @@
       <option name="project" value="LOCAL" />
       <updated>1730379235336</updated>
     </task>
-    <task id="LOCAL-00003" summary="인덱스 경고창 아이콘 css 코드 추가">
-      <option name="closed" value="true" />
-      <created>1730702325378</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1730702325378</updated>
-    </task>
-    <task id="LOCAL-00004" summary="일기장 화면">
-      <option name="closed" value="true" />
-      <created>1730702424946</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1730702424946</updated>
-    </task>
-    <option name="localTasksCounter" value="5" />
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="aasd" />
     <MESSAGE value="일기 정보관련 파일 생성, diary.index 정보 받아오기 로그인한 회원 일기데이터 받아오기 성공 추후 날짜에 맞춰 emotion_tag삽입하기. 이 코드 살려서 다른 페이지들도 동일하게 진행하면됨" />
     <MESSAGE value="z" />
-    <MESSAGE value="인덱스 경고창 아이콘 css 코드 추가" />
-    <MESSAGE value="일기장 화면" />
-    <option name="LAST_COMMIT_MESSAGE" value="일기장 화면" />
+    <option name="LAST_COMMIT_MESSAGE" value="z" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/my-app/storage/storageHelper.tsx</url>
+          <line>3</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

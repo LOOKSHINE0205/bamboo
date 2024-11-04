@@ -1,15 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
+import { getUserInfo } from '../../storage/storageHelper'; // 사용자 정보 가져오기 함수 import
 
 function CustomTabBar({ state, descriptors, navigation }) {
     const { width } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const transition = useSharedValue(0);
+    const [userInfo, setUserInfo] = useState(null);
+
+    // 사용자 정보 불러오기
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            const data = await getUserInfo();
+            setUserInfo(data);
+        };
+
+        fetchUserInfo(); // 컴포넌트 마운트 시 호출
+
+        // 화면 전환 시에도 호출되도록 설정
+        const unsubscribe = navigation.addListener('state', fetchUserInfo);
+        return unsubscribe;
+    }, [navigation]);
 
     useEffect(() => {
         transition.value = withTiming(state.index, { duration: 300 });
@@ -35,9 +51,9 @@ function CustomTabBar({ state, descriptors, navigation }) {
 
                 const iconName = route.name === 'index' ? (isFocused ? 'chatbubbles' : 'chatbubbles-outline') :
                     route.name === '(diary)' ? (isFocused ? 'calendar' : 'calendar-outline') :
-                    route.name === 'myPage' ? (isFocused ? 'person' : 'person-outline') :
-                    route.name === 'report' ? (isFocused ? 'analytics' : 'analytics-outline') :
-                    route.name === 'setting' ? (isFocused ? 'settings' : 'settings-outline') : '';
+                        route.name === 'myPage' ? (isFocused ? 'person' : 'person-outline') :
+                            route.name === 'report' ? (isFocused ? 'analytics' : 'analytics-outline') :
+                                route.name === 'setting' ? (isFocused ? 'settings' : 'settings-outline') : '';
 
                 const animatedStyle = useAnimatedStyle(() => ({
                     transform: [

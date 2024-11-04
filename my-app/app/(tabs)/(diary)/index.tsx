@@ -23,37 +23,63 @@ const Day = React.memo(
       currentMonth === today.getMonth() &&
       currentYear === today.getFullYear();
 
+    const moodImageMap = {
+      happy: require("../../../assets/images/diary_happy.png"),
+      sad: require("../../../assets/images/diary_sad.png"),
+      neutral: require("../../../assets/images/diary_neutral.png"),
+      angry: require("../../../assets/images/diary_angry.png"),
+      surprise: require("../../../assets/images/diary_surprise.png"),
+      fear: require("../../../assets/images/diary_fear.png"),
+      dislike: require("../../../assets/images/diary_dislike.png"),
+    };
+    const emotionImage = emotion ? moodImageMap[emotion] : null;
     return (
-      <TouchableOpacity
-        style={[
-          styles.dateContainer,
-          date.outsideMonth && styles.outsideMonth, // 이번 달이 아닌 날짜에 스타일 적용
-          emotion && styles[emotion], // 감정에 따라 색상 적용
-        ]}
-        onPress={() => handleDayPress(date.day)}
-      >
-        <View style={[styles.circle, isToday && styles.todayCircle]}>
-          {emotion && <Ionicons name="happy-outline" size={16} color="white" />}
-        </View>
-        <Text style={[styles.dateText, isToday && styles.todayText]}>
-          {date.day}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+            style={[
+              styles.dateContainer,
+              date.outsideMonth && styles.outsideMonth,
+            ]}
+            onPress={() => handleDayPress(date.day)}
+        >
+          <View style={[styles.circle, isToday && styles.todayCircle]}>
+            {emotionImage ? (
+                <Image source={emotionImage} style={styles.emotionImage} />
+            ) : (
+                <Text style={[styles.dateText, isToday && styles.todayText]}>
+                </Text>
+            )}
+          </View>
+          {/* 날짜 텍스트는 이미지가 없는 경우에만 표시 */}
+              <Text style={[styles.dateText, isToday && styles.todayText]}>
+                {date.day}
+              </Text>
+        </TouchableOpacity>
+
     );
   }
 );
 
 export default function CustomDiaryScreen() {
   const [diaryEntries, setDiaryEntries] = useState<Diary[]>([]);
+  const [selectedDates, setSelectedDates] = useState<Record<string, string>>({});
   // DiaryScreen의 onEntriesLoaded에서 호출될 함수
   const handleEntriesLoaded = (entries: Diary[]) => {
-    setDiaryEntries(entries); // 상태 업데이트
-    console.log("Entries loaded:", entries); // 콘솔에 출력
+    setDiaryEntries(entries);
+
+    // entries를 날짜별로 매핑하여 selectedDates 상태를 업데이트
+    const datesMap: Record<string, string> = {};
+    entries.forEach((entry) => {
+      const dateKey = new Date(entry.createdAt).toISOString().split("T")[0]; // 'YYYY-MM-DD' 형식
+      datesMap[dateKey] = entry.emotionTag; // 감정 태그 저장
+    });
+
+    setSelectedDates(datesMap);
+    console.log("Selected Dates with Emotions:", datesMap); // 매핑된 날짜와 감정 태그 출력
   };
+
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [selectedDates, setSelectedDates] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   let alertTimeout;
@@ -274,5 +300,10 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: "contain",
     marginRight: 8,
-    }
+    },
+  emotionImage: {
+    width: 43, // circle의 너비에 맞춰 이미지 너비 설정
+    height: 44, // circle의 높이에 맞춰 이미지 높이 설정
+    borderRadius: 20, // 이미지도 원형으로 설정
+  },
 });
