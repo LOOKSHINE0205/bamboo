@@ -4,7 +4,7 @@ import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 // @ts-ignore
 import BambooHead from '../../assets/images/bamboo_head.png';
-import { getUserInfo, User } from '../../storage/storageHelper';
+import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
@@ -21,27 +21,30 @@ export default function ChatbotPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [userName, setUserName] = useState<string>('');
-    const [chatbotName, setChatbotName] = useState<string>('');
+    const [chatbotName, setChatbotName] = useState<string>('챗봇'); // 기본 챗봇 이름 설정
     const [userMessageCount, setUserMessageCount] = useState(0);
     const scrollViewRef = useRef<ScrollView>(null);
-
-    // 서버 URL
+    const [userAvatar, setUserAvatar] = useState(BambooHead); // 기본 아바타
     const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
 
-    // 사용자 정보 가져오기
+    // 사용자 정보 및 프로필 이미지 불러오기
     useEffect(() => {
-        const fetchUserData = async () => {
+        const fetchData = async () => {
             try {
-                const userData: User | null = await getUserInfo();
+                const userData = await getUserInfo();
                 if (userData) {
-                    setUserName(userData.userNick);
-                    setChatbotName(userData.chatbotName);
+                    setUserName(userData.userNick || '');
+                    setChatbotName(userData.chatbotName || '챗봇');
                 }
+
+                const profileImage = await getUserProfileImage();
+                setUserAvatar(profileImage ? { uri: profileImage } : BambooHead);
             } catch (error) {
-                console.error('Failed to fetch user data from storage:', error);
+                console.error('데이터를 가져오는 데 실패했습니다:', error);
             }
         };
-        fetchUserData();
+
+        fetchData();
     }, []);
 
     // 메시지 추가 시 자동 스크롤
@@ -84,7 +87,7 @@ export default function ChatbotPage() {
             sender: 'bot',
             text: '챗봇 응답을 가져올 수 없습니다.',
             avatar: BambooHead,
-            name: chatbotName || '챗봇',
+            name: chatbotName,
             timestamp: getCurrentTime(),
             showTimestamp: true,
         };
@@ -171,7 +174,7 @@ export default function ChatbotPage() {
             const userMessage: Message = {
                 sender: 'user',
                 text: input.trim(),
-                avatar: BambooHead,
+                avatar: userAvatar,
                 name: userName,
                 timestamp: getCurrentTime(),
                 showTimestamp: false,
@@ -201,26 +204,45 @@ export default function ChatbotPage() {
                 {messages.map((msg, index) => (
                     <View
                         key={index}
-                        style={[styles.messageContainer, msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer]}
+                        style={[
+                            styles.messageContainer,
+                            msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer
+                        ]}
                     >
                         {msg.sender === 'bot' && (
                             <View style={styles.avatarContainer}>
-                                <Image source={msg.avatar} style={styles.avatar} />
+                                <Image source={msg.avatar} style={styles.botAvatar} />
                             </View>
                         )}
-                        <View style={[styles.messageContent, msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent]}>
-                            <Text style={[styles.senderName, msg.sender === 'user' ? styles.userSenderName : styles.botSenderName]}>
+
+                        <View style={[
+                            styles.messageContent,
+                            msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
+                        ]}>
+                            <Text style={[
+                                styles.senderName,
+                                msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
+                            ]}>
                                 {msg.name}
                             </Text>
+
                             <View style={styles.messageTimeContainer}>
                                 {msg.sender === 'user' && msg.showTimestamp && (
                                     <Text style={styles.timeText}>{msg.timestamp}</Text>
                                 )}
-                                <View style={[styles.message, msg.sender === 'user' ? styles.userMessage : styles.botMessage]}>
-                                    <Text style={[styles.messageText, msg.sender === 'user' ? styles.userMessageText : styles.botMessageText]}>
+
+                                <View style={[
+                                    styles.message,
+                                    msg.sender === 'user' ? styles.userMessage : styles.botMessage
+                                ]}>
+                                    <Text style={[
+                                        styles.messageText,
+                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
+                                    ]}>
                                         {msg.text}
                                     </Text>
                                 </View>
+
                                 {msg.sender === 'bot' && msg.showTimestamp && (
                                     <View style={styles.timeContainer}>
                                         <EvaluationButtons message={msg} index={index} />
@@ -229,13 +251,19 @@ export default function ChatbotPage() {
                                 )}
                             </View>
                         </View>
+
                         {msg.sender === 'user' && (
                             <View style={styles.avatarContainer}>
-                                <Image source={msg.avatar} style={styles.avatar} />
+                                <Image
+                                    source={msg.avatar}
+                                    style={styles.userAvatar}
+                                    onError={() => console.log('Failed to load user avatar')}
+                                />
                             </View>
                         )}
                     </View>
                 ))}
+
             </ScrollView>
             <View style={styles.inputArea}>
                 <TextInput
@@ -252,8 +280,6 @@ export default function ChatbotPage() {
         </View>
     );
 }
-
-
 const styles = StyleSheet.create({
     // 시간과 평가 버튼을 함께 감싸는 컨테이너
     timeContainer: {
@@ -305,6 +331,7 @@ const styles = StyleSheet.create({
         fontSize: 12, // 텍스트 크기
         color: '#999', // 텍스트 색상
         marginTop: 2, // 평가 버튼과의 간격
+        left:-5,
     },
 
     // 메시지의 기본 스타일
@@ -317,9 +344,10 @@ const styles = StyleSheet.create({
     // 사용자 메시지의 스타일
     userMessage: {
         backgroundColor: '#4a9960', // 사용자 메시지 배경색
-        marginLeft: 12,  // 말풍선 꼬리 공간 확보
+        marginLeft: 5,  // 말풍선 꼬리 공간 확보
         borderTopRightRadius: 3, // 오른쪽 상단 모서리를 더 둥글게
         top:5,
+        left:-5,
     },
 
     // 전체 컨테이너 스타일
@@ -342,7 +370,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row', // 메시지와 아바타를 가로로 정렬
         alignItems: 'flex-start', // 수직으로 위쪽 정렬
         marginVertical: 4, // 위아래 여백
-        marginBottom: 24, // 메시지 간격
+        marginBottom: 20, // 메시지 간격
         paddingHorizontal: 6, // 좌우 여백
         position: 'relative', // 자식 요소의 위치 설정
     },
@@ -366,12 +394,24 @@ const styles = StyleSheet.create({
         overflow: 'hidden', // 넘치는 부분을 숨김
     },
 
-    // 아바타 이미지 스타일
-    avatar: {
-        width: '100%', // 아바타 너비 100%
-        height: '100%', // 아바타 높이 100%
-        top: 2, // 약간 위로 위치 조정
-        resizeMode: 'contain', // 이미지가 컨테이너에 맞춰 조정됨
+    // 사용자 아바타 이미지 스타일
+    userAvatar: {
+        width: '100%',
+        height: '100%',
+        top: 2,
+        resizeMode: 'cover', // 사용자가 설정한 프로필 사진에 맞춰서 조정
+        borderRadius: 18, // 원형으로 조정
+        borderWidth: 1,
+    },
+
+    // 챗봇 아바타 이미지 스타일
+    botAvatar: {
+        width: '100%',
+        height: '100%',
+        top: 2,
+        resizeMode: 'contain', // 기본 이미지에 맞춰 조정
+        borderRadius: 10, // 사각형에 더 가까운 스타일
+        borderWidth: 1,
     },
 
     // 메시지 컨텐츠 스타일
@@ -415,6 +455,7 @@ const styles = StyleSheet.create({
        marginBottom: 2, // 버블과의 간격을 최소화
        color: '#555', // 텍스트 색상
        paddingLeft: 1, // 말풍선 꼬리 공간 확보
+       left:-5,
     },
 
     // 봇 발신자 이름 정렬 스타일

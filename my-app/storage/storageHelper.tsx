@@ -54,6 +54,36 @@ export const getUserInfo = async (): Promise<User | null> => {
     }
 };
 
+// 프로필 이미지 저장 함수
+export const setUserProfileImage = async (imageUri: string): Promise<void> => {
+    try {
+        const userDataString = await AsyncStorage.getItem('userInfo');
+        if (userDataString) {
+            const userData: User = JSON.parse(userDataString);
+            userData.profileImage = imageUri;
+            await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
+            console.log("프로필 이미지 저장 성공:", imageUri);
+        }
+    } catch (error) {
+        console.error('프로필 이미지 저장에 실패했습니다:', error);
+    }
+};
+
+// 저장된 프로필 이미지 URI 가져오기 함수
+export const getUserProfileImage = async (): Promise<string | null> => {
+    try {
+        const userDataString = await AsyncStorage.getItem('userInfo');
+        if (userDataString) {
+            const userData: User = JSON.parse(userDataString);
+            return userData.profileImage || null;
+        }
+        return null;
+    } catch (error) {
+        console.error('프로필 이미지 불러오기에 실패했습니다:', error);
+        return null;
+    }
+};
+
 // 사용자 데이터 제거 (로그아웃 시)
 export const clearUserData = async (): Promise<void> => {
     try {
