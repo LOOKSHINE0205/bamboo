@@ -1,15 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image, Animated } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 
 export default function MoodSelectionScreen() {
   const { date } = useLocalSearchParams();
+  const router = useRouter();
 
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedWeather, setSelectedWeather] = useState(null);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(""); // 오류 메시지 상태
+  const fadeAnim = useState(new Animated.Value(0))[0]; // 페이드 애니메이션
 
-  // 사진 선택 함수
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -23,7 +27,6 @@ export default function MoodSelectionScreen() {
     }
   };
 
-  // 이모지 데이터
   const moodOptions = [
     { id: "happy", image: require("../../../assets/images/diary_happy.png") },
     { id: "neutral", image: require("../../../assets/images/diary_neutral.png") },
@@ -42,7 +45,6 @@ export default function MoodSelectionScreen() {
     { id: "thunderstorm", image: require("../../../assets/images/diary_천둥번개.png") },
   ];
 
-  // 날짜 포맷 함수
   const formatDate = (dateString) => {
     const dateObj = new Date(dateString);
     const year = dateObj.getFullYear();
@@ -53,16 +55,41 @@ export default function MoodSelectionScreen() {
     return `${year}.${month}.${day} ${dayOfWeek}`;
   };
 
-  const [selectedWeather, setSelectedWeather] = useState(null);
-  const [selectedMood, setSelectedMood] = useState(null);
+  const showErrorMessage = (message) => {
+      setErrorMessage(message);
 
-  const handleSelectionComplete = () => {
+      // 페이드 인 애니메이션
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // 3초 후에 페이드 아웃 및 메시지 초기화
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => setErrorMessage(""));
+      }, 3000);
+    };
+
+    const handleSelectionComplete = () => {
+      // 기분과 날씨가 모두 선택되었는지 확인
+      if (!selectedMood || !selectedWeather) {
+        showErrorMessage("오늘 기분과 날씨를 선택해주세요");
+        return;
+      }
+
+     // 선택이 완료된 경우에만 다음 화면으로 이동
     router.push({
-      pathname: "/(diary)/DiaryEntry",
+      pathname: "/(diary)/write",
       params: {
         date,
         weather: selectedWeather,
         mood: selectedMood,
+        imageUri: selectedImage,
       },
     });
   };
@@ -76,7 +103,6 @@ export default function MoodSelectionScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 오늘의 기분 섹션 */}
       <View style={styles.sectionContainer}>
         <Text style={[styles.subtitle, styles.moodText]}>오늘 하루, 어떤 기분으로 채워졌나요?</Text>
         <FlatList
@@ -100,7 +126,6 @@ export default function MoodSelectionScreen() {
         />
       </View>
 
-      {/* 오늘의 날씨 섹션 */}
       <View style={styles.sectionContainer}>
         <Text style={styles.subtitle}>오늘의 날씨</Text>
         <FlatList
@@ -115,7 +140,7 @@ export default function MoodSelectionScreen() {
               <Image
                 source={item.image}
                 style={[
-                  styles.optionImage,
+                  styles.weatherImage,
                   { opacity: selectedWeather === item.id ? 1 : 0.3 },
                 ]}
               />
@@ -124,24 +149,36 @@ export default function MoodSelectionScreen() {
         />
       </View>
 
-      {/* 사진 추가 섹션 */}
       <View style={styles.sectionContainer}>
         <Text style={styles.subtitle}>오늘의 사진</Text>
         <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
           {selectedImage ? (
             <Image source={{ uri: selectedImage }} style={styles.photo} />
           ) : (
-            <Ionicons name="camera" size={30} color="#888" />
+            <View style={{ alignItems: "center" }}>
+              <Ionicons name="camera" size={30} color="#888" />
+              <Text style={styles.photoText}>
+                {selectedImage ? "사진 변경" : "사진 추가"}
+              </Text>
+            </View>
           )}
-          <Text style={styles.photoText}>
-            {selectedImage ? "사진 변경" : "사진 추가"}
-          </Text>
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.completeButton} onPress={handleSelectionComplete}>
         <Text style={styles.completeButtonText}>완료</Text>
       </TouchableOpacity>
+
+    {/* 하단 텍스트 알림 메시지 */}
+      {errorMessage ? (
+        <Animated.View style={[styles.alertBox, { opacity: fadeAnim }]}>
+            <Image
+                   source={require("../../../assets/images/기쁨2.png")}
+                   style={styles.icon}
+            />
+         <Text style={styles.alertText}>{errorMessage}</Text>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
@@ -180,7 +217,27 @@ const styles = StyleSheet.create({
   moodImage: {
     width: 40,
     height: 40,
-    marginRight: 1,
+    marginRight: 0.1,
+    resizeMode: "contain",
+  },
+  sectionContainer: {
+    marginBottom: 15,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#dcdcdc",
+    backgroundColor: "#f9f9f9",
+  },
+  optionButton: {
+    padding: 5,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  weatherImage: {
+    width: 50,
+    height: 50,
+    marginRight: 8,
     resizeMode: "contain",
   },
   photoButton: {
@@ -203,26 +260,6 @@ const styles = StyleSheet.create({
     color: "#888",
     fontSize: 12,
   },
-  sectionContainer: {
-    marginBottom: 15,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#dcdcdc",
-    backgroundColor: "#f9f9f9",
-  },
-  optionButton: {
-    padding: 5,
-    borderRadius: 50,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  optionImage: {
-    width: 50,
-    height: 50,
-    marginRight: 8,
-    resizeMode: "contain",
-  },
   completeButton: {
     marginTop: 5,
     backgroundColor: "#4a9960",
@@ -234,5 +271,29 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  alertBox: {
+    flexDirection: "row",
+    position: "absolute", // 절대 위치 설정
+    bottom: 70,           // 화면 하단에서 50포인트 위에 배치
+    alignSelf: "stretch", // 부모 컨테이너의 너비를 따름
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#4a4a4a",
+    borderRadius: 100,
+  },
+  icon: {
+      width: 25, // 아이콘 너비
+      height: 25, // 아이콘 높이
+      marginRight: 8, // 텍스트와 간격
+      resizeMode: "contain",
+    },
+  alertText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight : "bold",
   },
 });

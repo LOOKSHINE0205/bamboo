@@ -17,7 +17,9 @@ import {
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getUserInfo, clearUserData } from '../../storage/storageHelper';
+import { getUserInfo, clearUserData, getUserProfileImage } from '../../storage/storageHelper';
+import * as ImagePicker from 'expo-image-picker';
+import { setUserProfileImage } from '../../storage/storageHelper';
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -36,8 +38,13 @@ const SettingsScreen = () => {
   const fetchUserData = async () => {
     try {
       const data = await getUserInfo();
+      const profileImage = await getUserProfileImage();
+
       if (data) {
-        setUserInfo(data);
+        setUserInfo({
+          ...data,
+          profileImage,
+        });
       } else {
         Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
       }
@@ -49,8 +56,30 @@ const SettingsScreen = () => {
     }
   };
 
-  const handleImagePicker = () => {
-    Alert.alert('알림', '이미지 선택 기능은 추후 구현될 예정입니다.');
+  const handleImagePicker = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      const selectedImageUri = result.assets[0].uri;
+      setUserInfo((prev) => ({
+        ...prev,
+        profileImage: selectedImageUri,
+      }));
+
+      await setUserProfileImage(selectedImageUri);
+      console.log("선택한 이미지 저장 완료:", selectedImageUri);
+    }
   };
 
   const toggleSwitch = () => {
@@ -103,7 +132,6 @@ const SettingsScreen = () => {
         } : null
       };
 
-      // 새 비밀번호가 설정되었을 경우에만 비밀번호 변경 API 호출
       if (newPassword) {
         const userData = { userEmail: userInfo?.userEmail, userPw: newPassword };
         await axios.post('http://10.0.2.2:8082/api/users/updatePassword', userData);
