@@ -269,4 +269,10 @@ const styles = StyleSheet.create({
     color: "#666666", // 경고 메시지 글자색 회색
     fontWeight: "bold", // 굵은 글씨
   },
+  alertIcon: {
+    width: 50,           // 이미지 크기 조정
+    height: 50,
+    resizeMode: "contain",
+    marginRight: 8,
+    }
 });
