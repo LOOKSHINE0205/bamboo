@@ -64,8 +64,8 @@ export default function MyPage() {
                 const userInfo = await getUserInfo();
                 console.log('Fetched user info:', userInfo); // 디버깅 로그
                 if (userInfo) {
-                    setNickname(userInfo.userNick);  // 닉네임 설정
-                    setLevel(userInfo.chatbotLevel || 1);  // 레벨 설정, 기본값 1
+                    setNickname(userInfo.chatbotName);  // 닉네임 설정
+                    setLevel(userInfo.chatbotLevel);  // 레벨 설정, 기본값 1
                 } else {
                     Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
                 }
