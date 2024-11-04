@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
-  Platform
+  Platform,
+  Keyboard
 } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
@@ -116,7 +117,6 @@ const SettingsScreen = () => {
     }
   };
 
-
   const toggleSwitch = () => {
     setNotificationsEnabled(previousState => !previousState);
   };
@@ -200,7 +200,11 @@ const SettingsScreen = () => {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileImageSection}>
           <TouchableOpacity
             style={styles.profileImageContainer}
@@ -307,7 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   contentContainer: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
   },
   loadingContainer: {
