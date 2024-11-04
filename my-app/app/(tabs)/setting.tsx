@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
-  Platform
+  Platform,
+  Keyboard
 } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
@@ -57,28 +58,62 @@ const SettingsScreen = () => {
   };
 
   const handleImagePicker = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
-      return;
-    }
+    Alert.alert(
+      "프로필 이미지 변경",
+      "이미지를 선택하거나 기본 이미지로 재설정할 수 있습니다.",
+      [
+        {
+          text: "기본 이미지로 재설정",
+          onPress: handleResetProfileImage,  // 기본 이미지로 재설정 함수 호출
+        },
+        {
+          text: "갤러리에서 이미지 선택",
+          onPress: async () => {
+            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (!permissionResult.granted) {
+              Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+              return;
+            }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 1,
+            });
 
-    if (!result.canceled && result.assets?.length > 0) {
-      const selectedImageUri = result.assets[0].uri;
+            if (!result.canceled && result.assets?.length > 0) {
+              const selectedImageUri = result.assets[0].uri;
+              setUserInfo((prev) => ({
+                ...prev,
+                profileImage: selectedImageUri,
+              }));
+
+              await setUserProfileImage(selectedImageUri);
+              console.log("선택한 이미지 저장 완료:", selectedImageUri);
+
+              // 프로필 업데이트 후 데이터 다시 가져오기
+              fetchUserData();
+            }
+          },
+        },
+        { text: "취소", style: "cancel" },
+      ]
+    );
+  };
+
+  const handleResetProfileImage = async () => {
+    try {
+      // 프로필 이미지를 기본 이미지로 변경
+      await setUserProfileImage(null);
       setUserInfo((prev) => ({
         ...prev,
-        profileImage: selectedImageUri,
+        profileImage: null,
       }));
-
-      await setUserProfileImage(selectedImageUri);
-      console.log("선택한 이미지 저장 완료:", selectedImageUri);
+      Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
+    } catch (error) {
+      console.error("Error resetting profile image:", error);
+      Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
     }
   };
 
@@ -165,14 +200,19 @@ const SettingsScreen = () => {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileImageSection}>
           <TouchableOpacity
             style={styles.profileImageContainer}
             onPress={handleImagePicker}
           >
             {userInfo?.profileImage ? (
-              <Image source={{ uri: userInfo.profileImage }} style={styles.profileImage} />
+              <Image source={{ uri: `${userInfo.profileImage}?${new Date().getTime()}` }} style={styles.profileImage} />
+
             ) : (
               <View style={styles.defaultProfileImage}>
                 <Ionicons name="person" size={50} color="#cccccc" />
@@ -271,7 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   contentContainer: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
   },
   loadingContainer: {
