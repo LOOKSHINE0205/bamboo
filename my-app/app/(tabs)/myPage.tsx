@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'; // React 모듈과 훅 불러오기
-import { View, Text, StyleSheet, ImageBackground, Image, Dimensions, Animated, Easing } from 'react-native'; // React Native 컴포넌트 불러오기
+import { View, Text, StyleSheet, ImageBackground, Image, Dimensions, Animated, Easing, Alert } from 'react-native'; // React Native 컴포넌트 불러오기
 
 // 배경, 대나무, 팬더, 구름 이미지 불러오기
 import BackgroundImage from "../../assets/images/bamboobg2.png";
@@ -26,10 +26,14 @@ import diary_neutral from "../../assets/images/diary_neutral.png";
 import diary_sad from "../../assets/images/diary_sad.png";
 import diary_surprise from "../../assets/images/diary_surprise.png";
 
+// 사용자 정보 가져오는 함수 불러오기
+import { getUserInfo } from '../../storage/storageHelper';
+
 // 메인 컴포넌트 함수 정의
 export default function MyPage() {
     // === 상태 관리 ===
-    const [level, setLevel] = useState(31); // 대나무 성장 레벨 상태 (초기값 151)
+    const [level, setLevel] = useState(null); // 대나무 성장 레벨 상태 (초기값 1)
+    const [nickname, setNickname] = useState(''); // 사용자 닉네임 상태
     const [screenDimensions, setScreenDimensions] = useState(Dimensions.get("window")); // 현재 화면 크기 정보 상태
 
     // === 상수 설정 ===
@@ -37,10 +41,9 @@ export default function MyPage() {
     const bambooBodyHeight = 40;            // 대나무 몸체의 높이
     const gapBetweenBodies = -13;           // 대나무 마디 사이의 간격 (음수값으로 겹치도록 설정)
     const gapBetweenHeadAndBody = 0.8;      // 대나무 머리와 몸체 사이의 간격
-    const treeName = "밤뷰";                // 대나무 이름 텍스트
 
     // === 레벨 관련 계산 ===
-    const displayLevel = (level - 1) % 30 + 1; // 레벨을 1-30 사이로 순환하도록 계산 (31 -> 1, 32 -> 2, ...)
+    const displayLevel = level !== null ? (level - 1) % 30 + 1 : 1; // 레벨을 1-30 사이로 순환하도록 계산 (31 -> 1, 32 -> 2, ...)
     const treeLevel = `Lv ${displayLevel}`;    // 화면에 표시할 레벨 텍스트 (Lv 1, Lv 2, ...)
     const effectiveLevel = displayLevel;       // 현재 레벨 값으로 실제 렌더링에 사용할 값
 
@@ -50,15 +53,29 @@ export default function MyPage() {
     // === 화면 크기 변경 감지 ===
     useEffect(() => {
         const handleResize = () => setScreenDimensions(Dimensions.get("window"));
-
-        // 이벤트 리스너 구독을 설정합니다.
         const subscription = Dimensions.addEventListener("change", handleResize);
-
-        // 컴포넌트가 언마운트될 때 구독을 제거합니다.
         return () => subscription.remove();
     }, []);
 
-
+    // === 사용자 정보 불러오기 ===
+    useEffect(() => {
+        const loadUserInfo = async () => {
+            try {
+                const userInfo = await getUserInfo();
+                console.log('Fetched user info:', userInfo); // 디버깅 로그
+                if (userInfo) {
+                    setNickname(userInfo.userNick);  // 닉네임 설정
+                    setLevel(userInfo.chatbotLevel || 1);  // 레벨 설정, 기본값 1
+                } else {
+                    Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+                Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
+            }
+        };
+        loadUserInfo();
+    }, []);
 
     // === 팬더 크기 상태 및 조정 ===
     const [pandaScale, setPandaScale] = useState(0.7); // pandaScale: 팬더 크기 비율 상태 (초기값 0.7)
@@ -105,25 +122,27 @@ export default function MyPage() {
     // 구름 애니메이션에서 화면 너비 참조 변경
     const cloudAnimation1 = useRef(new Animated.Value(-screenDimensions.width)).current;
     const cloudAnimation2 = useRef(new Animated.Value(-screenDimensions.width * 1.5)).current;
-      // 예: 애니메이션 함수에서 screenWidth 대신 screenDimensions.width 사용
-      const animateCloud = (animation, delay) => {
-          Animated.loop(
-              Animated.sequence([
-                  Animated.timing(animation, {
-                      toValue: screenDimensions.width,
-                      duration: 10000,
-                      easing: Easing.linear,
-                      useNativeDriver: true,
-                      delay,
-                  }),
-                  Animated.timing(animation, {
-                      toValue: -screenDimensions.width,
-                      duration: 0,
-                      useNativeDriver: true,
-                  })
-              ])
-          ).start();
-      };
+
+    // 애니메이션 함수에서 screenWidth 대신 screenDimensions.width 사용
+    const animateCloud = (animation, delay) => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(animation, {
+                    toValue: screenDimensions.width,
+                    duration: 10000,
+                    easing: Easing.linear,
+                    useNativeDriver: true,
+                    delay,
+                }),
+                Animated.timing(animation, {
+                    toValue: -screenDimensions.width,
+                    duration: 0,
+                    useNativeDriver: true,
+                })
+            ])
+        ).start();
+    };
+
     // 컴포넌트가 처음 렌더링될 때 구름 애니메이션 시작
     useEffect(() => {
         animateCloud(cloudAnimation1, 0);      // 첫 번째 구름 지연 없이 시작
@@ -148,16 +167,13 @@ export default function MyPage() {
         { image: diary_surprise, type: 'diary' }
     ];
 
-
     // === 랜덤 이모티콘 위치와 투명도 애니메이션 ===
     const renderEmojis = () => emojiImages.map((emoji, index) => {
         const opacity = useRef(new Animated.Value(0)).current;  // 초기 투명도 상태
         const translateY = useRef(new Animated.Value(0)).current;
         const translateX = useRef(new Animated.Value(0)).current;
 
-        // 애니메이션 설정 함수
         const animateEmoji = () => {
-            // 화면의 중앙을 (0,0)으로 설정하고, 음수값도 가질 수 있도록 수정
             const randomX = Math.random() * screenDimensions.width - (screenDimensions.width / 2);
             const randomY = Math.random() * screenDimensions.height - (screenDimensions.height / 2);
 
@@ -173,16 +189,13 @@ export default function MyPage() {
                     useNativeDriver: true,
                 }),
             ]).start(() => {
-                // 화면 전체에 걸쳐 랜덤하게 위치 설정
                 translateY.setValue(randomY);
                 translateX.setValue(randomX);
                 animateEmoji();  // 애니메이션 반복 호출
             });
         };
 
-        // screenDimensions 변경 시 새로운 위치 설정
         useEffect(() => {
-            // 초기 위치도 화면 전체에서 랜덤하게 설정
             const initialRandomX = Math.random() * screenDimensions.width - (screenDimensions.width / 2);
             const initialRandomY = Math.random() * screenDimensions.height - (screenDimensions.height / 2);
 
@@ -197,40 +210,37 @@ export default function MyPage() {
                 source={emoji.image} // `emoji.image`로 변경
                 style={[
                     styles.emoji,
-                    emoji.type === 'diary' ? styles.diaryEmoji : {}, // `emoji.type`이 'diary'일 때 스타일 적용
+                    emoji.type === 'diary' ? styles.diaryEmoji : {},
                     {
-                        opacity: opacity,               // 애니메이션된 투명도 적용
+                        opacity: opacity,
                         transform: [
-                            { translateY: translateY }, // 애니메이션된 Y 위치 적용
-                            { translateX: translateX }, // 애니메이션된 X 위치 적용
+                            { translateY: translateY },
+                            { translateX: translateX },
                         ],
                     }
                 ]}
             />
         );
     });
+
     // === 팬더 추가 애니메이션 설정 ===
-    const pandaTwistAnimation = useRef(new Animated.Value(0)).current; // 팬더의 뒤틀림 애니메이션 값 생성
+    const pandaTwistAnimation = useRef(new Animated.Value(0)).current;
 
-    // 팬더 뒤틀림 애니메이션 함수 (3~6회 랜덤 뒤틀림 후 스프링 애니메이션)
     const animatePandaTwist = () => {
-        const randomTimingDuration = Math.random() * 1000 + 1000; // 각 타이밍 애니메이션의 지속 시간 (1000ms ~ 2000ms)
-        const randomTwistCount = Math.floor(Math.random() * 3) + 2; // 팬더가 뒤틀림 회전할 횟수 (3~6회)
+        const randomTimingDuration = Math.random() * 1000 + 1000;
+        const randomTwistCount = Math.floor(Math.random() * 3) + 2;
 
-        // 뒤틀림 애니메이션 시퀀스를 정의
         const twistAnimations = [];
         for (let i = 0; i < randomTwistCount; i++) {
             twistAnimations.push(
-                // 첫 번째 회전 (왼쪽 방향)
                 Animated.timing(pandaTwistAnimation, {
-                    toValue: 1, // 왼쪽으로 회전
+                    toValue: 1,
                     duration: randomTimingDuration,
                     easing: Easing.inOut(Easing.ease),
                     useNativeDriver: true,
                 }),
-                // 반대 방향으로 회전 (오른쪽 방향)
                 Animated.timing(pandaTwistAnimation, {
-                    toValue: -1, // 오른쪽으로 회전
+                    toValue: -1,
                     duration: randomTimingDuration,
                     easing: Easing.inOut(Easing.ease),
                     useNativeDriver: true,
@@ -238,121 +248,40 @@ export default function MyPage() {
             );
         }
 
-        // 뒤틀림 후 마지막으로 스프링 애니메이션을 추가하여 자연스러운 복귀
         twistAnimations.push(
             Animated.spring(pandaTwistAnimation, {
-                toValue: 0, // 중심으로 복귀
-                damping: 2, // 스프링 감쇠 설정
-                stiffness: 200, // 스프링 강성 설정
+                toValue: 0,
+                damping: 2,
+                stiffness: 200,
                 useNativeDriver: true,
             })
         );
 
-        // 정의된 모든 애니메이션 시퀀스를 실행
         Animated.sequence(twistAnimations).start(() => {
-            // 애니메이션이 완료되면 새 속도로 다시 시작
             animatePandaTwist();
         });
     };
 
-    // 팬더 애니메이션 시작 (컴포넌트가 처음 렌더링될 때)
     useEffect(() => {
-        animatePandaTwist(); // 팬더 뒤틀림 애니메이션 호출
+        animatePandaTwist();
     }, []);
 
-
-
-
-
-
-    // === 메인 렌더링 ===
     return (
         <ImageBackground source={BackgroundImage} style={styles.background}>
             <View style={styles.container}>
-
-                {/* 대나무 이름과 레벨 표시 */}
-                <Text style={styles.treeNameText}>{treeName}</Text>
+                <Text style={styles.treeNameText}>{nickname}</Text>
                 <Text style={styles.levelText}>{treeLevel}</Text>
 
-                {/* 첫 번째 구름 이미지 애니메이션 */}
-                <Animated.Image
-                    source={CloudImage}
-                    style={[
-                        styles.cloudImage,
-                        {
-                            transform: [{ translateX: cloudAnimation1 }] // 애니메이션 값 적용
-                        }
-                    ]}
-                />
+                <Animated.Image source={CloudImage} style={[styles.cloudImage, { transform: [{ translateX: cloudAnimation1 }] }]} />
+                <Animated.Image source={CloudImage} style={[styles.cloudImageLower, { transform: [{ translateX: cloudAnimation2 }] }]} />
 
-                {/* 두 번째 구름 이미지 애니메이션 */}
-                <Animated.Image
-                    source={CloudImage}
-                    style={[
-                        styles.cloudImageLower,
-                        {
-                            transform: [{ translateX: cloudAnimation2 }] // 두 번째 애니메이션 값 적용
-                        }
-                    ]}
-                />
-
-                {/* 대나무와 팬더들을 포함하는 컨테이너 */}
                 <View style={[styles.imageContainer, { height: getBambooHeight() + bambooBodyHeight * 1.5 }]}>
-                    {/* 대나무 몸체 렌더링 */}
                     {renderBambooBodies()}
-
-                    {/* 오른쪽에 추가된 판다 (뒤틀림 애니메이션 적용됨) */}
-                    <Animated.Image
-                        source={BambooPanda}
-                        style={[
-                            styles.pandaImage,
-                            {
-                                width: bambooBodyWidth * pandaScale, // 팬더 크기 비율 적용
-                                height: bambooBodyHeight * pandaScale,
-                                bottom: 40,
-                                right: getPandaPosition(),          // 팬더 위치 계산 값 적용
-                                transform: [
-                                    {
-                                        // 팬더의 뒤틀림 효과를 위한 회전 애니메이션
-                                        rotate: pandaTwistAnimation.interpolate({
-                                            inputRange: [-1, 1], // 애니메이션 값 범위
-                                            outputRange: ['310deg', '330deg'], // 팬더의 회전 각도 범위
-                                        }),
-                                    },
-                                ],
-                            },
-                        ]}
-                    />
-
-                    {/* 메인 판다 (대나무 머리 뒤에 위치) */}
-                    <Image
-                        source={BambooPanda}
-                        style={[
-                            styles.pandaImage,
-                            {
-                                width: bambooBodyWidth * 0.7,      // 메인 판다 너비
-                                height: bambooBodyHeight * 0.7,    // 메인 판다 높이
-                                bottom: effectiveLevel * (bambooBodyHeight + gapBetweenBodies) + gapBetweenHeadAndBody, // 나무 높이에 따라 위치 설정
-                                transform: [{ translateX: 16 }, { translateY: -3 }] // 위치 조정 (나무 머리 뒤쪽)
-                            }
-                        ]}
-                    />
-
-                    {/* 대나무 머리 */}
-                    <Image
-                        source={BambooHead}
-                        style={[
-                            styles.bambooHead,
-                            {
-                                width: bambooBodyWidth,
-                                height: bambooBodyHeight,
-                                bottom: effectiveLevel * (bambooBodyHeight + gapBetweenBodies) + gapBetweenHeadAndBody, // 대나무 전체 높이에 맞게 위치 조정
-                            }
-                        ]}
-                    />
+                    <Animated.Image source={BambooPanda} style={[styles.pandaImage, { width: bambooBodyWidth * pandaScale, height: bambooBodyHeight * pandaScale, bottom: 40, right: getPandaPosition(), transform: [{ rotate: pandaTwistAnimation.interpolate({ inputRange: [-1, 1], outputRange: ['310deg', '330deg'] }) }] }]} />
+                    <Image source={BambooPanda} style={[styles.pandaImage, { width: bambooBodyWidth * 0.7, height: bambooBodyHeight * 0.7, bottom: effectiveLevel * (bambooBodyHeight + gapBetweenBodies) + gapBetweenHeadAndBody, transform: [{ translateX: 16 }, { translateY: -3 }] }]} />
+                    <Image source={BambooHead} style={[styles.bambooHead, { width: bambooBodyWidth, height: bambooBodyHeight, bottom: effectiveLevel * (bambooBodyHeight + gapBetweenBodies) + gapBetweenHeadAndBody }]} />
                 </View>
 
-                {/* 감정 이모티콘 랜덤 위치와 투명도 애니메이션 */}
                 {renderEmojis()}
             </View>
         </ImageBackground>

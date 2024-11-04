@@ -4,7 +4,7 @@ import { Ionicons, Foundation } from "@expo/vector-icons";
 import { router } from "expo-router";
 import DateModal from "../(diary)/dateModal";
 // @ts-ignore
-import DiaryScreen, { Diary } from "@/app/(tabs)/(diary)/diariesInfo";
+// import DiaryScreen, { Diary } from "@/app/(tabs)/(diary)/diariesInfo";
 
 
 interface DiaryEntry{
