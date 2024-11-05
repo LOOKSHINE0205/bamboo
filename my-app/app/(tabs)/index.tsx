@@ -2,34 +2,38 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-// @ts-ignore
-import BambooHead from '../../assets/images/bamboo_head.png';
-import BambooPanda from '../../assets/images/bamboo_panda.png';
 import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
 import { useFocusEffect } from '@react-navigation/native';
+import BambooHead from '../../assets/images/bamboo_head.png';
+import BambooPanda from '../../assets/images/bamboo_panda.png';
+
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
-    sender: string; // 발신자 ('user' 또는 'bot')
-    text: string; // 메시지 내용
-    avatar: any; // 발신자 아바타 이미지
-    name: string; // 발신자 이름
-    timestamp: string; // 메시지 전송 시간
-    showTimestamp?: boolean; // 시간 표시 여부
-    evaluation?: 'like' | 'dislike' | null; // 메시지 평가 상태
+    sender: string;
+    text: string;
+    avatar: any;
+    name: string;
+    timestamp: string;
+    showTimestamp?: boolean;
+    evaluation?: 'like' | 'dislike' | null;
 }
 
 export default function ChatbotPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [userName, setUserName] = useState<string>('');
-    const [chatbotName, setChatbotName] = useState<string>('챗봇'); // 기본 챗봇 이름 설정
-    const [userMessageCount, setUserMessageCount] = useState(0);
+    const [chatbotName, setChatbotName] = useState<string>('챗봇');
+    const [userAvatar, setUserAvatar] = useState(BambooPanda);
+    const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
-    const [userAvatar, setUserAvatar] = useState(BambooPanda); // 기본 아바타
     const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
 
-    // 사용자 정보 및 프로필 이미지 불러오기
+    let countdownInterval: NodeJS.Timeout | null = null;
+    let messagesToSend: string[] = [];
+    const countdownDuration = 5; // 5초 카운트다운
+    const messagesToSendRef = useRef<string[]>([]);
+    const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(
         React.useCallback(() => {
             const fetchData = async () => {
@@ -50,129 +54,71 @@ export default function ChatbotPage() {
         }, [])
     );
 
-
-    // 메시지 추가 시 자동 스크롤
     useEffect(() => {
         if (scrollViewRef.current && messages.length > 0) {
             scrollViewRef.current.scrollToEnd({ animated: true });
         }
     }, [messages]);
 
-    // 챗봇 응답 전송
-    const sendBotResponse = async (userInput: string) => {
-        try {
-            console.log('Sending bot response request with input:', userInput);
-            const response = await axios.post(serverUrl, userInput, {
-                headers: { 'Content-Type': 'text/plain' },
-            });
+    // 카운트다운 시작 함수
+    const startCountdown = () => {
+        stopCountdown(); // 기존 카운트다운 중지
 
-            const botMessage: Message = {
-                sender: 'bot',
-                text: response.data,
-                avatar: BambooHead,
-                name: chatbotName,
-                timestamp: getCurrentTime(),
-                showTimestamp: true,
-            };
+        let countdown = countdownDuration;
+        console.log(`카운트다운 시작: ${countdown}초 남음`);
 
-            setMessages(prevMessages => {
-                const newMessages = [...prevMessages, botMessage];
-                return updateTimestamps(newMessages);
-            });
-            setUserMessageCount(0);
-        } catch (error) {
-            handleErrorResponse();
+        countdownIntervalRef.current = setInterval(() => {
+            countdown -= 1;
+            console.log(`${countdown}초 남음`);
+
+            if (countdown <= 0) {
+                clearInterval(countdownIntervalRef.current!);
+                countdownIntervalRef.current = null;
+                console.log('카운트다운 종료. 메시지 전송.');
+                sendBotResponse(); // 메시지 전송
+            }
+        }, 1000);
+    };
+
+    // 카운트다운 중지 함수
+    const stopCountdown = () => {
+        if (countdownIntervalRef.current !== null) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
         }
     };
 
-    // 오류 응답 처리
-    const handleErrorResponse = () => {
-        const errorMessage: Message = {
-            sender: 'bot',
-            text: '챗봇 응답을 가져올 수 없습니다.',
-            avatar: BambooHead,
-            name: chatbotName,
-            timestamp: getCurrentTime(),
-            showTimestamp: true,
-        };
-
-        setMessages(prevMessages => {
-            const newMessages = [...prevMessages, errorMessage];
-            return updateTimestamps(newMessages);
-        });
-        setUserMessageCount(0);
+    // 챗봇 응답 전송 함수
+    const sendBotResponse = async () => {
+        if (messagesToSendRef.current.length > 0) {
+            const combinedMessages = messagesToSendRef.current.join(' ');
+            try {
+                const response = await axios.post(serverUrl, combinedMessages, { headers: { 'Content-Type': 'text/plain' } });
+                setMessages((prevMessages) => [...prevMessages, {
+                    sender: 'bot',
+                    text: response.data,
+                    avatar: BambooHead,
+                    name: chatbotName,
+                    timestamp: getCurrentTime(),
+                    showTimestamp: true,
+                }]);
+                messagesToSendRef.current = []; // 초기화
+            } catch (error) {
+                console.error('Error sending bot response:', error);
+            }
+        }
     };
 
-    // 평가 처리
-    const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {
-        setMessages(prevMessages =>
-            prevMessages.map((msg, index) => {
-                if (index === messageIndex) {
-                    return { ...msg, evaluation: msg.evaluation === type ? null : type };
-                }
-                return msg;
-            })
-        );
+    const handleInputChange = (text: string) => {
+        setInput(text);
+        setIsTyping(true);
+
+        // 사용자가 입력 중일 때는 카운트다운 멈춤
+        stopCountdown();
     };
 
-    // 메시지에 대한 평가 버튼 컴포넌트
-    const EvaluationButtons = ({ message, index }: { message: Message; index: number }) => {
-        if (message.sender !== 'bot') return null;
-        return (
-            <View style={styles.evaluationContainer}>
-                <TouchableOpacity
-                    onPress={() => handleEvaluation(index, 'like')}
-                    style={[styles.evaluationButton, message.evaluation === 'like' && styles.evaluationButtonActive]}
-                >
-                    <Ionicons
-                        name={message.evaluation === 'like' ? "thumbs-up" : "thumbs-up-outline"}
-                        size={14}
-                        color={message.evaluation === 'like' ? "#4a9960" : "#666"}
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => handleEvaluation(index, 'dislike')}
-                    style={[styles.evaluationButton, message.evaluation === 'dislike' && styles.evaluationButtonActive]}
-                >
-                    <Ionicons
-                        name={message.evaluation === 'dislike' ? "thumbs-down" : "thumbs-down-outline"}
-                        size={14}
-                        color={message.evaluation === 'dislike' ? "#e74c3c" : "#666"}
-                    />
-                </TouchableOpacity>
-            </View>
-        );
-    };
-
-    // 현재 시간 가져오기
-    const getCurrentTime = (): string => {
-        const now = new Date();
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? '오후' : '오전';
-        hours = hours % 12 || 12;
-        return `${ampm} ${hours}:${minutes}`;
-    };
-
-    // 시간 표시 여부 결정
-    const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
-        if (currentMessage.sender === 'bot') return true;
-        const nextMessage = allMessages[messageIndex + 1];
-        if (!nextMessage) return true;
-        if (nextMessage.sender === 'bot') return true;
-        if (nextMessage.timestamp !== currentMessage.timestamp) return true;
-        return false;
-    };
-
-    // 타임스탬프 업데이트
-    const updateTimestamps = (messages: Message[]): Message[] => {
-        return messages.map((msg, index) => ({
-            ...msg,
-            showTimestamp: shouldShowTimestamp(index, msg, messages)
-        }));
-    };
-
-    // 사용자 메시지 전송
+    // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
+    // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
     const sendMessage = () => {
         if (input.trim()) {
             const userMessage: Message = {
@@ -189,12 +135,41 @@ export default function ChatbotPage() {
                 return updateTimestamps(newMessages);
             });
 
+            // 메시지를 배열에 추가
+            messagesToSendRef.current.push(input.trim());
             setInput('');
-            setUserMessageCount(prev => prev + 1);
-            if (userMessageCount + 1 >= 2) {
-                sendBotResponse(input.trim());
-            }
+            setIsTyping(false);
+
+            // 새로운 메시지를 보낼 때 카운트다운 시작
+            startCountdown();
+        } else {
+            console.log('빈 메시지는 전송되지 않습니다.');
         }
+    };
+
+    const getCurrentTime = (): string => {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? '오후' : '오전';
+        hours = hours % 12 || 12;
+        return `${ampm} ${hours}:${minutes}`;
+    };
+
+    const updateTimestamps = (messages: Message[]): Message[] => {
+        return messages.map((msg, index) => ({
+            ...msg,
+            showTimestamp: shouldShowTimestamp(index, msg, messages)
+        }));
+    };
+
+    const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
+        if (currentMessage.sender === 'bot') return true;
+        const nextMessage = allMessages[messageIndex + 1];
+        if (!nextMessage) return true;
+        if (nextMessage.sender === 'bot') return true;
+        if (nextMessage.timestamp !== currentMessage.timestamp) return true;
+        return false;
     };
 
     return (
@@ -249,7 +224,6 @@ export default function ChatbotPage() {
 
                                 {msg.sender === 'bot' && msg.showTimestamp && (
                                     <View style={styles.timeContainer}>
-                                        <EvaluationButtons message={msg} index={index} />
                                         <Text style={styles.timeText}>{msg.timestamp}</Text>
                                     </View>
                                 )}
@@ -267,13 +241,12 @@ export default function ChatbotPage() {
                         )}
                     </View>
                 ))}
-
             </ScrollView>
             <View style={styles.inputArea}>
                 <TextInput
                     style={styles.input}
                     value={input}
-                    onChangeText={setInput}
+                    onChangeText={handleInputChange}
                     placeholder="이야기 입력하기.."
                     onSubmitEditing={sendMessage}
                 />
@@ -284,6 +257,7 @@ export default function ChatbotPage() {
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     // 시간과 평가 버튼을 함께 감싸는 컨테이너
     timeContainer: {
