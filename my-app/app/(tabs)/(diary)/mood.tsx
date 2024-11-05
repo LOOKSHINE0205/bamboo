@@ -2,32 +2,15 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image, Animated } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 
 export default function MoodSelectionScreen() {
   const { date } = useLocalSearchParams();
   const router = useRouter();
 
-  const [selectedImage, setSelectedImage] = useState(null);
   const [selectedWeather, setSelectedWeather] = useState(null);
   const [selectedMood, setSelectedMood] = useState(null);
   const [errorMessage, setErrorMessage] = useState(""); // 오류 메시지 상태
   const fadeAnim = useState(new Animated.Value(0))[0]; // 페이드 애니메이션
-
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true,
-    });
-
-    if (!result.canceled) {
-      const base64Image = result.assets[0].base64;
-      setSelectedImage(base64Image);
-    }
-  };
 
   const moodOptions = [
     { id: "happy", image: require("../../../assets/images/diary_happy.png") },
@@ -91,7 +74,6 @@ export default function MoodSelectionScreen() {
         date,
         weather: selectedWeather,
         mood: selectedMood,
-        imageBase64: selectedImage,
       },
     });
   };
@@ -109,7 +91,7 @@ export default function MoodSelectionScreen() {
         <Text style={[styles.subtitle, styles.moodText]}>오늘 하루, 어떤 기분으로 채워졌나요?</Text>
         <FlatList
           data={moodOptions}
-          horizontal
+          numColumns={4}// 두 줄로 설정
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -125,6 +107,7 @@ export default function MoodSelectionScreen() {
               />
             </TouchableOpacity>
           )}
+            contentContainerStyle={{ alignItems: "center" }} // 전체 내용 가운데 정렬
         />
       </View>
 
@@ -150,23 +133,6 @@ export default function MoodSelectionScreen() {
           )}
         />
       </View>
-
-      <View style={styles.sectionContainer}>
-        <Text style={styles.subtitle}>오늘의 사진</Text>
-        <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-          {selectedImage ? (
-            <Image source={{ uri: selectedImage }} style={styles.photo} />
-          ) : (
-            <View style={{ alignItems: "center" }}>
-              <Ionicons name="camera" size={30} color="#888" />
-              <Text style={styles.photoText}>
-                {selectedImage ? "사진 변경" : "사진 추가"}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
       <TouchableOpacity style={styles.completeButton} onPress={handleSelectionComplete}>
         <Text style={styles.completeButtonText}>완료</Text>
       </TouchableOpacity>
@@ -190,6 +156,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#ffffff",
+    borderRadius: 10,
   },
   headerContainer: {
     flexDirection: "row",
@@ -217,9 +184,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   moodImage: {
-    width: 40,
-    height: 40,
-    marginRight: 0.1,
+    width: 60,
+    height: 60,
+    marginRight: 8,
     resizeMode: "contain",
   },
   sectionContainer: {
@@ -241,26 +208,6 @@ const styles = StyleSheet.create({
     height: 50,
     marginRight: 8,
     resizeMode: "contain",
-  },
-  photoButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 300,
-    height: 250,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
-    overflow: "hidden",
-    alignSelf: "center"
-  },
-  photo: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  photoText: {
-    marginTop: 5,
-    color: "#888",
-    fontSize: 12,
   },
   completeButton: {
     marginTop: 5,
