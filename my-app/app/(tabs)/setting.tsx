@@ -5,7 +5,7 @@ import {
   TextInput,
   Switch,
   Button,
-  StyleSheet,
+  StyleSheet,  // StyleSheet 추가
   Alert,
   Image,
   TouchableOpacity,
@@ -32,7 +32,7 @@ const SettingsScreen = () => {
   const [endTime, setEndTime] = useState('18:00');
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [profileImageUri, setProfileImageUri] = useState(null); // 새로운 상태 추가
+  const [profileImageUri, setProfileImageUri] = useState(null);
 
   useEffect(() => {
     fetchUserData();
@@ -44,7 +44,7 @@ const SettingsScreen = () => {
       const profileImage = await getUserProfileImage();
       if (data) {
         setUserInfo({ ...data, profileImage });
-        setProfileImageUri(profileImage ? `${profileImage}?${new Date().getTime()}` : null); // 고유 URI 설정
+        setProfileImageUri(profileImage ? `${profileImage}?${new Date().getTime()}` : null);
       } else {
         Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
       }
@@ -74,19 +74,46 @@ const SettingsScreen = () => {
     });
     if (!result.canceled && result.assets?.length > 0) {
       const selectedImageUri = result.assets[0].uri;
-      setUserInfo((prev) => ({ ...prev, profileImage: selectedImageUri }));
-      setProfileImageUri(`${selectedImageUri}?${new Date().getTime()}`); // 새로운 URI 설정
-      await setUserProfileImage(selectedImageUri);
-      fetchUserData();
+
+      try {
+        const formData = new FormData();
+        formData.append('photo', {
+          uri: selectedImageUri,
+          type: 'image/jpeg',
+          name: 'profile.jpg'
+        });
+        formData.append('email', userInfo?.userEmail);
+
+        const response = await axios.post('http://192.168.21.224:8082/api/users/uploadProfile', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (response.status === 200) {
+          const serverImagePath = `http://192.168.21.224:8082/uploads/profile/images/${response.data.filePath}`;
+          setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
+          setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
+          await setUserProfileImage(serverImagePath);
+          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
+        }
+      } catch (error) {
+        console.error("프로필 이미지 업로드 중 오류:", error);
+        Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
+      }
     }
     setModalVisible(false);
   };
 
   const handleResetProfileImage = async () => {
     try {
+      await axios.post('http://192.168.21.224:8082/api/users/resetProfileImage', {
+        userEmail: userInfo?.userEmail,
+      });
+
       await setUserProfileImage(null);
       setUserInfo((prev) => ({ ...prev, profileImage: null }));
-      setProfileImageUri(null); // 기본 이미지로 설정
+      setProfileImageUri(null);
       Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
     } catch (error) {
       console.error("프로필 이미지 재설정 중 오류:", error);
@@ -99,16 +126,7 @@ const SettingsScreen = () => {
     setNotificationsEnabled((prev) => !prev);
   };
 
-  const isValidTimeFormat = (time) => {
-    const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
-    return timeRegex.test(time);
-  };
-
   const handleSave = async () => {
-    if (notificationsEnabled && (!isValidTimeFormat(startTime) || !isValidTimeFormat(endTime))) {
-      Alert.alert('알림', '올바른 시간 형식으로 입력해주세요.');
-      return;
-    }
     if (notificationsEnabled && startTime >= endTime) {
       Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
       return;
@@ -121,7 +139,7 @@ const SettingsScreen = () => {
       };
       if (newPassword) {
         const userData = { userEmail: userInfo?.userEmail, userPw: newPassword };
-        await axios.post('http://10.0.2.2:8082/api/users/updatePassword', userData);
+        await axios.post('http://192.168.21.224:8082/api/users/updatePassword', userData);
       }
       Alert.alert('알림', '설정이 저장되었습니다.');
     } catch (error) {
@@ -145,81 +163,80 @@ const SettingsScreen = () => {
     );
   }
 
-  return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View style={styles.profileImageSection}>
-          <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
-            {userInfo?.profileImage ? (
-              <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
-
-            ) : (
-              <View style={styles.defaultProfileImage}>
-                <Ionicons name="person" size={50} color="#cccccc" />
+   return (
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.profileImageSection}>
+            <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
+              {userInfo?.profileImage ? (
+                <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
+              ) : (
+                <View style={styles.defaultProfileImage}>
+                  <Ionicons name="person" size={50} color="#cccccc" />
+                </View>
+              )}
+              <View style={styles.cameraIconContainer}>
+                <Ionicons name="camera" size={20} color="#fff" />
               </View>
-            )}
-            <View style={styles.cameraIconContainer}>
-              <Ionicons name="camera" size={20} color="#fff" />
-            </View>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.label}>닉네임</Text>
-        <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />
-        <Text style={styles.label}>이메일</Text>
-        <TextInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} />
-        <Text style={styles.label}>생일</Text>
-        <TextInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} />
-        <Text style={styles.label}>챗봇 이름</Text>
-        <TextInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} />
-        <Text style={styles.label}>비밀번호 확인</Text>
-        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="기존 비밀번호 입력" />
-        <Text style={styles.label}>비밀번호 변경</Text>
-        <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="새 비밀번호 입력" />
-        <View style={styles.toggleContainer}>
-          <Text style={styles.label}>알림 받기</Text>
-          <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
-        </View>
-        {notificationsEnabled && (
-          <View style={styles.timeInputContainer}>
-            <View style={styles.timeInput}>
-              <Text style={styles.timeLabel}>시작 시간</Text>
-              <TextInput style={styles.timeInputField} value={startTime} onChangeText={setStartTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
-            </View>
-            <View style={styles.timeInput}>
-              <Text style={styles.timeLabel}>종료 시간</Text>
-              <TextInput style={styles.timeInputField} value={endTime} onChangeText={setEndTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
-            </View>
+            </TouchableOpacity>
           </View>
-        )}
-      </ScrollView>
-      <View style={styles.buttonContainer}>
-        <View style={styles.button}>
-          <Button title="설정 저장" onPress={handleSave} color="#4a9960" />
-        </View>
-        <View style={styles.button}>
-          <Button title="로그아웃" onPress={handleLogout} color="#4a9960" />
-        </View>
-      </View>
-      <Modal visible={modalVisible} transparent={true} animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
-            <Text style={styles.modalText}>이미지를 선택하거나 기본 이미지로 재설정할 수 있습니다.</Text>
-            <Pressable style={[styles.modalButton, styles.resetButton]} onPress={handleResetProfileImage}>
-              <Text style={styles.modalButtonText}>기본 이미지로 재설정</Text>
-            </Pressable>
-            <Pressable style={styles.modalButton} onPress={handleImageSelect}>
-              <Text style={styles.modalButtonText}>갤러리에서 이미지 선택</Text>
-            </Pressable>
-            <Pressable style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
-              <Text style={[styles.modalButtonText, styles.cancelButtonText]}>취소</Text>
-            </Pressable>
+          <Text style={styles.label}>닉네임</Text>
+          <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />
+          <Text style={styles.label}>이메일</Text>
+          <TextInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} />
+          <Text style={styles.label}>생일</Text>
+          <TextInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} />
+          <Text style={styles.label}>챗봇 이름</Text>
+          <TextInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} />
+          <Text style={styles.label}>비밀번호 확인</Text>
+          <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="기존 비밀번호 입력" />
+          <Text style={styles.label}>비밀번호 변경</Text>
+          <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="새 비밀번호 입력" />
+          <View style={styles.toggleContainer}>
+            <Text style={styles.label}>알림 받기</Text>
+            <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
+          </View>
+          {notificationsEnabled && (
+            <View style={styles.timeInputContainer}>
+              <View style={styles.timeInput}>
+                <Text style={styles.timeLabel}>시작 시간</Text>
+                <TextInput style={styles.timeInputField} value={startTime} onChangeText={setStartTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
+              </View>
+              <View style={styles.timeInput}>
+                <Text style={styles.timeLabel}>종료 시간</Text>
+                <TextInput style={styles.timeInputField} value={endTime} onChangeText={setEndTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
+              </View>
+            </View>
+          )}
+        </ScrollView>
+        <View style={styles.buttonContainer}>
+          <View style={styles.button}>
+            <Button title="설정 저장" onPress={handleSave} color="#4a9960" />
+          </View>
+          <View style={styles.button}>
+            <Button title="로그아웃" onPress={handleLogout} color="#4a9960" />
           </View>
         </View>
-      </Modal>
-    </KeyboardAvoidingView>
-  );
-};
+        <Modal visible={modalVisible} transparent={true} animationType="fade">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
+              <Text style={styles.modalText}>이미지를 선택하거나 기본 이미지로 재설정할 수 있습니다.</Text>
+              <Pressable style={[styles.modalButton, styles.resetButton]} onPress={handleResetProfileImage}>
+                <Text style={styles.modalButtonText}>기본 이미지로 재설정</Text>
+              </Pressable>
+              <Pressable style={styles.modalButton} onPress={handleImageSelect}>
+                <Text style={styles.modalButtonText}>갤러리에서 이미지 선택</Text>
+              </Pressable>
+              <Pressable style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
+                <Text style={[styles.modalButtonText, styles.cancelButtonText]}>취소</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
+    );
+  };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
@@ -251,7 +268,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-
   cancelButton: { backgroundColor: '#ccc' },
   modalButtonText: { color: 'white', fontWeight: 'bold' },
 });

@@ -36,7 +36,7 @@ const SendUserInfo = () => {
                     chatbotLevel: 1,
                 };
 
-                const response = await fetch('http://10.0.2.2:8082/api/users/join', {
+                const response = await fetch('http://192.168.21.224:8082/api/users/join', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

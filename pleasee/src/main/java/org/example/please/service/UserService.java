@@ -96,57 +96,81 @@ public class UserService {
             throw new RuntimeException("User not found");
         }
     }
+
+    // 프로필 이미지 업로드 및 기존 이미지 삭제
+    public String uploadProfileImage(String email, MultipartFile photoFile) throws IOException {
+        Optional<User> optionalUser = userRepository.findByUserEmail(email);
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+
+            // 기존 프로필 이미지 삭제
+            deleteOldProfileImage(user.getProfileImage());
+
+            // 새 프로필 이미지 저장
+            String fileName = saveProfileImage(photoFile);
+            user.setProfileImage(fileName);  // user_profile 컬럼에 이미지 파일명 저장
+            userRepository.save(user);
+
+            logger.info("Updated profile image for user: {}", user.getUserEmail());
+
+            // 저장된 이미지 파일명을 반환합니다.
+            return fileName;
+        } else {
+            logger.warn("User not found with email: {}", email);
+            return null;
+        }
+    }
+
+    // 기존 프로필 이미지 삭제
+    private void deleteOldProfileImage(String fileName) {
+        try {
+            if (fileName != null) {
+                Path oldImagePath = Paths.get(profileImageDir, fileName);
+                if (Files.deleteIfExists(oldImagePath)) {
+                    logger.info("Deleted old profile image: {}", fileName);
+                } else {
+                    logger.warn("Old profile image not found for deletion: {}", fileName);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Failed to delete old profile image: {}", fileName, e);
+        }
+    }
+
+    public void resetProfileImage(String email) {
+        Optional<User> optionalUser = userRepository.findByUserEmail(email);
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+
+            // 기존 프로필 이미지 파일 삭제
+            if (user.getProfileImage() != null) {
+                deleteOldProfileImage(user.getProfileImage());
+            }
+
+            // 프로필 이미지 필드를 기본값(null)로 설정
+            user.setProfileImage(null);
+            userRepository.save(user);
+
+            logger.info("Reset profile image for user: {}", user.getUserEmail());
+        } else {
+            logger.warn("User not found with email: {}", email);
+        }
+    }
+
+    // 프로필 이미지 저장
+    private String saveProfileImage(MultipartFile photoFile) throws IOException {
+        String fileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
+        File targetFile = new File(profileImageDir + fileName);
+
+        // 디렉토리가 없으면 생성
+        if (!targetFile.exists()) {
+            targetFile.mkdirs();
+        }
+
+        photoFile.transferTo(targetFile);
+        logger.info("Saved new profile image: {}", fileName);
+        return fileName;
+    }
 }
-
-
-//// 프로필 이미지 업로드 및 기존 이미지 삭제
-//public void uploadProfileImage(String email, MultipartFile photoFile) throws IOException {
-//    Optional<User> optionalUser = userRepository.findByUserEmail(email);
-//
-//    if (optionalUser.isPresent()) {
-//        User user = optionalUser.get();
-//
-//        // 기존 프로필 이미지 삭제
-//        deleteOldProfileImage(user.getProfileImage());
-//
-//        // 새 프로필 이미지 저장
-//        String fileName = saveProfileImage(photoFile);
-//        user.setProfileImage(fileName);
-//        userRepository.save(user);
-//
-//        logger.info("Updated profile image for user: {}", user.getUserEmail());
-//    } else {
-//        logger.warn("User not found with email: {}", email);
-//    }
-//}
-//
-//// 기존 프로필 이미지 삭제
-//private void deleteOldProfileImage(String fileName) {
-//    try {
-//        if (fileName != null) {
-//            Path oldImagePath = Paths.get(profileImageDir, fileName);
-//            if (Files.deleteIfExists(oldImagePath)) {
-//                logger.info("Deleted old profile image: {}", fileName);
-//            } else {
-//                logger.warn("Old profile image not found for deletion: {}", fileName);
-//            }
-//        }
-//    } catch (IOException e) {
-//        logger.error("Failed to delete old profile image: {}", fileName, e);
-//    }
-//}
-//
-//// 프로필 이미지 저장
-//private String saveProfileImage(MultipartFile photoFile) throws IOException {
-//    String fileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
-//    File targetFile = new File(profileImageDir + fileName);
-//
-//    // 디렉토리가 없으면 생성
-//    if (!targetFile.exists()) {
-//        targetFile.mkdirs();
-//    }
-//
-//    photoFile.transferTo(targetFile);
-//    logger.info("Saved new profile image: {}", fileName);
-//    return fileName;
-//}

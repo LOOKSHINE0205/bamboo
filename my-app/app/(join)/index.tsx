@@ -53,7 +53,7 @@ export default function JoinScreen() {
 
         try {
             // 서버에 이메일 중복 확인 요청을 보내기 위한 fetch 함수 호출
-            const response = await fetch('http://10.0.2.2:8082/api/users/checkEmail', {
+            const response = await fetch('http://192.168.21.224:8082/api/users/checkEmail', {
                 method: 'POST',                        // POST 메서드를 사용하여 요청 전송
                 headers: { 'Content-Type': 'application/json' }, // 요청 헤더를 JSON 형식으로 설정
                 body: JSON.stringify({ userEmail: email }) // 요청 본문에 이메일 정보를 JSON 형식으로 포함

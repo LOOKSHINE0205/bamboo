@@ -15,13 +15,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*") // 모든 도메인에서 요청을 허용, 필요시 특정 도메인으로 제한 가능
+@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    // 이메일 중복 체크
     @PostMapping("/checkEmail")
     public ResponseEntity<Map<String, Object>> checkEmail(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -34,7 +33,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // 회원가입
     @PostMapping("/join")
     public ResponseEntity<Map<String, Object>> join(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -48,23 +46,19 @@ public class UserController {
         }
     }
 
-    // 로그인
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
-        User authenticatedUser = userService.login(user); // User 객체 반환
-
+        User authenticatedUser = userService.login(user);
         if (authenticatedUser != null) {
             response.put("message", "로그인 성공");
-            response.put("user", authenticatedUser); // 사용자 정보 추가
+            response.put("user", authenticatedUser);
             return ResponseEntity.ok(response);
         }
-
         response.put("message", "로그인 실패");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
-    // 비밀번호 업데이트
     @PostMapping("/updatePassword")
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -78,25 +72,19 @@ public class UserController {
         }
     }
 
-
-
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getUserInfo(@RequestParam String email) {
-        System.out.println("Fetching user info for email: " + email);
         Optional<User> user = userService.findByEmail(email);
         if (user.isPresent()) {
-            System.out.println("User found: " + user.get().getUserNick());
             Map<String, Object> response = new HashMap<>();
             response.put("user_nick", user.get().getUserNick());
             response.put("user_email", user.get().getUserEmail());
             return ResponseEntity.ok(response);
         } else {
-            System.out.println("User not found for email: " + email);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
-//    알림시간
     @GetMapping("/getQuietTime")
     public ResponseEntity<Map<String, Object>> getQuietTime(@RequestParam String email) {
         Optional<User> user = userService.findByEmail(email);
@@ -110,19 +98,33 @@ public class UserController {
         }
     }
 
+    @PostMapping("/uploadProfile")
+    public ResponseEntity<Map<String, Object>> uploadProfile(@RequestParam("email") String email, @RequestParam("photo") MultipartFile photoFile) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 파일 경로를 받아옵니다.
+            String filePath = userService.uploadProfileImage(email, photoFile);
+
+            if (filePath != null) {
+                response.put("message", "프로필 이미지가 성공적으로 업로드되었습니다.");
+                response.put("filePath", filePath);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "유저를 찾을 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (IOException e) {
+            response.put("message", "이미지 업로드 실패");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/resetProfileImage")
+    public ResponseEntity<Map<String, Object>> resetProfileImage(@RequestBody Map<String, String> request) {
+        String email = request.get("userEmail");
+        userService.resetProfileImage(email);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
+        return ResponseEntity.ok(response);
+    }
 }
-
-
-//    // 프로필 이미지 업로드
-//    @PostMapping("/uploadProfile")
-//    public ResponseEntity<Map<String, Object>> uploadProfile(@RequestParam("email") String email, @RequestParam("photo") MultipartFile photoFile) {
-//        Map<String, Object> response = new HashMap<>();
-//        try {
-//            userService.uploadProfileImage(email, photoFile);
-//            response.put("message", "프로필 이미지가 성공적으로 업로드되었습니다.");
-//            return ResponseEntity.ok(response);
-//        } catch (IOException e) {
-//            response.put("message", "이미지 업로드 실패");
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//        }
-//    }
