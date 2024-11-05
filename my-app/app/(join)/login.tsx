@@ -64,6 +64,7 @@ export default function LoginScreen() {
                 placeholder="이메일 주소를 입력하세요"
                 keyboardType="email-address"
                 autoCapitalize="none" // 이메일 입력 시 자동 대문자 비활성화
+                placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
             />
             {/* 비밀번호 입력 필드 */}
             <Text style={styles.label}>비밀번호</Text>
@@ -73,6 +74,7 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
                 placeholder="비밀번호를 입력하세요"
                 secureTextEntry // 비밀번호 가리기 활성화
+                placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
             />
             {/* 에러 메시지가 있을 경우 화면에 표시 */}
             {error && <Text style={styles.errorText}>{error}</Text>}
@@ -89,7 +91,7 @@ export default function LoginScreen() {
             {/* 개발 및 테스트 용도로 사용되는 패스 버튼 */}
             <TouchableOpacity
                 style={styles.passButton}
-                onPress={() => router.push('/(tabs)/myPage')} // 로그인 없이 페이지 이동
+                onPress={() => router.push('/(join)/index2')} // 로그인 없이 페이지 이동
             >
                 <Text style={styles.passButtonText}>패스</Text>
             </TouchableOpacity>
