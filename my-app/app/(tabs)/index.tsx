@@ -7,7 +7,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import BambooHead from '../../assets/images/bamboo_head.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
 
-
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
     sender: string;
@@ -34,6 +33,7 @@ export default function ChatbotPage() {
     const countdownDuration = 5; // 5초 카운트다운
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
     useFocusEffect(
         React.useCallback(() => {
             const fetchData = async () => {
@@ -53,6 +53,18 @@ export default function ChatbotPage() {
             fetchData();
         }, [])
     );
+
+    // 평가 처리
+    const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {
+        setMessages(prevMessages =>
+            prevMessages.map((msg, index) => {
+                if (index === messageIndex) {
+                    return { ...msg, evaluation: msg.evaluation === type ? null : type };
+                }
+                return msg;
+            })
+        );
+    };
 
     useEffect(() => {
         if (scrollViewRef.current && messages.length > 0) {
@@ -118,7 +130,6 @@ export default function ChatbotPage() {
     };
 
     // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
-    // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
     const sendMessage = () => {
         if (input.trim()) {
             const userMessage: Message = {
@@ -172,6 +183,35 @@ export default function ChatbotPage() {
         return false;
     };
 
+    // 메시지에 대한 평가 버튼 컴포넌트
+    const EvaluationButtons = ({ message, index }: { message: Message; index: number }) => {
+        if (message.sender !== 'bot') return null;
+        return (
+            <View style={styles.evaluationContainer}>
+                <TouchableOpacity
+                    onPress={() => handleEvaluation(index, 'like')}
+                    style={[styles.evaluationButton, message.evaluation === 'like' && styles.evaluationButtonActive]}
+                >
+                    <Ionicons
+                        name={message.evaluation === 'like' ? "thumbs-up" : "thumbs-up-outline"}
+                        size={14}
+                        color={message.evaluation === 'like' ? "#4a9960" : "#666"}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => handleEvaluation(index, 'dislike')}
+                    style={[styles.evaluationButton, message.evaluation === 'dislike' && styles.evaluationButtonActive]}
+                >
+                    <Ionicons
+                        name={message.evaluation === 'dislike' ? "thumbs-down" : "thumbs-down-outline"}
+                        size={14}
+                        color={message.evaluation === 'dislike' ? "#e74c3c" : "#666"}
+                    />
+                </TouchableOpacity>
+            </View>
+        );
+    };
+
     return (
         <View style={styles.container}>
             <ScrollView
@@ -214,6 +254,7 @@ export default function ChatbotPage() {
                                     styles.message,
                                     msg.sender === 'user' ? styles.userMessage : styles.botMessage
                                 ]}>
+
                                     <Text style={[
                                         styles.messageText,
                                         msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
@@ -224,9 +265,11 @@ export default function ChatbotPage() {
 
                                 {msg.sender === 'bot' && msg.showTimestamp && (
                                     <View style={styles.timeContainer}>
+                                        <EvaluationButtons message={msg} index={index} />
                                         <Text style={styles.timeText}>{msg.timestamp}</Text>
                                     </View>
                                 )}
+
                             </View>
                         </View>
 
@@ -238,7 +281,11 @@ export default function ChatbotPage() {
                                     onError={(error) => console.log('Failed to load user avatar:', error.nativeEvent.error)}
                                 />
                             </View>
+
                         )}
+
+                        {/* 평가 버튼 추가 */}
+
                     </View>
                 ))}
             </ScrollView>
@@ -275,7 +322,7 @@ const styles = StyleSheet.create({
         padding: 2, // 내부 여백
         marginBottom: 2, // 시간과의 세로 간격
         shadowColor: "#000", // 그림자 색상
-        left:-5,
+        left: -5,
         shadowOffset: {
             width: 0,
             height: 1,
@@ -298,10 +345,10 @@ const styles = StyleSheet.create({
 
     // 메시지와 시간 텍스트를 감싸는 컨테이너
     messageTimeContainer: {
-       flexDirection: 'row', // 시간과 메시지를 가로로 정렬
-       alignItems: 'flex-end', // 메시지를 수직으로 아래 정렬
-       gap: 0, // 요소 간 간격 설정
-       marginTop: -3, // 이름과의 간격을 좁히기 위해 위치를 위로 조정
+        flexDirection: 'row', // 시간과 메시지를 가로로 정렬
+        alignItems: 'flex-end', // 메시지를 수직으로 아래 정렬
+        gap: 0, // 요소 간 간격 설정
+        marginTop: -3, // 이름과의 간격을 좁히기 위해 위치를 위로 조정
     },
 
     // 메시지 시간 텍스트 스타일
@@ -309,7 +356,7 @@ const styles = StyleSheet.create({
         fontSize: 12, // 텍스트 크기
         color: '#999', // 텍스트 색상
         marginTop: 2, // 평가 버튼과의 간격
-        left:-5,
+        left: -5,
     },
 
     // 메시지의 기본 스타일
@@ -324,8 +371,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#4a9960', // 사용자 메시지 배경색
         marginLeft: 5,  // 말풍선 꼬리 공간 확보
         borderTopRightRadius: 3, // 오른쪽 상단 모서리를 더 둥글게
-        top:5,
-        left:-5,
+        top: 5,
+        left: -5,
     },
 
     // 전체 컨테이너 스타일
@@ -406,8 +453,8 @@ const styles = StyleSheet.create({
 
     // 봇 메시지 컨텐츠 정렬 스타일
     botMessageContent: {
-       alignItems: 'flex-start', // 왼쪽 정렬
-       marginTop: -2, // 이름과 메시지 버블 사이의 간격을 줄이기 위한 위치 조정
+        alignItems: 'flex-start', // 왼쪽 정렬
+        marginTop: -2, // 이름과 메시지 버블 사이의 간격을 줄이기 위한 위치 조정
     },
 
     // 채팅 컨텐츠 스타일
@@ -418,22 +465,22 @@ const styles = StyleSheet.create({
 
     // 봇 메시지 컨텐츠 정렬 스타일
     botMessage: {
-       backgroundColor: '#ECECEC', // 배경색 설정
-       marginRight: 12, // 말풍선 꼬리 공간 확보
-       borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
-       position: 'relative', // 상대적 위치 설정으로 정확한 배치 가능
-       top: 5, // 기본 위치 설정 (위치 조정이 필요한 경우 수정)
-       marginBottom:7,
+        backgroundColor: '#ECECEC', // 배경색 설정
+        marginRight: 12, // 말풍선 꼬리 공간 확보
+        borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
+        position: 'relative', // 상대적 위치 설정으로 정확한 배치 가능
+        top: 5, // 기본 위치 설정 (위치 조정이 필요한 경우 수정)
+        marginBottom: 7,
     },
 
     // 발신자 이름 텍스트 스타일
     senderName: {
-       fontSize: 13, // 텍스트 크기
-       fontWeight: 'bold', // 텍스트 두껍게
-       marginBottom: 2, // 버블과의 간격을 최소화
-       color: '#555', // 텍스트 색상
-       paddingLeft: 1, // 말풍선 꼬리 공간 확보
-       left:-5,
+        fontSize: 13, // 텍스트 크기
+        fontWeight: 'bold', // 텍스트 두껍게
+        marginBottom: 2, // 버블과의 간격을 최소화
+        color: '#555', // 텍스트 색상
+        paddingLeft: 1, // 말풍선 꼬리 공간 확보
+        left: -5,
     },
 
     // 봇 발신자 이름 정렬 스타일

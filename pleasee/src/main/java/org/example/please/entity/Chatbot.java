@@ -33,14 +33,14 @@ public class Chatbot {
     private String userEmail;
 
     // 방 인원수
-    @Column(name = "croom_limit")
+    @Column(name = "croom_limit", insertable = false) // 업데이트 불가능
     private Integer croomLimit;
 
     // 방 개설일자
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false) // 업데이트 불가능
     private Timestamp createdAt;
 
     // 방 상태
-    @Column(name = "croom_status")
+    @Column(name = "croom_status", insertable = false) // 업데이트 불가능
     private String croomStatus;
 }
