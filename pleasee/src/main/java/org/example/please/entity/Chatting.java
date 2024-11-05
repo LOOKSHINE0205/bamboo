@@ -41,7 +41,7 @@ public class Chatting {
     private String chatFile;
 
     // 발화 시간
-    @Column(name = "created_at")
+    @Column(name = "created_at" , insertable = false)
     private Timestamp createdAt;
 
     // 감정 태그
