@@ -12,7 +12,7 @@ export interface User {
     joinedAt: string;
     chatbotName: string;
     chatbotLevel: number;
-    profileImage: string;
+    profileImage: string; // 전체 URL 저장
 }
 
 // 서버에 이미지 업로드 함수
@@ -31,9 +31,6 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
         });
         formData.append('email', userEmail);
 
-        // 디버깅용 콘솔 출력
-        console.log("FormData contents:", formData);
-
         const response = await axios.post('http://192.168.21.224:8082/api/users/uploadProfile', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -41,7 +38,7 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
         });
 
         if (response.status === 200) {
-            return response.data.filePath;  // 서버에서 반환된 파일 경로
+            return `http://192.168.21.224:8082/uploads/profile/images/${response.data.filePath}`;
         } else {
             console.warn("이미지 업로드 실패:", response.data);
             return null;
@@ -59,12 +56,11 @@ export const setUserProfileImage = async (imageUri: string): Promise<void> => {
         if (userDataString) {
             const userData: User = JSON.parse(userDataString);
 
-            // 서버에 이미지를 업로드하고 반환된 경로를 DB에 저장
             const uploadedImagePath = await uploadProfileImageToServer(imageUri, userData.userEmail);
             if (uploadedImagePath) {
-                userData.profileImage = uploadedImagePath;  // 서버에서 반환된 이미지 경로를 저장
+                userData.profileImage = uploadedImagePath; // 전체 URL 저장
                 await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
-                console.log("서버와 동기화된 프로필 이미지 저장 성공:", uploadedImagePath);
+                console.log("프로필 이미지 저장 성공:", uploadedImagePath);
             }
         }
     } catch (error) {
@@ -72,7 +68,7 @@ export const setUserProfileImage = async (imageUri: string): Promise<void> => {
     }
 };
 
-// 저장된 프로필 이미지 URI 가져오기
+// 저장된 프로필 이미지 URL 가져오기
 export const getUserProfileImage = async (): Promise<string | null> => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');
