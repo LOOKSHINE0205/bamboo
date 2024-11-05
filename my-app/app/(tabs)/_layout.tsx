@@ -8,10 +8,15 @@ import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-na
 import { getUserInfo } from '../../storage/storageHelper'; // 사용자 정보 가져오기 함수 import
 
 function CustomTabBar({ state, descriptors, navigation }) {
-    const { width } = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const transition = useSharedValue(0);
     const [userInfo, setUserInfo] = useState(null);
+
+    // 화면 비율에 따라 아이콘 크기와 탭바 높이 계산
+    const aspectRatio = width / height;
+    const iconSize = Math.max(30, Math.min(40, width * 0.08 * aspectRatio)); // 아이콘 크기 설정
+    const tabBarHeight = iconSize * 2.5; // 탭바 높이를 아이콘 크기에 따라 설정
 
     // 사용자 정보 불러오기
     useEffect(() => {
@@ -32,7 +37,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
     }, [state.index]);
 
     return (
-        <View style={[styles.tabContainer, { paddingBottom: insets.bottom, width }]}>
+        <View style={[styles.tabContainer, { paddingBottom: insets.bottom, width, height: tabBarHeight }]}>
             {state.routes.map((route, index) => {
                 const { options } = descriptors[route.key];
                 const label = options.title || route.name;
@@ -73,7 +78,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
                         style={styles.tabItem}
                     >
                         <Animated.View style={animatedStyle}>
-                            <TabBarIcon name={iconName} color={isFocused ? '#4a9960' : '#999'} size={28} />
+                            <TabBarIcon name={iconName} color={isFocused ? '#4a9960' : '#999'} size={iconSize} />
                         </Animated.View>
                     </TouchableOpacity>
                 );
@@ -87,7 +92,7 @@ export default function TabLayout() {
         <Tabs
             tabBar={(props) => <CustomTabBar {...props} />}
         >
-            <Tabs.Screen name="index"  options={{ title: "대화하기" }} />
+            <Tabs.Screen name="index" options={{ title: "대화하기" }} />
             <Tabs.Screen name="(diary)" options={{ title: "다이어리" }} />
             <Tabs.Screen name="myPage" options={{ title: "마이 페이지" }} />
             <Tabs.Screen name="report" options={{ title: "보고서" }} />
@@ -101,7 +106,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         alignItems: 'center',
-        height: 60,
         backgroundColor: '#ffffff',
         borderTopWidth: 1,
         borderColor: '#e0e0e0',
