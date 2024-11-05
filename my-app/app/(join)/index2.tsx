@@ -8,270 +8,197 @@ import {
   TextInput,
   Image,
   Animated,
-  StyleSheet
+  StyleSheet,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import JoinBG from '../../components/JoinBG'; // 배경 컴포넌트 JoinBG 가져오기 (화면 배경 역할)
+import JoinBG from '../../components/JoinBG';
 
-// KeywordSelectionScreen 컴포넌트 정의
 const KeywordSelectionScreen = () => {
-  const router = useRouter(); // 화면 이동을 위한 useRouter 훅 사용
-  const { userData: initialUserData } = useLocalSearchParams(); // 이전 화면에서 전달된 userData 가져오기
+  const router = useRouter();
+  const { userData: initialUserData } = useLocalSearchParams();
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [testResults, setTestResults] = useState<string>('');
+  const [chatbotName, setChatbotName] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isFocused, setIsFocused] = useState(false); // 입력 필드 포커스 상태
 
-  // 화면에 표시할 상태 변수 설정
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // 현재 질문의 인덱스를 저장하는 상태
-  const [testResults, setTestResults] = useState<string>(''); // 사용자가 선택한 답변 결과를 저장하는 문자열
-  const [chatbotName, setChatbotName] = useState(''); // 사용자 입력으로 설정된 챗봇의 이름
-  const [isProcessing, setIsProcessing] = useState(false); // 응답이 처리 중인지 여부를 나타내는 상태
-
-  // 화면 너비와 높이를 가져오는 훅, 반응형 UI를 위해 사용
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
-  // 애니메이션 변수 초기화
-  const fadeAnim = useRef(new Animated.Value(1)).current; // 현재 질문의 페이드 애니메이션(투명도)
-  const cloudAnim = useRef(new Animated.Value(1)).current; // 구름의 투명도 애니메이션
-  const cloudScale = useRef(new Animated.Value(0.1)).current; // 구름 크기 조절 애니메이션
-  const chatbotScale = useRef(new Animated.Value(0)).current; // 챗봇 이미지의 크기 애니메이션
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const cloudAnim = useRef(new Animated.Value(1)).current;
+  const cloudScale = useRef(new Animated.Value(0.1)).current;
+  const chatbotScale = useRef(new Animated.Value(0)).current;
 
-  // 질문 데이터 배열 정의
+  const scrollViewRef = useRef<ScrollView>(null); // ScrollView 참조
+
   const questions = [
-    {
-      question: '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.',
-      aiResponse: "나는 '무인도에 떨어지면 어떡하지?' 같은 생각을",
-      responses: ['종종 있다', '없거나 드물다'],
-    },
-    {
-      question: '다음 질문입니다.\n어떻게 생각하시나요?',
-      aiResponse: '당신이 만약 \n무인도에 떨어진다면',
-      responses: ['혼자라서 너무 외로울 것 같다', '무섭지만 혼자라 편할 것 같기도 하다'],
-    },
-    {
-      question: '다음 질문입니다.\n어떻게 생각하시나요?',
-      aiResponse: '같이 무인도에 떨어진 사람이 계속 울고 있다. 이때 나는?',
-      responses: ['무섭긴 하겠지만.. 빨리 일을 시작해야 하는데.. 약간 답답하다', '나도 무서워.. 옆에 앉아서 같이 운다'],
-    },
-    {
-      question: '마지막 질문입니다.\n어떻게 생각하시나요?',
-      aiResponse: '무인도에서 계속 살아가야 한다면 나는',
-      responses: ['이렇게 된 김에 자유로운 삶을 산다', '안정적으로 살기 위해 집도 짓고 시설을 설치한다'],
-    },
-    {
-      question: '밤부의 이름을 지어주세요',
-      aiResponse: '좋은 이름을 기대할게요!',
-      responses: [],
-    },
+    { question: '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.', aiResponse: "나는 '무인도에 떨어지면 어떡하지?' 같은 생각을", responses: ['종종 있다', '없거나 드물다'] },
+    { question: '다음 질문입니다.\n어떻게 생각하시나요?', aiResponse: '당신이 만약 \n무인도에 떨어진다면', responses: ['혼자라서 너무 외로울 것 같다', '무섭지만 혼자라 편할 것 같기도 하다'] },
+    { question: '다음 질문입니다.\n어떻게 생각하시나요?', aiResponse: '같이 무인도에 떨어진 사람이 계속 울고 있다. 이때 나는?', responses: ['무섭긴 하겠지만.. 빨리 일을 시작해야 하는데.. 약간 답답하다', '나도 무서워.. 옆에 앉아서 같이 운다'] },
+    { question: '마지막 질문입니다.\n어떻게 생각하시나요?', aiResponse: '무인도에서 계속 살아가야 한다면 나는', responses: ['이렇게 된 김에 자유로운 삶을 산다', '안정적으로 살기 위해 집도 짓고 시설을 설치한다'] },
+    { question: '밤부의 이름을 지어주세요', aiResponse: '좋은 이름을 기대할게요!', responses: [] },
   ];
 
-  // 유효한 질문 인덱스를 계산하여 현재 질문 가져오기
   const validIndex = Math.min(Math.max(currentQuestionIndex, 0), questions.length - 1);
-  const currentQuestion = questions[validIndex]; // 현재 질문 객체
-  const isLastQuestion = validIndex === questions.length - 1; // 마지막 질문 여부 확인
-  const isFirstQuestion = validIndex === 0; // 첫 번째 질문 여부 확인
+  const currentQuestion = questions[validIndex];
+  const isLastQuestion = validIndex === questions.length - 1;
 
-  // 응답 선택 시 결과 문자열 업데이트
   const handleSelectResult = (value: '0' | '1') => {
-    setTestResults((prevResults) => prevResults + value); // 이전 결과에 선택된 값 추가
+    setTestResults((prevResults) => prevResults + value);
   };
 
-  // 챗봇 애니메이션을 시작하는 함수 (크기를 0에서 1로 확대)
   const startChatbotAnimation = () => {
-    chatbotScale.setValue(0); // 초기 크기를 0으로 설정
+    chatbotScale.setValue(0);
     Animated.timing(chatbotScale, {
-      toValue: 1, // 최종 크기 설정 (1로 확대)
-      duration: 500, // 애니메이션 지속 시간 (500ms)
-      useNativeDriver: true, // 네이티브 드라이버 사용
+      toValue: 1,
+      duration: 700,
+      useNativeDriver: true,
     }).start();
   };
 
-  // 챗봇 애니메이션을 종료하는 함수 (크기를 1에서 0으로 축소)
   const hideChatbotAnimation = (callback: () => void) => {
     Animated.timing(chatbotScale, {
-      toValue: 0, // 크기를 0으로 설정하여 숨김
-      duration: 300, // 애니메이션 지속 시간 (300ms)
+      toValue: 0,
+      duration: 500,
       useNativeDriver: true,
-    }).start(callback); // 애니메이션 완료 후 콜백 함수 실행
+    }).start(callback);
   };
 
-  // 사용자가 응답을 선택했을 때 호출되는 함수
   const handleResponsePress = (index: number) => {
-    if (isProcessing) return; // 이미 처리 중이면 중복 실행 방지
-    setIsProcessing(true); // 처리 중 상태로 설정
-
-    handleSelectResult(index === 0 ? '0' : '1'); // 선택된 답변을 결과 문자열에 추가
-
-    // 마지막 질문 전이라면 구름 애니메이션 시작
+    if (isProcessing) return;
+    setIsProcessing(true);
+    handleSelectResult(index === 0 ? '0' : '1');
     if (currentQuestionIndex === questions.length - 2) {
       startCloudAnimation();
     }
 
-    // 현재 질문을 페이드 아웃시키는 애니메이션 시작
     Animated.timing(fadeAnim, {
-      toValue: 0, // 투명도를 0으로 설정하여 페이드 아웃 효과를 줌
-      duration: 300, // 애니메이션의 지속 시간 (300ms), 애니메이션이 너무 빠르거나 느려지지 않도록 조정
-      useNativeDriver: true, // 성능 향상을 위한 네이티브 드라이버 사용
+      toValue: 0,
+      duration: 400,
+      useNativeDriver: true,
     }).start(() => {
-      // 페이드 아웃이 완료되면 다음 질문으로 이동
-      setCurrentQuestionIndex((prevIndex) => prevIndex + 1); // 현재 질문 인덱스를 증가시켜 다음 질문으로 설정
-      fadeAnim.setValue(0); // 다음 질문을 위해 투명도를 0으로 초기화
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      fadeAnim.setValue(0);
 
-      // 다음 질문 페이드 인 애니메이션
       Animated.timing(fadeAnim, {
-        toValue: 1, // 투명도를 1로 설정하여 페이드 인 효과를 줌
-        duration: 300, // 애니메이션 지속 시간 (300ms)
+        toValue: 1,
+        duration: 500,
         useNativeDriver: true,
-      }).start(() => {
-        setIsProcessing(false); // 모든 애니메이션이 완료된 후 처리 완료 상태로 설정
-      });
+      }).start(() => setIsProcessing(false));
 
-      updateCloudScale(currentQuestionIndex + 1); // 다음 질문에 맞춰 구름의 크기를 조정
+      updateCloudScale(currentQuestionIndex + 1);
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     });
   };
 
-  // 이전 질문으로 이동하는 함수
   const handlePrevious = () => {
-    if (isProcessing) return; // 다른 작업이 진행 중이라면 중복 실행 방지
-    setIsProcessing(true); // 처리 중 상태로 설정
 
-    if (!isFirstQuestion) { // 현재 질문이 첫 번째 질문이 아닌 경우에만 실행
-      // 마지막 질문에서 이전으로 돌아갈 때 구름과 챗봇 애니메이션을 처리
+    if (currentQuestionIndex > 0) {
       if (currentQuestionIndex === questions.length - 1) {
-        cloudAnim.setValue(1); // 구름을 다시 보이도록 설정 (투명도 1)
-
-        // 챗봇 애니메이션을 숨김 처리
+        cloudAnim.setValue(1);
         hideChatbotAnimation(() => {
-          // 페이드 아웃 애니메이션을 사용해 현재 질문을 사라지게 함
           Animated.timing(fadeAnim, {
-            toValue: 0, // 투명도를 0으로 설정하여 페이드 아웃 효과를 줌
-            duration: 300, // 애니메이션의 지속 시간 (300ms)
+            toValue: 0,
+            duration: 400,
             useNativeDriver: true,
           }).start(() => {
-            const newIndex = currentQuestionIndex - 1; // 인덱스를 감소시켜 이전 질문으로 이동
-            setCurrentQuestionIndex(newIndex); // 상태를 업데이트하여 이전 질문을 현재 질문으로 설정
-            fadeAnim.setValue(0); // 이전 질문을 준비하기 위해 투명도 초기화
+            const newIndex = currentQuestionIndex - 1;
+            setCurrentQuestionIndex(newIndex);
+            fadeAnim.setValue(0);
 
-            // 이전 질문 페이드 인 애니메이션
             Animated.timing(fadeAnim, {
-              toValue: 1, // 투명도를 1로 설정하여 페이드 인 효과를 줌
-              duration: 300, // 애니메이션의 지속 시간 (300ms)
+              toValue: 1,
+              duration: 500,
               useNativeDriver: true,
-            }).start(() => {
-              setIsProcessing(false); // 모든 애니메이션이 완료된 후 처리 완료 상태로 설정
-            });
+            }).start(() => setIsProcessing(false));
 
-            updateCloudScale(newIndex); // 이전 질문에 맞춰 구름의 크기 조정
+            updateCloudScale(newIndex);
           });
         });
       } else {
-        // 마지막 질문이 아닌 경우에 일반적인 이전 질문 이동 처리
         Animated.timing(fadeAnim, {
-          toValue: 0, // 투명도를 0으로 설정하여 현재 질문을 페이드 아웃
-          duration: 300, // 애니메이션의 지속 시간 (300ms)
+          toValue: 0,
+          duration: 400,
           useNativeDriver: true,
         }).start(() => {
-          const newIndex = currentQuestionIndex - 1; // 인덱스를 감소시켜 이전 질문으로 이동
+          const newIndex = currentQuestionIndex - 1;
           setCurrentQuestionIndex(newIndex);
-          fadeAnim.setValue(0); // 이전 질문을 준비하기 위해 투명도 초기화
+          fadeAnim.setValue(0);
 
           Animated.timing(fadeAnim, {
-            toValue: 1, // 투명도를 1로 설정하여 페이드 인 효과를 줌
-            duration: 300, // 애니메이션의 지속 시간 (300ms)
+            toValue: 1,
+            duration: 500,
             useNativeDriver: true,
-          }).start(() => {
-            setIsProcessing(false); // 모든 애니메이션이 완료된 후 처리 완료 상태로 설정
-          });
+          }).start(() => setIsProcessing(false));
 
-          updateCloudScale(newIndex); // 이전 질문에 맞춰 구름의 크기 조정
+          updateCloudScale(newIndex);
+          scrollViewRef.current?.scrollTo({ y: 0, animated: true });
         });
       }
     }
   };
 
-  // 구름 애니메이션 시작 함수 - 구름을 페이드 아웃하여 사라지게 함
   const startCloudAnimation = () => {
     Animated.timing(cloudAnim, {
-      toValue: 0, // 투명도를 0으로 설정하여 구름을 화면에서 보이지 않게 함
-      duration: 300, // 애니메이션의 지속 시간 (300ms)
-      useNativeDriver: true, // 네이티브 드라이버 사용으로 성능 최적화
-    }).start(); // 애니메이션 실행
+      toValue: 0,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
   };
 
-  // 구름 크기를 질문 인덱스에 맞춰 조정하는 함수
   const updateCloudScale = (index: number) => {
-    let targetScale = 1; // 기본값은 1로 설정 (가장 큰 크기)
+    let targetScale = 1;
     if (index === 0) targetScale = 0.1;
     else if (index === 1) targetScale = 0.3;
     else if (index === 2) targetScale = 0.6;
     else if (index > 2) targetScale = 1;
 
     Animated.timing(cloudScale, {
-      toValue: targetScale, // 목표 크기를 설정
-      duration: 300, // 애니메이션의 지속 시간 (300ms)
+      toValue: targetScale,
+      duration: 400,
       useNativeDriver: true,
     }).start();
   };
 
- // 현재 질문이 마지막 질문인지 확인하고, 마지막 질문인 경우 챗봇 애니메이션을 시작
- useEffect(() => {
-   if (isLastQuestion) {
-     startChatbotAnimation();
-   } else {
-     // 첫 번째 질문부터 다시 시작할 경우 챗봇을 숨김
-     chatbotScale.setValue(0);
-   }
- }, [currentQuestionIndex]);
+  useEffect(() => {
+    if (isLastQuestion) {
+      startChatbotAnimation();
+    } else {
+      chatbotScale.setValue(0);
+    }
+  }, [currentQuestionIndex]);
 
- // 확인 버튼이 눌렸을 때 실행되는 함수
- const handleConfirm = () => {
-   if (chatbotName.trim()) {
-     // userData와 testResults를 포함하여 sendUserInfo 페이지로 이동
-     router.push({
-       pathname: './sendUserInfo',
-       params: {
-         userData: initialUserData,
-         testResults: testResults,
-         chatbotName,
-       },
-     });
-   } else {
-     // 입력이 비어 있을 경우 사용자에게 챗봇 이름을 입력하라는 알림 표시
-     alert('챗봇 이름을 입력해주세요.');
-   }
- };
+  const handleConfirm = () => {
+    if (chatbotName.trim()) {
+      router.push({
+        pathname: './sendUserInfo',
+        params: { userData: initialUserData, testResults, chatbotName },
+      });
+    } else {
+      alert('챗봇 이름을 입력해주세요.');
+    }
+  };
 
-  // JoinBG 컴포넌트를 반환하여 화면의 배경을 설정
   return (
     <JoinBG>
-      {/* ScrollView로 스크롤 가능한 콘텐츠 영역을 생성 */}
       <ScrollView
+        ref={scrollViewRef} // ScrollView 참조 설정
         contentContainerStyle={[
-          // 기본 컨테이너 스타일 적용
           styles.container,
-          // 화면 높이에 따라 상하 패딩을 설정하고, 하단에 여유 공간 추가
           { paddingVertical: screenHeight * 0.05, paddingBottom: 200 }
         ]}
       >
-        {/* 현재 질문을 담는 채팅 버블 스타일의 View */}
-        <View style={[
-          // 기본 채팅 버블 스타일 적용
-          styles.chatBubble,
-          // 화면 너비에 따라 버블 너비를 90%로 설정하고, 화면의 상단에 위치시킴
-          { width: screenWidth * 0.9, top: '0%' }
-        ]}>
-          {/* 현재 질문 텍스트를 화면에 표시 */}
+        <View style={[styles.chatBubble, { width: screenWidth * 0.9, top: '0%' }]}>
           <Text style={styles.chatText}>{currentQuestion.question}</Text>
         </View>
-        {/* 마지막 질문이 아닌 경우 진행 상황을 나타내는 도트 표시 */}
+
         {!isLastQuestion && (
           <View style={styles.progressContainer}>
-            {/* 현재 질문을 제외한 질문 수만큼 도트를 생성 */}
             {questions.slice(0, -1).map((_, index) => (
               <View
-                // 고유한 키로 인덱스를 사용
                 key={index}
                 style={[
-                  // 기본 도트 스타일 적용
                   styles.dot,
-                  // 현재 질문 인덱스와 일치하는 도트는 활성화 스타일 적용
                   currentQuestionIndex === index && styles.activeDot,
                 ]}
               />
@@ -279,208 +206,92 @@ const KeywordSelectionScreen = () => {
           </View>
         )}
 
-        {/* AI의 응답을 애니메이션 효과로 표시하는 뷰 */}
-        <Animated.View
-          style={[
-            // 기본 AI 응답 스타일 적용
-            styles.aiResponse,
-            // 페이드 인 애니메이션 적용 및 너비와 위치 설정
-            { opacity: fadeAnim, width: screenWidth * 0.85, top: 150 }
-          ]}
-        >
-          {/* 마지막 질문이 아닌 경우 AI 응답을 버튼으로 표시하여 사용자 상호작용 가능 */}
+        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85, top: 150 }]}>
           {!isLastQuestion ? (
             <TouchableOpacity
-              // AI 응답 버튼 스타일 적용
               style={styles.aiResponseButton}
-              // AI 응답을 클릭하면 handleResponsePress(0) 함수 실행, 처리 중일 경우 비활성화
               onPress={() => !isProcessing && handleResponsePress(0)}
               disabled={isProcessing}
             >
-              {/* 현재 질문의 AI 응답 텍스트 표시 */}
               <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
             </TouchableOpacity>
           ) : (
-            // 마지막 질문인 경우 AI 응답을 단순 텍스트로 표시
             <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
           )}
         </Animated.View>
-        {/* 마지막 질문이 아닌 경우 구름 애니메이션 뷰 표시 */}
+
         {!isLastQuestion && (
-          <Animated.View
-            style={[
-              // 구름 컨테이너 기본 스타일 적용
-              styles.cloudContainer,
-              {
-                // 구름 크기를 애니메이션 효과에 따라 조절
-                transform: [{ scale: cloudScale }],
-                // 구름 투명도에 애니메이션 적용
-                opacity: cloudAnim,
-                // 화면 너비의 60% 크기로 설정
-                width: screenWidth * 0.6,
-                // 화면 너비의 30% 높이로 설정
-                height: screenWidth * 0.3,
-                // 구름을 화면 가운데 정렬
-                alignSelf: 'center',
-              },
-            ]}
-          >
-            {/* 구름 이미지 삽입 */}
-            <Image
-              // 구름 이미지 경로 설정
-              source={require('../../assets/images/구름.png')}
-              // 구름 이미지 스타일 적용
-              style={styles.cloudImage}
-              // 이미지의 종횡비를 유지하며 화면에 맞추어 표시
-              resizeMode="contain"
-            />
+          <Animated.View style={[styles.cloudContainer, { transform: [{ scale: cloudScale }], opacity: cloudAnim, width: screenWidth * 0.6, height: screenWidth * 0.3 }]}>
+            <Image source={require('../../assets/images/구름.png')} style={styles.cloudImage} resizeMode="contain" />
           </Animated.View>
         )}
-        {/* 마지막 질문인 경우 챗봇 컨테이너 뷰 표시 */}
+
         {isLastQuestion ? (
           <View style={styles.chatbotContainer}>
-            {/* 챗봇 이미지를 애니메이션 효과와 함께 표시 */}
-            <Animated.Image
-              // 대나무 머리 이미지를 경로에서 불러오기
-              source={require('../../assets/images/bamboo_head.png')}
-              style={[
-                // 기본 챗봇 이미지 스타일 적용
-                styles.chatbotImage,
-                {
-                  // 이미지의 너비를 화면 너비의 40%로 설정
-                  width: screenWidth * 0.4,
-                  // 이미지의 높이를 화면 너비의 40%로 설정
-                  height: screenWidth * 0.4,
-                  // 화면 상단에서 110px 아래에 위치
-                  top: 110,
-                  // 챗봇 크기를 애니메이션 효과(chatbotScale)에 따라 조절
-                  transform: [{ scale: chatbotScale }],
-                },
-              ]}
-              // 이미지의 종횡비를 유지하며 화면에 맞추어 표시
-              resizeMode="contain"
-            />
-            {/* 챗봇 이름을 입력할 수 있는 텍스트 입력 필드 */}
+            <Animated.Image source={require('../../assets/images/bamboo_head.png')} style={[styles.chatbotImage, { width: screenWidth * 0.4, height: screenWidth * 0.4, top: 110, transform: [{ scale: chatbotScale }] }]} resizeMode="contain" />
             <TextInput
-              // 이름 입력 스타일을 적용하고 화면 너비의 80%로 설정
-              style={[styles.nameInput, { width: screenWidth * 0.8, top: 140 }]}
-              // 현재 입력된 챗봇 이름을 값으로 설정
+              style={[
+                styles.nameInput,
+                { width: screenWidth * 0.8, top: 140, borderColor: chatbotName ? '#4a9960' : '#999', backgroundColor: isFocused ? '#eef6ee' : '#FFF' }
+              ]}
               value={chatbotName}
-              // 입력된 텍스트가 변경될 때 setChatbotName 함수를 호출하여 상태 업데이트
               onChangeText={setChatbotName}
-              // 이름 입력 안내 문구 설정
               placeholder="밤부의 이름을 입력하세요"
-              // 안내 문구 색상 설정
               placeholderTextColor="#999"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
             />
-
-            {/* 이름 변경 불가에 대한 경고 메시지 */}
             <Text style={styles.warningText}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
 
-            {/* 내비게이션 버튼을 감싸는 컨테이너 */}
             <View style={[styles.navigationButtons, { top: 120 }]}>
-              {/* 첫 번째 질문이 아닌 경우 '이전' 버튼 표시 */}
               {currentQuestionIndex > 0 && (
-                <TouchableOpacity
-                  // 내비게이션 버튼 스타일 적용 및 화면 높이에 맞춰 패딩 설정
-                  style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]}
-                  // '이전' 버튼을 클릭 시 handlePrevious 함수 호출
-                  onPress={handlePrevious}
-                  // 처리 중일 경우 버튼 비활성화
-                  disabled={isProcessing}
-                >
-                  {/* '이전' 버튼 텍스트 */}
+                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious} disabled={isProcessing}>
                   <Text style={styles.navButtonText}>이전</Text>
                 </TouchableOpacity>
               )}
-              {/* '확인' 버튼, 이름 입력란에 값이 있을 때만 활성화 */}
               <TouchableOpacity
                 style={[
-                  // 내비게이션 버튼 스타일 적용 및 화면 높이에 맞춰 패딩 설정
                   styles.navButton,
                   {
                     paddingVertical: screenHeight * 0.02,
-                    // 이름이 입력된 경우 버튼 배경을 초록색으로, 그렇지 않으면 회색으로 설정
-                    backgroundColor: chatbotName.trim() ? '#4a9960' : '#ccc'
+                    backgroundColor: chatbotName.trim() ? '#4a9960' : '#ccc',
+                    opacity: chatbotName.trim() ? 1 : 0.6
                   }
                 ]}
-                // '확인' 버튼 클릭 시 handleConfirm 함수 호출
                 onPress={handleConfirm}
-                // 이름이 비어있거나 처리 중일 경우 버튼 비활성화
                 disabled={!chatbotName.trim() || isProcessing}
               >
-                {/* '확인' 버튼 텍스트, 버튼 활성화 시 흰색 텍스트 표시 */}
                 <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
               </TouchableOpacity>
             </View>
           </View>
         ) : (
-          // 마지막 질문이 아닌 경우 응답 옵션 및 내비게이션 버튼 표시
-          <View
-            style={[
-              styles.responseContainer,
-              {
-                // 응답 컨테이너의 너비를 화면 너비의 90%로 설정
-                width: screenWidth * 0.9,
-                // 첫 번째 질문인 경우 추가 마진 설정, 그렇지 않으면 마진 제거
-                marginBottom: isFirstQuestion ? '11%' : '0%',
-                // 화면 상단에서 80% 아래로 위치 설정
-                top: '80%'
-              }
-            ]}
-          >
-            {/* 각 응답 옵션을 맵 함수로 생성하여 리스트로 표시 */}
+          <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: '5%' }]}>
             {currentQuestion.responses.map((response, index) => (
-              <Animated.View
-                // 고유한 키로 인덱스를 사용
-                key={index}
-                style={[
-                  styles.responseButton,
-                  {
-                    // 페이드 인 애니메이션 적용
-                    opacity: fadeAnim,
-                    // 응답 버튼의 너비를 화면 너비의 85%로 설정
-                    width: screenWidth * 0.85
-                  }
-                ]}
-              >
+              <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85, borderColor: index === 0 ? '#4a9960' : '#ccc' }]}>
                 <TouchableOpacity
-                  // 응답 버튼 터치 가능한 영역 스타일 적용
                   style={styles.responseButtonTouchable}
-                  // 응답 버튼을 클릭 시 handleResponsePress 함수 실행, 처리 중일 경우 비활성화
                   onPress={() => !isProcessing && handleResponsePress(index)}
                   disabled={isProcessing}
                 >
-                  {/* 응답 텍스트 표시 */}
                   <Text style={styles.responseText}>{response}</Text>
                 </TouchableOpacity>
               </Animated.View>
             ))}
-
-            {/* 첫 번째 질문이 아닌 경우 '이전' 버튼을 표시 */}
             {currentQuestionIndex > 0 && (
               <View style={styles.navigationButtons}>
-                <TouchableOpacity
-                  // 내비게이션 버튼 스타일 적용
-                  style={styles.navButton}
-                  // '이전' 버튼 클릭 시 handlePrevious 함수 호출
-                  onPress={handlePrevious}
-                  // 처리 중일 경우 버튼 비활성화
-                  disabled={isProcessing}
-                >
-                  {/* '이전' 버튼 텍스트 */}
+                <TouchableOpacity style={styles.navButton} onPress={handlePrevious} disabled={isProcessing}>
                   <Text style={styles.navButtonText}>이전</Text>
                 </TouchableOpacity>
               </View>
             )}
           </View>
         )}
-      {/* ScrollView 컴포넌트를 종료하여 화면 전체를 스크롤 가능하게 설정 종료 */}
       </ScrollView>
-    {/* JoinBG 컴포넌트를 종료하여 화면 배경 설정 종료 */}
     </JoinBG>
   );
 };
+
 // 스타일 정의
 const styles = StyleSheet.create({
   // 경고 텍스트 스타일: 경고 메시지를 빨간색으로 중앙 정렬하고, 상단에 약간의 여백을 추가하여 다른 요소와 분리
