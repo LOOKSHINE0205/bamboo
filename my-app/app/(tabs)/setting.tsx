@@ -198,9 +198,9 @@ const SettingsScreen = () => {
           <Text style={styles.label}>챗봇 이름</Text>
           <TextInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} />
           <Text style={styles.label}>비밀번호 확인</Text>
-          <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="기존 비밀번호 입력" />
+          <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="기존 비밀번호 입력" placeholderTextColor="#707070" />
           <Text style={styles.label}>비밀번호 변경</Text>
-          <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="새 비밀번호 입력" />
+          <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="새 비밀번호 입력" placeholderTextColor="#707070"/>
           <View style={styles.toggleContainer}>
             <Text style={styles.label}>알림 받기</Text>
             <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
@@ -219,13 +219,14 @@ const SettingsScreen = () => {
           )}
         </ScrollView>
         <View style={styles.buttonContainer}>
-          <View style={styles.button}>
-            <Button title="설정 저장" onPress={handleSave} color="#4a9960" />
-          </View>
-          <View style={styles.button}>
-            <Button title="로그아웃" onPress={handleLogout} color="#4a9960" />
-          </View>
+          <TouchableOpacity style={styles.actionButton} onPress={handleSave}>
+            <Text style={styles.actionButtonText}>설정 저장</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, styles.logoutButton]} onPress={handleLogout}>
+            <Text style={styles.actionButtonText}>로그아웃</Text>
+          </TouchableOpacity>
         </View>
+
         <Modal visible={modalVisible} transparent={true} animationType="fade">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -263,8 +264,22 @@ const styles = StyleSheet.create({
   timeInput: { width: '45%' },
   timeLabel: { fontSize: 16, fontWeight: '500', marginBottom: 8, color: '#555' },
   timeInputField: { height: 40, borderColor: '#ccc', borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, fontSize: 16, textAlign: 'center' },
-  buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, borderTopWidth: 1, borderTopColor: '#eee' },
-  button: { width: '45%' },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  actionButton: {
+    flex: 1, // 전체 너비를 나눠 가질 수 있게 설정
+    paddingVertical: 12, // 버튼 높이 조절
+    backgroundColor: '#4a9960', // 메인 버튼 배경색
+    borderRadius: 8, // 버튼 모서리 둥글게
+    marginHorizontal: 5, // 버튼 간 간격 추가
+    alignItems: 'center', // 텍스트 중앙 정렬
+    justifyContent: 'center', // 수직 중앙 정렬
+  },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: { width: 300, padding: 20, backgroundColor: 'white', borderRadius: 8, alignItems: 'center' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
