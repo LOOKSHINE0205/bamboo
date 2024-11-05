@@ -2,34 +2,38 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-// @ts-ignore
-import BambooHead from '../../assets/images/bamboo_head.png';
-import BambooPanda from '../../assets/images/bamboo_panda.png';
 import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
 import { useFocusEffect } from '@react-navigation/native';
+import BambooHead from '../../assets/images/bamboo_head.png';
+import BambooPanda from '../../assets/images/bamboo_panda.png';
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
-    sender: string; // 발신자 ('user' 또는 'bot')
-    text: string; // 메시지 내용
-    avatar: any; // 발신자 아바타 이미지
-    name: string; // 발신자 이름
-    timestamp: string; // 메시지 전송 시간
-    showTimestamp?: boolean; // 시간 표시 여부
-    evaluation?: 'like' | 'dislike' | null; // 메시지 평가 상태
+    sender: string;
+    text: string;
+    avatar: any;
+    name: string;
+    timestamp: string;
+    showTimestamp?: boolean;
+    evaluation?: 'like' | 'dislike' | null;
 }
 
 export default function ChatbotPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [userName, setUserName] = useState<string>('');
-    const [chatbotName, setChatbotName] = useState<string>('챗봇'); // 기본 챗봇 이름 설정
-    const [userMessageCount, setUserMessageCount] = useState(0);
+    const [chatbotName, setChatbotName] = useState<string>('챗봇');
+    const [userAvatar, setUserAvatar] = useState(BambooPanda);
+    const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
-    const [userAvatar, setUserAvatar] = useState(BambooPanda); // 기본 아바타
     const serverUrl = 'http://10.0.2.2:8082/api/chat/message';
 
-    // 사용자 정보 및 프로필 이미지 불러오기
+    let countdownInterval: NodeJS.Timeout | null = null;
+    let messagesToSend: string[] = [];
+    const countdownDuration = 5; // 5초 카운트다운
+    const messagesToSendRef = useRef<string[]>([]);
+    const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
     useFocusEffect(
         React.useCallback(() => {
             const fetchData = async () => {
@@ -50,59 +54,6 @@ export default function ChatbotPage() {
         }, [])
     );
 
-
-    // 메시지 추가 시 자동 스크롤
-    useEffect(() => {
-        if (scrollViewRef.current && messages.length > 0) {
-            scrollViewRef.current.scrollToEnd({ animated: true });
-        }
-    }, [messages]);
-
-    // 챗봇 응답 전송
-    const sendBotResponse = async (userInput: string) => {
-        try {
-            console.log('Sending bot response request with input:', userInput);
-            const response = await axios.post(serverUrl, userInput, {
-                headers: { 'Content-Type': 'text/plain' },
-            });
-
-            const botMessage: Message = {
-                sender: 'bot',
-                text: response.data,
-                avatar: BambooHead,
-                name: chatbotName,
-                timestamp: getCurrentTime(),
-                showTimestamp: true,
-            };
-
-            setMessages(prevMessages => {
-                const newMessages = [...prevMessages, botMessage];
-                return updateTimestamps(newMessages);
-            });
-            setUserMessageCount(0);
-        } catch (error) {
-            handleErrorResponse();
-        }
-    };
-
-    // 오류 응답 처리
-    const handleErrorResponse = () => {
-        const errorMessage: Message = {
-            sender: 'bot',
-            text: '챗봇 응답을 가져올 수 없습니다.',
-            avatar: BambooHead,
-            name: chatbotName,
-            timestamp: getCurrentTime(),
-            showTimestamp: true,
-        };
-
-        setMessages(prevMessages => {
-            const newMessages = [...prevMessages, errorMessage];
-            return updateTimestamps(newMessages);
-        });
-        setUserMessageCount(0);
-    };
-
     // 평가 처리
     const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {
         setMessages(prevMessages =>
@@ -113,6 +64,123 @@ export default function ChatbotPage() {
                 return msg;
             })
         );
+    };
+
+    useEffect(() => {
+        if (scrollViewRef.current && messages.length > 0) {
+            scrollViewRef.current.scrollToEnd({ animated: true });
+        }
+    }, [messages]);
+
+    // 카운트다운 시작 함수
+    const startCountdown = () => {
+        stopCountdown(); // 기존 카운트다운 중지
+
+        let countdown = countdownDuration;
+        console.log(`카운트다운 시작: ${countdown}초 남음`);
+
+        countdownIntervalRef.current = setInterval(() => {
+            countdown -= 1;
+            console.log(`${countdown}초 남음`);
+
+            if (countdown <= 0) {
+                clearInterval(countdownIntervalRef.current!);
+                countdownIntervalRef.current = null;
+                console.log('카운트다운 종료. 메시지 전송.');
+                sendBotResponse(); // 메시지 전송
+            }
+        }, 1000);
+    };
+
+    // 카운트다운 중지 함수
+    const stopCountdown = () => {
+        if (countdownIntervalRef.current !== null) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+        }
+    };
+
+    // 챗봇 응답 전송 함수
+    const sendBotResponse = async () => {
+        if (messagesToSendRef.current.length > 0) {
+            const combinedMessages = messagesToSendRef.current.join(' ');
+            try {
+                const response = await axios.post(serverUrl, combinedMessages, { headers: { 'Content-Type': 'text/plain' } });
+                setMessages((prevMessages) => [...prevMessages, {
+                    sender: 'bot',
+                    text: response.data,
+                    avatar: BambooHead,
+                    name: chatbotName,
+                    timestamp: getCurrentTime(),
+                    showTimestamp: true,
+                }]);
+                messagesToSendRef.current = []; // 초기화
+            } catch (error) {
+                console.error('Error sending bot response:', error);
+            }
+        }
+    };
+
+    const handleInputChange = (text: string) => {
+        setInput(text);
+        setIsTyping(true);
+
+        // 사용자가 입력 중일 때는 카운트다운 멈춤
+        stopCountdown();
+    };
+
+    // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
+    const sendMessage = () => {
+        if (input.trim()) {
+            const userMessage: Message = {
+                sender: 'user',
+                text: input.trim(),
+                avatar: userAvatar,
+                name: userName,
+                timestamp: getCurrentTime(),
+                showTimestamp: false,
+            };
+
+            setMessages(prevMessages => {
+                const newMessages = [...prevMessages, userMessage];
+                return updateTimestamps(newMessages);
+            });
+
+            // 메시지를 배열에 추가
+            messagesToSendRef.current.push(input.trim());
+            setInput('');
+            setIsTyping(false);
+
+            // 새로운 메시지를 보낼 때 카운트다운 시작
+            startCountdown();
+        } else {
+            console.log('빈 메시지는 전송되지 않습니다.');
+        }
+    };
+
+    const getCurrentTime = (): string => {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? '오후' : '오전';
+        hours = hours % 12 || 12;
+        return `${ampm} ${hours}:${minutes}`;
+    };
+
+    const updateTimestamps = (messages: Message[]): Message[] => {
+        return messages.map((msg, index) => ({
+            ...msg,
+            showTimestamp: shouldShowTimestamp(index, msg, messages)
+        }));
+    };
+
+    const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
+        if (currentMessage.sender === 'bot') return true;
+        const nextMessage = allMessages[messageIndex + 1];
+        if (!nextMessage) return true;
+        if (nextMessage.sender === 'bot') return true;
+        if (nextMessage.timestamp !== currentMessage.timestamp) return true;
+        return false;
     };
 
     // 메시지에 대한 평가 버튼 컴포넌트
@@ -142,59 +210,6 @@ export default function ChatbotPage() {
                 </TouchableOpacity>
             </View>
         );
-    };
-
-    // 현재 시간 가져오기
-    const getCurrentTime = (): string => {
-        const now = new Date();
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? '오후' : '오전';
-        hours = hours % 12 || 12;
-        return `${ampm} ${hours}:${minutes}`;
-    };
-
-    // 시간 표시 여부 결정
-    const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
-        if (currentMessage.sender === 'bot') return true;
-        const nextMessage = allMessages[messageIndex + 1];
-        if (!nextMessage) return true;
-        if (nextMessage.sender === 'bot') return true;
-        if (nextMessage.timestamp !== currentMessage.timestamp) return true;
-        return false;
-    };
-
-    // 타임스탬프 업데이트
-    const updateTimestamps = (messages: Message[]): Message[] => {
-        return messages.map((msg, index) => ({
-            ...msg,
-            showTimestamp: shouldShowTimestamp(index, msg, messages)
-        }));
-    };
-
-    // 사용자 메시지 전송
-    const sendMessage = () => {
-        if (input.trim()) {
-            const userMessage: Message = {
-                sender: 'user',
-                text: input.trim(),
-                avatar: userAvatar,
-                name: userName,
-                timestamp: getCurrentTime(),
-                showTimestamp: false,
-            };
-
-            setMessages(prevMessages => {
-                const newMessages = [...prevMessages, userMessage];
-                return updateTimestamps(newMessages);
-            });
-
-            setInput('');
-            setUserMessageCount(prev => prev + 1);
-            if (userMessageCount + 1 >= 2) {
-                sendBotResponse(input.trim());
-            }
-        }
     };
 
     return (
@@ -239,6 +254,7 @@ export default function ChatbotPage() {
                                     styles.message,
                                     msg.sender === 'user' ? styles.userMessage : styles.botMessage
                                 ]}>
+
                                     <Text style={[
                                         styles.messageText,
                                         msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
@@ -253,6 +269,7 @@ export default function ChatbotPage() {
                                         <Text style={styles.timeText}>{msg.timestamp}</Text>
                                     </View>
                                 )}
+
                             </View>
                         </View>
 
@@ -264,16 +281,19 @@ export default function ChatbotPage() {
                                     onError={(error) => console.log('Failed to load user avatar:', error.nativeEvent.error)}
                                 />
                             </View>
+
                         )}
+
+                        {/* 평가 버튼 추가 */}
+
                     </View>
                 ))}
-
             </ScrollView>
             <View style={styles.inputArea}>
                 <TextInput
                     style={styles.input}
                     value={input}
-                    onChangeText={setInput}
+                    onChangeText={handleInputChange}
                     placeholder="이야기 입력하기.."
                     onSubmitEditing={sendMessage}
                 />
@@ -284,6 +304,7 @@ export default function ChatbotPage() {
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     // 시간과 평가 버튼을 함께 감싸는 컨테이너
     timeContainer: {
@@ -301,7 +322,7 @@ const styles = StyleSheet.create({
         padding: 2, // 내부 여백
         marginBottom: 2, // 시간과의 세로 간격
         shadowColor: "#000", // 그림자 색상
-        left:-5,
+        left: -5,
         shadowOffset: {
             width: 0,
             height: 1,
@@ -324,10 +345,10 @@ const styles = StyleSheet.create({
 
     // 메시지와 시간 텍스트를 감싸는 컨테이너
     messageTimeContainer: {
-       flexDirection: 'row', // 시간과 메시지를 가로로 정렬
-       alignItems: 'flex-end', // 메시지를 수직으로 아래 정렬
-       gap: 0, // 요소 간 간격 설정
-       marginTop: -3, // 이름과의 간격을 좁히기 위해 위치를 위로 조정
+        flexDirection: 'row', // 시간과 메시지를 가로로 정렬
+        alignItems: 'flex-end', // 메시지를 수직으로 아래 정렬
+        gap: 0, // 요소 간 간격 설정
+        marginTop: -3, // 이름과의 간격을 좁히기 위해 위치를 위로 조정
     },
 
     // 메시지 시간 텍스트 스타일
@@ -335,7 +356,7 @@ const styles = StyleSheet.create({
         fontSize: 12, // 텍스트 크기
         color: '#999', // 텍스트 색상
         marginTop: 2, // 평가 버튼과의 간격
-        left:-5,
+        left: -5,
     },
 
     // 메시지의 기본 스타일
@@ -350,8 +371,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#4a9960', // 사용자 메시지 배경색
         marginLeft: 5,  // 말풍선 꼬리 공간 확보
         borderTopRightRadius: 3, // 오른쪽 상단 모서리를 더 둥글게
-        top:5,
-        left:-5,
+        top: 5,
+        left: -5,
     },
 
     // 전체 컨테이너 스타일
@@ -432,8 +453,8 @@ const styles = StyleSheet.create({
 
     // 봇 메시지 컨텐츠 정렬 스타일
     botMessageContent: {
-       alignItems: 'flex-start', // 왼쪽 정렬
-       marginTop: -2, // 이름과 메시지 버블 사이의 간격을 줄이기 위한 위치 조정
+        alignItems: 'flex-start', // 왼쪽 정렬
+        marginTop: -2, // 이름과 메시지 버블 사이의 간격을 줄이기 위한 위치 조정
     },
 
     // 채팅 컨텐츠 스타일
@@ -444,22 +465,22 @@ const styles = StyleSheet.create({
 
     // 봇 메시지 컨텐츠 정렬 스타일
     botMessage: {
-       backgroundColor: '#ECECEC', // 배경색 설정
-       marginRight: 12, // 말풍선 꼬리 공간 확보
-       borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
-       position: 'relative', // 상대적 위치 설정으로 정확한 배치 가능
-       top: 5, // 기본 위치 설정 (위치 조정이 필요한 경우 수정)
-       marginBottom:7,
+        backgroundColor: '#ECECEC', // 배경색 설정
+        marginRight: 12, // 말풍선 꼬리 공간 확보
+        borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
+        position: 'relative', // 상대적 위치 설정으로 정확한 배치 가능
+        top: 5, // 기본 위치 설정 (위치 조정이 필요한 경우 수정)
+        marginBottom: 7,
     },
 
     // 발신자 이름 텍스트 스타일
     senderName: {
-       fontSize: 13, // 텍스트 크기
-       fontWeight: 'bold', // 텍스트 두껍게
-       marginBottom: 2, // 버블과의 간격을 최소화
-       color: '#555', // 텍스트 색상
-       paddingLeft: 1, // 말풍선 꼬리 공간 확보
-       left:-5,
+        fontSize: 13, // 텍스트 크기
+        fontWeight: 'bold', // 텍스트 두껍게
+        marginBottom: 2, // 버블과의 간격을 최소화
+        color: '#555', // 텍스트 색상
+        paddingLeft: 1, // 말풍선 꼬리 공간 확보
+        left: -5,
     },
 
     // 봇 발신자 이름 정렬 스타일

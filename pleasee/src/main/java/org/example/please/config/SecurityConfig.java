@@ -1,4 +1,5 @@
 package org.example.please.config;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,6 +30,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/**","/uploads/profile/images/**").permitAll() // 특정 경로에 대한 접근 허용
                         .anyRequest().authenticated() // 다른 모든 요청은 인증 필요
+                        .anyRequest().permitAll() // 모든 요청 허용
                 );
 
         return http.build();

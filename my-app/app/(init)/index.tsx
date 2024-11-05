@@ -21,14 +21,14 @@ export default function InitialScreen() {
             <View style={styles.buttonsContainer}>
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => handlePress('/(join)/login')} // 로그인 버튼 클릭 시 이동할 경로
+                    onPress={() => handlePress('../(join)/login')} // 로그인 버튼 클릭 시 이동할 경로
                     disabled={isNavigating}
                 >
                     <Text style={styles.buttonText}>로그인</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => handlePress('/(join)')} // 회원가입 버튼 클릭 시 이동할 경로
+                    onPress={() => handlePress('../(join)')} // 회원가입 버튼 클릭 시 이동할 경로
                     disabled={isNavigating}
                 >
                     <Text style={styles.buttonText}>회원가입</Text>
