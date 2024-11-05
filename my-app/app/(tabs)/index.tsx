@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
@@ -26,7 +26,7 @@ export default function ChatbotPage() {
     const [userAvatar, setUserAvatar] = useState(BambooPanda);
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
-    const serverUrl = 'http://10.0.2.2:8082/api/chat/getChatResponse';
+    const serverUrl = 'http://192.168.21.179:8082/api/chat/getChatResponse';
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
@@ -213,98 +213,104 @@ export default function ChatbotPage() {
     };
 
     return (
-        <View style={styles.container}>
-            <ScrollView
-                ref={scrollViewRef}
-                style={styles.chatArea}
-                contentContainerStyle={styles.chatContent}
-                showsVerticalScrollIndicator={false}
-            >
-                {messages.map((msg, index) => (
-                    <View
-                        key={index}
-                        style={[
-                            styles.messageContainer,
-                            msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer
-                        ]}
-                    >
-                        {msg.sender === 'bot' && (
-                            <View style={styles.avatarContainer}>
-                                <Image source={msg.avatar} style={styles.botAvatar} />
-                            </View>
-                        )}
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // iOS에서는 80, Android에서는 0 설정
+        >
+            <View style={styles.container}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={styles.chatArea}
+                    contentContainerStyle={styles.chatContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {messages.map((msg, index) => (
+                        <View
+                            key={index}
+                            style={[
+                                styles.messageContainer,
+                                msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer
+                            ]}
+                        >
+                            {msg.sender === 'bot' && (
+                                <View style={styles.avatarContainer}>
+                                    <Image source={msg.avatar} style={styles.botAvatar} />
+                                </View>
+                            )}
 
-                        <View style={[
-                            styles.messageContent,
-                            msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
-                        ]}>
-                            <Text style={[
-                                styles.senderName,
-                                msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
+                            <View style={[
+                                styles.messageContent,
+                                msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
                             ]}>
-                                {msg.name}
-                            </Text>
-
-                            <View style={styles.messageTimeContainer}>
-                                {msg.sender === 'user' && msg.showTimestamp && (
-                                    <Text style={styles.timeText}>{msg.timestamp}</Text>
-                                )}
-
-                                <View style={[
-                                    styles.message,
-                                    msg.sender === 'user' ? styles.userMessage : styles.botMessage
+                                <Text style={[
+                                    styles.senderName,
+                                    msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
                                 ]}>
+                                    {msg.name}
+                                </Text>
 
-                                    <Text style={[
-                                        styles.messageText,
-                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
+                                <View style={styles.messageTimeContainer}>
+                                    {msg.sender === 'user' && msg.showTimestamp && (
+                                        <Text style={styles.timeText}>{msg.timestamp}</Text>
+                                    )}
+
+                                    <View style={[
+                                        styles.message,
+                                        msg.sender === 'user' ? styles.userMessage : styles.botMessage
                                     ]}>
-                                        {msg.text}
-                                    </Text>
+
+                                        <Text style={[
+                                            styles.messageText,
+                                            msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
+                                        ]}>
+                                            {msg.text}
+                                        </Text>
+                                    </View>
+
+                                    {msg.sender === 'bot' && msg.showTimestamp && (
+                                        <View style={styles.timeContainer}>
+                                            <EvaluationButtons message={msg} index={index} />
+                                            <Text style={styles.timeText}>{msg.timestamp}</Text>
+                                        </View>
+                                    )}
+
+                                </View>
+                            </View>
+
+                            {msg.sender === 'user' && (
+                                <View style={styles.avatarContainer}>
+                                    <Image
+                                        source={userAvatar}
+                                        style={styles.userAvatar}
+                                        onError={(error) => console.log('Failed to load user avatar:', error.nativeEvent.error)}
+                                    />
                                 </View>
 
-                                {msg.sender === 'bot' && msg.showTimestamp && (
-                                    <View style={styles.timeContainer}>
-                                        <EvaluationButtons message={msg} index={index} />
-                                        <Text style={styles.timeText}>{msg.timestamp}</Text>
-                                    </View>
-                                )}
+                            )}
 
-                            </View>
+                            {/* 평가 버튼 추가 */}
+
                         </View>
-
-                        {msg.sender === 'user' && (
-                            <View style={styles.avatarContainer}>
-                                <Image
-                                    source={userAvatar}
-                                    style={styles.userAvatar}
-                                    onError={(error) => console.log('Failed to load user avatar:', error.nativeEvent.error)}
-                                />
-                            </View>
-
-                        )}
-
-                        {/* 평가 버튼 추가 */}
-
-                    </View>
-                ))}
-            </ScrollView>
-            <View style={styles.inputArea}>
-                <TextInput
-                    style={styles.input}
-                    value={input}
-                    onChangeText={handleInputChange}
-                    placeholder="이야기 입력하기.."
-                    onSubmitEditing={sendMessage}
-                />
-                <TouchableOpacity onPress={sendMessage} style={styles.iconButton}>
-                    <Ionicons name="volume-high" size={24} color="#fff" />
-                </TouchableOpacity>
+                    ))}
+                </ScrollView>
+                <View style={styles.inputArea}>
+                    <TextInput
+                        style={styles.input}
+                        value={input}
+                        onChangeText={handleInputChange}
+                        placeholder="이야기 입력하기.."
+                        onSubmitEditing={sendMessage}
+                        placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
+                    />
+                    <TouchableOpacity onPress={sendMessage} style={styles.iconButton}>
+                        <Ionicons name="volume-high" size={24} color="#fff" />
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
-
 const styles = StyleSheet.create({
     // 시간과 평가 버튼을 함께 감싸는 컨테이너
     timeContainer: {
