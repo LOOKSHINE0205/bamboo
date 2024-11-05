@@ -5,7 +5,7 @@ import {
   TextInput,
   Switch,
   Button,
-  StyleSheet,  // StyleSheet 추가
+  StyleSheet,
   Alert,
   Image,
   TouchableOpacity,
@@ -33,6 +33,10 @@ const SettingsScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(null);
+
+  // API base URL
+  const serverAddress = 'http://192.168.21.224:8082';
+  const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
   useEffect(() => {
     fetchUserData();
@@ -80,34 +84,39 @@ const SettingsScreen = () => {
         formData.append('photo', {
           uri: selectedImageUri,
           type: 'image/jpeg',
-          name: 'profile.jpg'
+          name: 'profile.jpg',
         });
         formData.append('email', userInfo?.userEmail);
 
-        const response = await axios.post('http://192.168.21.224:8082/api/users/uploadProfile', formData, {
+        // 디버깅용 콘솔 출력
+        console.log("FormData contents:", formData);
+        console.log("Email being sent:", userInfo?.userEmail);
+
+        const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
 
         if (response.status === 200) {
-          const serverImagePath = `http://192.168.21.224:8082/uploads/profile/images/${response.data.filePath}`;
+          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
           setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
           setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
           await setUserProfileImage(serverImagePath);
           Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
         }
       } catch (error) {
-        console.error("프로필 이미지 업로드 중 오류:", error);
+        console.error("프로필 이미지 업로드 중 오류:", error.response ? error.response.data : error);
         Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
       }
     }
     setModalVisible(false);
   };
 
+
   const handleResetProfileImage = async () => {
     try {
-      await axios.post('http://192.168.21.224:8082/api/users/resetProfileImage', {
+      await axios.post(`${serverAddress}/api/users/resetProfileImage`, {
         userEmail: userInfo?.userEmail,
       });
 
@@ -139,7 +148,7 @@ const SettingsScreen = () => {
       };
       if (newPassword) {
         const userData = { userEmail: userInfo?.userEmail, userPw: newPassword };
-        await axios.post('http://192.168.21.224:8082/api/users/updatePassword', userData);
+        await axios.post(`${serverAddress}/api/users/updatePassword`, userData);
       }
       Alert.alert('알림', '설정이 저장되었습니다.');
     } catch (error) {

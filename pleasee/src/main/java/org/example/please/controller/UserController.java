@@ -2,6 +2,8 @@ package org.example.please.controller;
 
 import org.example.please.entity.User;
 import org.example.please.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +20,12 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserService userService;
+
+
 
     @PostMapping("/checkEmail")
     public ResponseEntity<Map<String, Object>> checkEmail(@RequestBody User user) {
@@ -99,10 +105,25 @@ public class UserController {
     }
 
     @PostMapping("/uploadProfile")
-    public ResponseEntity<Map<String, Object>> uploadProfile(@RequestParam("email") String email, @RequestParam("photo") MultipartFile photoFile) {
+    public ResponseEntity<Map<String, Object>> uploadProfile(
+            @RequestParam(value = "email", required = true) String email,
+            @RequestParam(value = "photo", required = true) MultipartFile photoFile) {
+
         Map<String, Object> response = new HashMap<>();
+
+        // 파라미터 유효성 검사
+        if (email == null || email.isEmpty()) {
+            response.put("message", "이메일이 제공되지 않았습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        if (photoFile == null || photoFile.isEmpty()) {
+            response.put("message", "이미지 파일이 제공되지 않았습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
         try {
-            // 파일 경로를 받아옵니다.
+            // 파일 업로드 처리
             String filePath = userService.uploadProfileImage(email, photoFile);
 
             if (filePath != null) {
@@ -114,10 +135,13 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
         } catch (IOException e) {
-            response.put("message", "이미지 업로드 실패");
+            // 예외 발생 시 에러 메시지와 함께 500 응답
+            response.put("message", "이미지 업로드 실패: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+
 
     @PostMapping("/resetProfileImage")
     public ResponseEntity<Map<String, Object>> resetProfileImage(@RequestBody Map<String, String> request) {

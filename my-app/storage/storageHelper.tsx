@@ -15,16 +15,24 @@ export interface User {
     profileImage: string;
 }
 
-// 서버에 이미지 업로드 함수 추가
+// 서버에 이미지 업로드 함수
 const uploadProfileImageToServer = async (imageUri: string, userEmail: string): Promise<string | null> => {
     try {
+        if (!imageUri) {
+            console.warn("유효하지 않은 이미지 URI");
+            return null;
+        }
+
         const formData = new FormData();
-        formData.append('file', {
+        formData.append('photo', {
             uri: imageUri,
             type: 'image/jpeg', // 이미지 타입 설정
             name: 'profile.jpg'
         });
-        formData.append('userEmail', userEmail);
+        formData.append('email', userEmail);
+
+        // 디버깅용 콘솔 출력
+        console.log("FormData contents:", formData);
 
         const response = await axios.post('http://192.168.21.224:8082/api/users/uploadProfile', formData, {
             headers: {
@@ -44,7 +52,7 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
     }
 };
 
-// 프로필 이미지 저장 함수 수정
+// 프로필 이미지 저장 함수
 export const setUserProfileImage = async (imageUri: string): Promise<void> => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');

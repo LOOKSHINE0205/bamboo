@@ -56,7 +56,7 @@ const SendUserInfo = () => {
                 };
 
                 // 채팅방 생성 요청
-                const chatRoomResponse = await fetch('http://10.0.2.2:8082/api/chat/create_room', {
+                const chatRoomResponse = await fetch('http://192.168.21.224:8082/api/chat/create_room', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

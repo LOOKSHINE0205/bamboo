@@ -162,14 +162,12 @@ public class UserService {
     // 프로필 이미지 저장
     private String saveProfileImage(MultipartFile photoFile) throws IOException {
         String fileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
-        File targetFile = new File(profileImageDir + fileName);
+        Path targetPath = Paths.get(profileImageDir).resolve(fileName).normalize();
 
-        // 디렉토리가 없으면 생성
-        if (!targetFile.exists()) {
-            targetFile.mkdirs();
-        }
+        // 디렉토리 생성
+        Files.createDirectories(targetPath.getParent());
 
-        photoFile.transferTo(targetFile);
+        photoFile.transferTo(targetPath.toFile());
         logger.info("Saved new profile image: {}", fileName);
         return fileName;
     }
