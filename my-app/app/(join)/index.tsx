@@ -53,7 +53,7 @@ export default function JoinScreen() {
 
         try {
             // 서버에 이메일 중복 확인 요청을 보내기 위한 fetch 함수 호출
-            const response = await fetch('http://10.0.2.2:8082/api/users/checkEmail', {
+            const response = await fetch('http://192.168.21.224:8082/api/users/checkEmail', {
                 method: 'POST',                        // POST 메서드를 사용하여 요청 전송
                 headers: { 'Content-Type': 'application/json' }, // 요청 헤더를 JSON 형식으로 설정
                 body: JSON.stringify({ userEmail: email }) // 요청 본문에 이메일 정보를 JSON 형식으로 포함
@@ -201,6 +201,7 @@ export default function JoinScreen() {
                                 onChangeText={handleEmailChange}  // 입력 값이 변경될 때 호출되는 함수
                                 placeholder="이메일 주소를 입력하세요" // 사용자가 입력하지 않았을 때 보이는 안내 텍스트
                                 keyboardType="email-address"      // 이메일 입력에 적합한 키보드 타입 설정
+                                placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
                             />
                             {/* 비밀번호 입력란 */}
                             <View style={styles.passwordLabelContainer}>
@@ -228,6 +229,7 @@ export default function JoinScreen() {
                                 onChangeText={setPassword}       // 입력 값이 변경될 때 비밀번호 상태 업데이트 함수 호출
                                 placeholder="비밀번호를 입력하세요" // 사용자 안내용 플레이스홀더 텍스트
                                 secureTextEntry                  // 입력한 텍스트가 보이지 않도록 비밀번호 입력 모드 활성화
+                                placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
                             />
                             {/* 비밀번호 확인 입력란 */}
 
@@ -241,6 +243,7 @@ export default function JoinScreen() {
                                 onChangeText={handlePasswordConfirmChange} // 입력 값이 변경될 때 호출되는 함수
                                 placeholder="비밀번호를 다시 입력하세요" // 사용자 안내용 플레이스홀더 텍스트
                                 secureTextEntry                      // 입력한 텍스트가 보이지 않도록 비밀번호 입력 모드 활성화
+                                placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
                             />
 
                             {/* 닉네임 입력란 */}
@@ -254,6 +257,7 @@ export default function JoinScreen() {
                                 value={userNick}                 // 입력된 닉네임 값을 상태로 설정
                                 onChangeText={setNickname}       // 입력 값이 변경될 때 닉네임 상태 업데이트 함수 호출
                                 placeholder="닉네임을 입력하세요"  // 사용자 안내용 플레이스홀더 텍스트
+                                placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
                             />
                             {/* 생년월일 입력란 */}
 
@@ -267,6 +271,7 @@ export default function JoinScreen() {
                                 onChangeText={handleBirthdateChange} // 입력 값이 변경될 때 호출되는 생년월일 처리 함수
                                 placeholder="YYYYMMDD"               // 사용자 안내용으로 생년월일 형식을 표시하는 플레이스홀더 텍스트
                                 keyboardType="numeric"               // 숫자 전용 키보드 표시하여 생년월일 입력을 용이하게 함
+                                placeholderTextColor="#707070" // placeholder 색상을 연한 회색으로 설정
                             />
                         </View>
 

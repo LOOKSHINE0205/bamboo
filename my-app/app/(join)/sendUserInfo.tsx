@@ -16,8 +16,8 @@ const SendUserInfo = () => {
     const router = useRouter();
     const fadeAnim = useRef(
         [new Animated.Value(0), new Animated.Value(0), new Animated.Value(0),
-        new Animated.Value(0), new Animated.Value(0), new Animated.Value(0),
-        new Animated.Value(0)]
+            new Animated.Value(0), new Animated.Value(0), new Animated.Value(0),
+            new Animated.Value(0)]
     ).current;
 
     useEffect(() => {
@@ -36,18 +36,36 @@ const SendUserInfo = () => {
                     chatbotLevel: 1,
                 };
 
-                const response = await fetch('http://10.0.2.2:8082/api/users/join', {
+                const response = await fetch('http://192.168.21.224:8082/api/users/join', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-
-
                     body: JSON.stringify(data),
                 });
 
                 if (!response.ok) {
                     throw new Error(`HTTP 에러: ${response.status}`);
+                }
+
+                // 채팅방 정보 설정
+                const chatRoomData = {
+                    userEmail: parsedUserData.userEmail, // userEmail
+                    croomTitle: parsedUserData.userEmail+ "의 채팅방", // 채팅방 제목 설정
+                    croomDesc: parsedUserData.userEmail+"의 채팅방" // 채팅방 설명 설정
+                };
+
+                // 채팅방 생성 요청
+                const chatRoomResponse = await fetch('http://192.168.21.224:8082/api/chat/create_room', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(chatRoomData),
+                });
+
+                if (!chatRoomResponse.ok) {
+                    throw new Error(`채팅방 생성 실패: ${chatRoomResponse.status}`);
                 }
 
                 // 애니메이션 시퀀스 시작
