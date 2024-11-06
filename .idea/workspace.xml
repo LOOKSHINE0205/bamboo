@@ -6,12 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="프로필 수정중">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(join)/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(join)/login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/setting.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/setting.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/storage/storageHelper.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/storage/storageHelper.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/FileController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/FileController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,12 +34,12 @@
     &quot;assignee&quot;: &quot;Jung-Bo-Reum&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/2024-AISCHOOL-WEB2B/bamboo.git",
-    "accountId": "7e537f4c-d73a-4bd7-a1ce-8e357b2d50b4"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/2024-AISCHOOL-WEB2B/bamboo.git&quot;,
+    &quot;accountId&quot;: &quot;7e537f4c-d73a-4bd7-a1ce-8e357b2d50b4&quot;
   }
-}]]></component>
+}</component>
   <component name="JpbToolWindowState">
     <option name="isToolWindowVisible" value="false" />
   </component>
