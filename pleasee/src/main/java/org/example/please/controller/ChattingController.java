@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -105,6 +106,13 @@ public class ChattingController {
         Map<String, Object> response = new HashMap<>();
         chattingService.createRoom(chatbot);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/getChatHistory")
+    public ResponseEntity<List<Chatting>> getChatHisotry(@RequestParam Integer croomIdx) {
+        // 특정 방 ID의 채팅 기록을 가져옴
+        List<Chatting> chatHistory = chattingService.getChatHistory(croomIdx);
+        return ResponseEntity.ok(chatHistory);
     }
 }
 

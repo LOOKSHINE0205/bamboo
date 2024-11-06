@@ -8,6 +8,7 @@ import BambooHead from '../../assets/images/bamboo_head.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { serverAddress } from '../../components/Config';
+import{ ChatMessage,getChatHistory} from "@/app/(tabs)/getChatHistory";
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
@@ -20,6 +21,7 @@ interface Message {
     evaluation?: 'like' | 'dislike' | null;
 }
 
+
 export default function ChatbotPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -29,6 +31,7 @@ export default function ChatbotPage() {
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
     const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
+
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
@@ -55,6 +58,30 @@ export default function ChatbotPage() {
             fetchData();
         }, [])
     );
+
+    // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
+    useEffect(() => {
+        const loadChatHistory = async () => {
+            try {
+                const chatHistory = await getChatHistory();
+                // chatHistory 데이터를 messages 형식으로 변환하여 설정
+                const formattedMessages = chatHistory.map((chat: ChatMessage) => ({
+                    sender: chat.chatter === 'bot' ? 'bot' : 'user',
+                    text: chat.chatContent,
+                    avatar: chat.chatter === 'bot' ? BambooHead : userAvatar,
+                    name: chat.chatter === 'bot' ? chatbotName : userName,
+                    timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                    showTimestamp: true,
+                    evaluation: chat.evaluation === 1 ? 'like' : chat.evaluation === -1 ? 'dislike' : null
+                }));
+                setMessages(formattedMessages);
+            } catch (error) {
+                console.error("Failed to load chat history:", error);
+            }
+        };
+
+        loadChatHistory();
+    }, []);
 
     // 평가 처리
     const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {
@@ -155,6 +182,11 @@ export default function ChatbotPage() {
 
         // 사용자가 입력 중일 때는 카운트다운 멈춤
         stopCountdown();
+
+        // 만약 입력 내용이 비어 있으면 카운트다운을 다시 시작
+        if (text.trim() === '') {
+            startCountdown();
+        }
     };
 
     // 메시지 전송 버튼을 눌렀을 때 호출되는 함수

@@ -1,10 +1,11 @@
-import React, { useState,useEffect  } from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from "react-native";
 import { Ionicons, Foundation } from "@expo/vector-icons";
 import { router } from "expo-router";
 import DateModal from "../(diary)/dateModal";
 // @ts-ignore
 import DiaryScreen, { Diary } from "@/app/(tabs)/(diary)/diariesInfo";
+import {useFocusEffect} from "@react-navigation/native";
 
 
 interface DiaryEntry{
@@ -76,6 +77,7 @@ export default function CustomDiaryScreen() {
     setSelectedDates(datesMap);
     console.log("Selected Dates with Emotions:", datesMap); // 매핑된 날짜와 감정 태그 출력
   };
+
 
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());

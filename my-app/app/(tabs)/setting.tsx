@@ -4,15 +4,17 @@ import {
   Text,
   TextInput,
   Switch,
-  ActivityIndicator,
+  Button,
+  StyleSheet,
   Alert,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
   Modal,
-  StyleSheet,
+  Pressable
 } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
@@ -165,12 +167,17 @@ const SettingsScreen = () => {
   };
 
   const handleLogout = async () => {
-    await clearUserData();
-    setUserInfo(null);
-    setProfileImageUri(null);
-    Alert.alert('알림', '로그아웃 되었습니다.');
-    router.replace('../(init)');
+    try {
+      await clearUserData(); // 사용자 데이터 제거
+      console.log("로그아웃 성공: 사용자 데이터가 삭제되었습니다.");
+      Alert.alert('알림', '로그아웃 되었습니다.');
+      router.replace('../(init)'); // 초기 화면으로 이동
+    } catch (error) {
+      console.error("로그아웃 중 오류 발생:", error);
+      Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.");
+    }
   };
+
 
   if (isLoading) {
     return (
@@ -338,7 +345,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 16, // 곡률을 더 부드럽게 변경
     marginBottom: 20,
     paddingLeft: 10,
     shadowColor: '#000',
@@ -389,6 +396,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#eee',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,

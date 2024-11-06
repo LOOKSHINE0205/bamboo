@@ -110,11 +110,11 @@ export const getUserInfo = async (): Promise<User | null> => {
     }
 };
 
-
-// 사용자 정보 제거
-export const clearUserData = async () => {
+// 사용자 데이터 제거 함수 (로그아웃 시 사용)
+export const clearUserData = async (): Promise<void> => {
     try {
-        await AsyncStorage.removeItem('userInfo'); // 사용자 정보만 삭제
+        await AsyncStorage.removeItem('userInfo');
+        await AsyncStorage.removeItem('croomIdx');
         console.log("사용자 데이터 삭제 성공");
     } catch (error) {
         console.error('사용자 데이터 삭제에 실패했습니다:', error);
