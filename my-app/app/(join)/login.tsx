@@ -5,11 +5,11 @@ import { saveUserInfo } from '../../storage/storageHelper';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import {serverAddress} from '../../components/Config';
 
 export default function LoginScreen() {
     const router = useRouter();
     const navigation = useNavigation();
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +36,7 @@ export default function LoginScreen() {
         setError(null);
 
         try {
-            const response = await axios.post('http://172.31.98.238:8082/api/users/login', {
+            const response = await axios.post(`${serverAddress}/api/users/login`, {
                 userEmail: email,
                 userPw: password,
             });
