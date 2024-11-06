@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { saveUserInfo } from '../../storage/storageHelper';
-import axios from "axios";
+import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
@@ -19,14 +19,13 @@ export default function LoginScreen() {
     const emailInputRef = useRef<TextInput>(null);
     const passwordInputRef = useRef<TextInput>(null);
 
+    // 로그인 핸들러 함수
     const handleLogin = async () => {
-        // 이메일 또는 비밀번호가 비어있으면 포커스를 해당 필드로 이동
         if (!email) {
             setError('이메일을 입력하세요.');
             emailInputRef.current?.focus();
             return;
         }
-
         if (!password) {
             setError('비밀번호를 입력하세요.');
             passwordInputRef.current?.focus();
@@ -37,7 +36,7 @@ export default function LoginScreen() {
         setError(null);
 
         try {
-            const response = await axios.post('http://10.0.2.2:8082/api/users/login', {
+            const response = await axios.post('http://172.31.98.238:8082/api/users/login', {
                 userEmail: email,
                 userPw: password,
             });
@@ -51,11 +50,7 @@ export default function LoginScreen() {
             }
         } catch (error) {
             console.error('Login failed:', error);
-            if (error.response) {
-                setError(error.response.data.message || '로그인에 실패했습니다. 다시 시도해주세요.');
-            } else {
-                setError('서버와 연결할 수 없습니다. 인터넷 연결을 확인하세요.');
-            }
+            setError(error.response?.data.message || '로그인에 실패했습니다. 다시 시도해주세요.');
             setPassword('');
         } finally {
             setIsLoading(false);
