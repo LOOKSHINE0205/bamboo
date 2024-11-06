@@ -34,7 +34,6 @@ const SettingsScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(null);
 
-  // API base URL
   const serverAddress = 'http://192.168.21.224:8082';
   const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
@@ -65,53 +64,57 @@ const SettingsScreen = () => {
   };
 
   const handleImageSelect = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!result.canceled && result.assets?.length > 0) {
-      const selectedImageUri = result.assets[0].uri;
-
-      try {
-        const formData = new FormData();
-        formData.append('photo', {
-          uri: selectedImageUri,
-          type: 'image/jpeg',
-          name: 'profile.jpg',
-        });
-        formData.append('email', userInfo?.userEmail);
-
-        // 디버깅용 콘솔 출력
-        console.log("FormData contents:", formData);
-        console.log("Email being sent:", userInfo?.userEmail);
-
-        const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        if (response.status === 200) {
-          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
-          setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
-          setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
-          await setUserProfileImage(serverImagePath);
-          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
-        }
-      } catch (error) {
-        console.error("프로필 이미지 업로드 중 오류:", error.response ? error.response.data : error);
-        Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+        return;
       }
-    }
-    setModalVisible(false);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const selectedImageUri = result.assets[0].uri;
+
+        // 이전 프로필 이미지와 같은지 확인
+        if (profileImageUri === selectedImageUri) {
+            console.log("동일한 이미지를 업로드하려고 합니다. 동작을 중지합니다.");
+            return;
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append('photo', {
+            uri: selectedImageUri,
+            type: 'image/jpeg',
+            name: 'profile.jpg',
+          });
+          formData.append('email', userInfo?.userEmail);
+
+          const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+
+          if (response.status === 200) {
+            const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
+            setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
+            setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
+            await setUserProfileImage(serverImagePath);
+            Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
+          }
+        } catch (error) {
+          console.error("프로필 이미지 업로드 중 오류:", error.response ? error.response.data : error);
+          Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
+        }
+      }
+      setModalVisible(false);
   };
+
 
 
   const handleResetProfileImage = async () => {
@@ -173,21 +176,21 @@ const SettingsScreen = () => {
   }
 
    return (
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={styles.profileImageSection}>
-            <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
-              {userInfo?.profileImage ? (
-                <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
-              ) : (
-                <View style={styles.defaultProfileImage}>
-                  <Ionicons name="person" size={50} color="#cccccc" />
-                </View>
-              )}
-              <View style={styles.cameraIconContainer}>
-                <Ionicons name="camera" size={20} color="#fff" />
-              </View>
-            </TouchableOpacity>
+        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+              <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <View style={styles.profileImageSection}>
+                  <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
+                    {userInfo?.profileImage ? (
+                      <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
+                    ) : (
+                      <View style={styles.defaultProfileImage}>
+                        <Ionicons name="person" size={50} color="#cccccc" />
+                      </View>
+                    )}
+                    <View style={styles.cameraIconContainer}>
+                      <Ionicons name="camera" size={20} color="#fff" />
+                    </View>
+                  </TouchableOpacity>
           </View>
           <Text style={styles.label}>닉네임</Text>
           <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />

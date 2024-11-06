@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-
 @Service
 public class UserService {
 
@@ -104,18 +103,25 @@ public class UserService {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
+            // 새로 업로드할 이미지 파일명을 생성
+            String newFileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
+
+            // 기존 이미지와 새 이미지 파일명이 동일하면, 중복 저장을 방지
+            if (newFileName.equals(user.getProfileImage())) {
+                logger.info("중복된 이미지 업로드 요청이므로 기존 이미지 사용: {}", newFileName);
+                return newFileName;
+            }
+
             // 기존 프로필 이미지 삭제
             deleteOldProfileImage(user.getProfileImage());
 
             // 새 프로필 이미지 저장
-            String fileName = saveProfileImage(photoFile);
-            user.setProfileImage(fileName);  // user_profile 컬럼에 이미지 파일명 저장
+            user.setProfileImage(newFileName);
+            saveProfileImage(photoFile, newFileName);  // 실제 파일을 저장합니다
             userRepository.save(user);
 
             logger.info("Updated profile image for user: {}", user.getUserEmail());
-
-            // 저장된 이미지 파일명을 반환합니다.
-            return fileName;
+            return newFileName;
         } else {
             logger.warn("User not found with email: {}", email);
             return null;
@@ -160,8 +166,7 @@ public class UserService {
     }
 
     // 프로필 이미지 저장
-    private String saveProfileImage(MultipartFile photoFile) throws IOException {
-        String fileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
+    private void saveProfileImage(MultipartFile photoFile, String fileName) throws IOException {
         Path targetPath = Paths.get(profileImageDir).resolve(fileName).normalize();
 
         // 디렉토리 생성
@@ -169,6 +174,5 @@ public class UserService {
 
         photoFile.transferTo(targetPath.toFile());
         logger.info("Saved new profile image: {}", fileName);
-        return fileName;
     }
 }
