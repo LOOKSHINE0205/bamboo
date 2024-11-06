@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import {serverAddress} from '../../components/Config';
 
 export default function JoinScreen() {
     const router = useRouter();
@@ -52,7 +53,7 @@ export default function JoinScreen() {
         if (!email) return;
 
         try {
-            const response = await fetch('http://10.0.2.2:8082/api/users/checkEmail', {
+            const response = await fetch(`${serverAddress}/api/users/checkEmail`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userEmail: email })

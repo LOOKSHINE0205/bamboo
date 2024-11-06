@@ -22,6 +22,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage } from '../../storage/storageHelper';
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import { serverAddress } from '../../components/Config';
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -36,7 +37,6 @@ const SettingsScreen = () => {
   const [profileImageUri, setProfileImageUri] = useState(null);
 
   // API base URL
-  const serverAddress = 'http://192.168.21.224:8082';
   const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
   useEffect(() => {
@@ -46,6 +46,7 @@ const SettingsScreen = () => {
   const fetchUserData = async () => {
     try {
       const data = await getUserInfo();
+      console.log("Fetched user data:", data);
       const profileImage = await getUserProfileImage();
       if (data) {
         setUserInfo({ ...data, profileImage });
@@ -163,10 +164,17 @@ const SettingsScreen = () => {
   };
 
   const handleLogout = async () => {
-    await clearUserData();
-    Alert.alert('알림', '로그아웃 되었습니다.');
-    router.push('../(init)');
+    try {
+      await clearUserData(); // 사용자 데이터 제거
+      console.log("로그아웃 성공: 사용자 데이터가 삭제되었습니다.");
+      Alert.alert('알림', '로그아웃 되었습니다.');
+      router.push('../(init)'); // 초기 화면으로 이동
+    } catch (error) {
+      console.error("로그아웃 중 오류 발생:", error);
+      Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.");
+    }
   };
+
 
   if (isLoading) {
     return (
