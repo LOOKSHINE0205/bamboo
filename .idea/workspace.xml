@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="채팅연결">
+    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="프로필 로그아웃 오류 수정중">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/my-app/app/(join)/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(join)/login.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/setting.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/setting.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/FileController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/FileController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/storage/storageHelper.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/storage/storageHelper.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -212,7 +210,15 @@
       <option name="project" value="LOCAL" />
       <updated>1730882148297</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="프로필 로그아웃 오류 수정중">
+      <option name="closed" value="true" />
+      <created>1730894975275</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1730894975275</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -238,6 +244,7 @@
     <MESSAGE value="채팅방 평가 ui 다시 넣음, 회원가입시 chat_tb insert" />
     <MESSAGE value="채티세션추가 및 user,bot message db insert" />
     <MESSAGE value="채팅연결" />
-    <option name="LAST_COMMIT_MESSAGE" value="채팅연결" />
+    <MESSAGE value="프로필 로그아웃 오류 수정중" />
+    <option name="LAST_COMMIT_MESSAGE" value="프로필 로그아웃 오류 수정중" />
   </component>
 </project>

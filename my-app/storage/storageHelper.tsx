@@ -53,30 +53,27 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
 };
 
 // 프로필 이미지 저장 함수 (AsyncStorage에 저장)
-export const setUserProfileImage = async (imageUri: string): Promise<void> => {
+export const setUserProfileImage = async (imageUri) => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');
         if (userDataString) {
-            const userData: User = JSON.parse(userDataString);
+            const userData = JSON.parse(userDataString);
 
-            const uploadedImagePath = await uploadProfileImageToServer(imageUri, userData.userEmail);
-            if (uploadedImagePath) {
-                userData.profileImage = uploadedImagePath; // 전체 URL 저장
-                await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
-                console.log("프로필 이미지 저장 성공:", uploadedImagePath);
-            }
+            // 업로드된 전체 URL을 저장
+            userData.profileImage = imageUri;
+            await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
+            console.log("프로필 이미지 저장 성공:", imageUri);
         }
     } catch (error) {
         console.error('프로필 이미지 저장에 실패했습니다:', error);
     }
 };
 
-// 저장된 프로필 이미지 URL 가져오기 함수
-export const getUserProfileImage = async (): Promise<string | null> => {
+export const getUserProfileImage = async () => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');
         if (userDataString) {
-            const userData: User = JSON.parse(userDataString);
+            const userData = JSON.parse(userDataString);
             return userData.profileImage || null;
         }
         return null;

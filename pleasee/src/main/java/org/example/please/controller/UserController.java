@@ -23,6 +23,7 @@ import java.util.Optional;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    private static final String SERVER_URL = "http://192.168.21.253:8082/uploads/profile/images/";
 
     @Autowired
     private UserService userService;
@@ -53,22 +54,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
-        Map<String, Object> response = new HashMap<>();
-        User authenticatedUser = userService.login(user);
 
-        if (authenticatedUser != null) {
-            Chatbot croomIdx = chattingService.findByUserEmail(authenticatedUser.getUserEmail());
-            response.put("message", "로그인 성공");
-            response.put("user", authenticatedUser);
-            response.put("croomIdx", croomIdx != null ? croomIdx.getCroomIdx() : null);
-            return ResponseEntity.ok(response);
-        }
-
-        response.put("message", "로그인 실패");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    }
 
     @PostMapping("/updatePassword")
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody User user) {
@@ -83,6 +69,25 @@ public class UserController {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
+        Map<String, Object> response = new HashMap<>();
+        User authenticatedUser = userService.login(user);
+
+        if (authenticatedUser != null) {
+            String profileImageUrl = authenticatedUser.getUserProfile() != null
+                    ? SERVER_URL + authenticatedUser.getUserProfile()
+                    : null;
+            response.put("message", "로그인 성공");
+            response.put("user", authenticatedUser);
+            response.put("profile_image", profileImageUrl);
+            return ResponseEntity.ok(response);
+        }
+
+        response.put("message", "로그인 실패");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getUserInfo(@RequestParam String email) {
         Optional<User> user = userService.findByEmail(email);
@@ -90,7 +95,7 @@ public class UserController {
             Map<String, Object> response = new HashMap<>();
             response.put("user_nick", value.getUserNick());
             response.put("user_email", value.getUserEmail());
-            response.put("profile_image", value.getProfileImage());
+            response.put("profile_image", value.getUserProfile() != null ? SERVER_URL + value.getUserProfile() : null);
             return ResponseEntity.ok(response);
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
