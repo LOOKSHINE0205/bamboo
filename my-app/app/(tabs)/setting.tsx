@@ -168,7 +168,7 @@ const SettingsScreen = () => {
       await clearUserData(); // 사용자 데이터 제거
       console.log("로그아웃 성공: 사용자 데이터가 삭제되었습니다.");
       Alert.alert('알림', '로그아웃 되었습니다.');
-      router.push('../(init)'); // 초기 화면으로 이동
+      router.replace('../(init)'); // 초기 화면으로 이동
     } catch (error) {
       console.error("로그아웃 중 오류 발생:", error);
       Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.");

@@ -117,6 +117,7 @@ export const getUserInfo = async (): Promise<User | null> => {
 export const clearUserData = async (): Promise<void> => {
     try {
         await AsyncStorage.removeItem('userInfo');
+        await AsyncStorage.removeItem('croomIdx');
         console.log("사용자 데이터 삭제 성공");
     } catch (error) {
         console.error('사용자 데이터 삭제에 실패했습니다:', error);
