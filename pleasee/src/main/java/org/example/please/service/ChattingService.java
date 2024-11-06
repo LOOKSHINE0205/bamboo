@@ -32,4 +32,7 @@ public class ChattingService {
     }
 
 
+    public Chatbot findByUserEmail(String userEmail) {
+        return chatbotRepository.findByUserEmail(userEmail);
+    }
 }

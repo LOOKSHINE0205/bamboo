@@ -5,6 +5,8 @@ import { saveUserInfo } from '../../storage/storageHelper';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import createReactDOMStyle from "native-base/lib/typescript/utils/react-native-web-fucntions/createReactDOMStyle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -36,13 +38,14 @@ export default function LoginScreen() {
         setError(null);
 
         try {
-            const response = await axios.post('http://172.31.98.238:8082/api/users/login', {
+            const response = await axios.post('http://10.0.2.2:8082/api/users/login', {
                 userEmail: email,
                 userPw: password,
             });
 
-            const { message, user } = response.data;
+            const { message, user, croomIdx } = response.data;
             if (message === '로그인 성공' && user) {
+                await AsyncStorage.setItem('croomIdx', croomIdx.toString());
                 await saveUserInfo(user);
                 navigation.navigate('(tabs)');
             } else {
