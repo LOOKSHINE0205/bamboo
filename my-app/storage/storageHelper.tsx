@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';  // axios를 통해 서버와 통신
+import axios from 'axios';  // 서버와 통신을 위한 axios
 
+// User 인터페이스 정의
 export interface User {
     userEmail: string;
     userPw: string;
@@ -12,8 +13,13 @@ export interface User {
     joinedAt: string;
     chatbotName: string;
     chatbotLevel: number;
-    profileImage: string;
+    profileImage: string; // 전체 URL 저장
 }
+
+// 서버 주소 상수로 정의
+const serverAddress = 'http://172.31.98.238:8082';
+const profileImageUploadUrl = `${serverAddress}/api/users/uploadProfile`;
+const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
 // 서버에 이미지 업로드 함수
 const uploadProfileImageToServer = async (imageUri: string, userEmail: string): Promise<string | null> => {
@@ -26,22 +32,17 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
         const formData = new FormData();
         formData.append('photo', {
             uri: imageUri,
-            type: 'image/jpeg', // 이미지 타입 설정
+            type: 'image/jpeg',
             name: 'profile.jpg'
         });
         formData.append('email', userEmail);
 
-        // 디버깅용 콘솔 출력
-        console.log("FormData contents:", formData);
-
-        const response = await axios.post('http://192.168.21.224:8082/api/users/uploadProfile', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+        const response = await axios.post(profileImageUploadUrl, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         if (response.status === 200) {
-            return response.data.filePath;  // 서버에서 반환된 파일 경로
+            return `${profileImageBaseUrl}${response.data.filePath}`;
         } else {
             console.warn("이미지 업로드 실패:", response.data);
             return null;
@@ -52,19 +53,18 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
     }
 };
 
-// 프로필 이미지 저장 함수
+// 프로필 이미지 저장 함수 (AsyncStorage에 저장)
 export const setUserProfileImage = async (imageUri: string): Promise<void> => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');
         if (userDataString) {
             const userData: User = JSON.parse(userDataString);
 
-            // 서버에 이미지를 업로드하고 반환된 경로를 DB에 저장
             const uploadedImagePath = await uploadProfileImageToServer(imageUri, userData.userEmail);
             if (uploadedImagePath) {
-                userData.profileImage = uploadedImagePath;  // 서버에서 반환된 이미지 경로를 저장
+                userData.profileImage = uploadedImagePath; // 전체 URL 저장
                 await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
-                console.log("서버와 동기화된 프로필 이미지 저장 성공:", uploadedImagePath);
+                console.log("프로필 이미지 저장 성공:", uploadedImagePath);
             }
         }
     } catch (error) {
@@ -72,7 +72,7 @@ export const setUserProfileImage = async (imageUri: string): Promise<void> => {
     }
 };
 
-// 저장된 프로필 이미지 URI 가져오기
+// 저장된 프로필 이미지 URL 가져오기 함수
 export const getUserProfileImage = async (): Promise<string | null> => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');
@@ -87,7 +87,7 @@ export const getUserProfileImage = async (): Promise<string | null> => {
     }
 };
 
-// 사용자 정보 저장 (기본)
+// 사용자 정보 저장 함수
 export const saveUserInfo = async (userInfo: User): Promise<void> => {
     try {
         await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
@@ -97,7 +97,7 @@ export const saveUserInfo = async (userInfo: User): Promise<void> => {
     }
 };
 
-// 사용자 정보 불러오기 (기본)
+// 사용자 정보 불러오기 함수
 export const getUserInfo = async (): Promise<User | null> => {
     try {
         const userInfo = await AsyncStorage.getItem('userInfo');
@@ -114,7 +114,7 @@ export const getUserInfo = async (): Promise<User | null> => {
     }
 };
 
-// 사용자 데이터 제거 (로그아웃 시)
+// 사용자 데이터 제거 함수 (로그아웃 시 사용)
 export const clearUserData = async (): Promise<void> => {
     try {
         await AsyncStorage.removeItem('userInfo');

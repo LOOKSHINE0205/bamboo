@@ -6,21 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.sql.Time;
-import java.util.Optional;
+import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Time;
+import java.util.Optional;
 import java.util.UUID;
-
 
 @Service
 public class UserService {
@@ -33,7 +29,7 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // 파일 저장 경로를 환경 변수로 설정
+    // 프로필 이미지 파일 저장 경로
     @Value("${user.profile.image.dir:C:/uploads/profile/images/}")
     private String profileImageDir;
 
@@ -55,11 +51,8 @@ public class UserService {
 
     // 로그인 로직
     public User login(User user) {
-        Optional<User> foundUser = userRepository.findByUserEmail(user.getUserEmail());
-
-        // Optional을 사용해 비밀번호가 일치할 경우 User 객체를 반환하고, 그렇지 않으면 null 반환
-        return foundUser
-                .filter(value -> passwordEncoder.matches(user.getUserPw(), value.getUserPw()))
+        return userRepository.findByUserEmail(user.getUserEmail())
+                .filter(foundUser -> passwordEncoder.matches(user.getUserPw(), foundUser.getUserPw()))
                 .orElse(null); // 인증 실패 시 null 반환
     }
 
@@ -84,17 +77,15 @@ public class UserService {
 
     // 알림 시간 업데이트
     public void updateQuietTime(String email, String quietStartTime, String quietEndTime) {
-        Optional<User> optionalUser = userRepository.findByUserEmail(email);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
+        userRepository.findByUserEmail(email).ifPresentOrElse(user -> {
             user.setQuietStartTime(Time.valueOf(quietStartTime));
             user.setQuietEndTime(Time.valueOf(quietEndTime));
             userRepository.save(user);
             logger.info("Updated quiet time for user: {}", email);
-        } else {
+        }, () -> {
             logger.warn("User not found for email: {}", email);
             throw new RuntimeException("User not found");
-        }
+        });
     }
 
     // 프로필 이미지 업로드 및 기존 이미지 삭제
@@ -104,18 +95,23 @@ public class UserService {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
-            // 기존 프로필 이미지 삭제
-            deleteOldProfileImage(user.getProfileImage());
+            // 새 이미지 파일명 생성 및 중복 체크
+            String newFileName = UUID.randomUUID() + "_" + photoFile.getOriginalFilename();
+            if (newFileName.equals(user.getProfileImage())) {
+                logger.info("중복된 이미지 업로드 요청이므로 기존 이미지 사용: {}", newFileName);
+                return newFileName;
+            }
 
-            // 새 프로필 이미지 저장
-            String fileName = saveProfileImage(photoFile);
-            user.setProfileImage(fileName);  // user_profile 컬럼에 이미지 파일명 저장
+            // 기존 이미지 삭제 및 새 이미지 저장
+            deleteOldProfileImage(user.getProfileImage());
+            saveProfileImage(photoFile, newFileName);
+
+            // DB에 이미지 정보 업데이트
+            user.setProfileImage(newFileName);
             userRepository.save(user);
 
             logger.info("Updated profile image for user: {}", user.getUserEmail());
-
-            // 저장된 이미지 파일명을 반환합니다.
-            return fileName;
+            return newFileName;
         } else {
             logger.warn("User not found with email: {}", email);
             return null;
@@ -124,51 +120,40 @@ public class UserService {
 
     // 기존 프로필 이미지 삭제
     private void deleteOldProfileImage(String fileName) {
-        try {
-            if (fileName != null) {
+        if (fileName != null) {
+            try {
                 Path oldImagePath = Paths.get(profileImageDir, fileName);
                 if (Files.deleteIfExists(oldImagePath)) {
                     logger.info("Deleted old profile image: {}", fileName);
                 } else {
                     logger.warn("Old profile image not found for deletion: {}", fileName);
                 }
+            } catch (IOException e) {
+                logger.error("Failed to delete old profile image: {}", fileName, e);
             }
-        } catch (IOException e) {
-            logger.error("Failed to delete old profile image: {}", fileName, e);
         }
     }
 
+    // 프로필 이미지 초기화
     public void resetProfileImage(String email) {
-        Optional<User> optionalUser = userRepository.findByUserEmail(email);
-
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-
-            // 기존 프로필 이미지 파일 삭제
+        userRepository.findByUserEmail(email).ifPresentOrElse(user -> {
             if (user.getProfileImage() != null) {
                 deleteOldProfileImage(user.getProfileImage());
             }
-
-            // 프로필 이미지 필드를 기본값(null)로 설정
-            user.setProfileImage(null);
+            user.setProfileImage(null); // DB의 이미지 정보 초기화
             userRepository.save(user);
-
             logger.info("Reset profile image for user: {}", user.getUserEmail());
-        } else {
-            logger.warn("User not found with email: {}", email);
-        }
+        }, () -> logger.warn("User not found with email: {}", email));
     }
 
-    // 프로필 이미지 저장
-    private String saveProfileImage(MultipartFile photoFile) throws IOException {
-        String fileName = UUID.randomUUID().toString() + "_" + photoFile.getOriginalFilename();
-        Path targetPath = Paths.get(profileImageDir).resolve(fileName).normalize();
+    // 프로필 이미지 저장 (파일로 저장)
+    private void saveProfileImage(MultipartFile photoFile, String fileName) throws IOException {
+        Path targetPath = Paths.get(profileImageDir, fileName).normalize();
 
-        // 디렉토리 생성
+        // 파일 저장 디렉토리 생성
         Files.createDirectories(targetPath.getParent());
-
         photoFile.transferTo(targetPath.toFile());
+
         logger.info("Saved new profile image: {}", fileName);
-        return fileName;
     }
 }

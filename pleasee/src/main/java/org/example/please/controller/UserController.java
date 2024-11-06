@@ -25,20 +25,18 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
-
+    // 이메일 중복 확인
     @PostMapping("/checkEmail")
     public ResponseEntity<Map<String, Object>> checkEmail(@RequestBody User user) {
-        Map<String, Object> response = new HashMap<>();
         boolean isDuplicate = userService.checkEmail(user);
-        if (isDuplicate) {
-            response.put("message", "중복된 이메일입니다.");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        }
-        response.put("message", "사용 가능한 이메일입니다.");
-        return ResponseEntity.ok(response);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", isDuplicate ? "중복된 이메일입니다." : "사용 가능한 이메일입니다.");
+        return isDuplicate
+                ? ResponseEntity.status(HttpStatus.CONFLICT).body(response)
+                : ResponseEntity.ok(response);
     }
 
+    // 회원 가입
     @PostMapping("/join")
     public ResponseEntity<Map<String, Object>> join(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -52,6 +50,7 @@ public class UserController {
         }
     }
 
+    // 로그인
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -65,6 +64,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
+    // 비밀번호 업데이트
     @PostMapping("/updatePassword")
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -78,32 +78,32 @@ public class UserController {
         }
     }
 
+    // 사용자 정보 조회
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getUserInfo(@RequestParam String email) {
         Optional<User> user = userService.findByEmail(email);
-        if (user.isPresent()) {
+        return user.map(value -> {
             Map<String, Object> response = new HashMap<>();
-            response.put("user_nick", user.get().getUserNick());
-            response.put("user_email", user.get().getUserEmail());
+            response.put("user_nick", value.getUserNick());
+            response.put("user_email", value.getUserEmail());
             return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    // 알림 시간 조회
     @GetMapping("/getQuietTime")
     public ResponseEntity<Map<String, Object>> getQuietTime(@RequestParam String email) {
         Optional<User> user = userService.findByEmail(email);
-        if (user.isPresent()) {
+        return user.map(value -> {
             Map<String, Object> response = new HashMap<>();
-            response.put("quiet_start_time", user.get().getQuietStartTime());
-            response.put("quiet_end_time", user.get().getQuietEndTime());
+            response.put("quiet_start_time", value.getQuietStartTime());
+            response.put("quiet_end_time", value.getQuietEndTime());
             return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
-        }
+        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", "User not found")));
     }
 
+    // 프로필 이미지 업로드
     @PostMapping("/uploadProfile")
     public ResponseEntity<Map<String, Object>> uploadProfile(
             @RequestParam(value = "email", required = true) String email,
@@ -135,14 +135,12 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
         } catch (IOException e) {
-            // 예외 발생 시 에러 메시지와 함께 500 응답
             response.put("message", "이미지 업로드 실패: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
-
-
+    // 프로필 이미지 초기화
     @PostMapping("/resetProfileImage")
     public ResponseEntity<Map<String, Object>> resetProfileImage(@RequestBody Map<String, String> request) {
         String email = request.get("userEmail");
