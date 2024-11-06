@@ -6,6 +6,7 @@ import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
 import { useFocusEffect } from '@react-navigation/native';
 import BambooHead from '../../assets/images/bamboo_head.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { serverAddress } from '../../components/Config';
 
 // 메시지 구조를 정의하는 인터페이스
@@ -27,7 +28,7 @@ export default function ChatbotPage() {
     const [userAvatar, setUserAvatar] = useState(BambooPanda);
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
-    const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
+    const serverUrl = 'http://192.168.21.179:8082/api/chat/getChatResponse';
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];

@@ -1,12 +1,15 @@
 package org.example.please.controller;
 
+import org.example.please.entity.Chatbot;
 import org.example.please.entity.User;
+import org.example.please.service.ChattingService;
 import org.example.please.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +27,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    ChattingService chattingService;
 
     // 이메일 중복 확인
     @PostMapping("/checkEmail")
@@ -54,10 +60,19 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
+
         User authenticatedUser = userService.login(user);
+        Chatbot croomIdx = chattingService.findByUserEmail(authenticatedUser.getUserEmail());
+//        if(croomIdx == null) {
+//            System.out.println("안돼안돼안돼");
+//        }else{
+//            System.out.println("이게 씨룸이디엑스"+croomIdx.getCroomIdx());
+//        }
         if (authenticatedUser != null) {
             response.put("message", "로그인 성공");
             response.put("user", authenticatedUser);
+            response.put("croomIdx", croomIdx.getCroomIdx());
+
             return ResponseEntity.ok(response);
         }
         response.put("message", "로그인 실패");
