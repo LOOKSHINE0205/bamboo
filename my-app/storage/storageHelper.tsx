@@ -123,3 +123,4 @@ export const clearUserData = async (): Promise<void> => {
         console.error('사용자 데이터 삭제에 실패했습니다:', error);
     }
 };
+
