@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-    Alert,
     View,
     Text,
     TextInput,
@@ -13,7 +12,6 @@ import {
 import { useRouter } from 'expo-router';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
-// 회원가입 화면 컴포넌트 정의
 export default function JoinScreen() {
     const router = useRouter();
 
@@ -26,6 +24,13 @@ export default function JoinScreen() {
     const [passwordMessage, setPasswordMessage] = useState('');
     const [isEmailValid, setIsEmailValid] = useState(false);
     const [debounceTimeout, setDebounceTimeout] = useState(null);
+
+    // Input refs
+    const emailInputRef = useRef<TextInput>(null);
+    const passwordInputRef = useRef<TextInput>(null);
+    const passwordConfirmInputRef = useRef<TextInput>(null);
+    const nicknameInputRef = useRef<TextInput>(null);
+    const birthdateInputRef = useRef<TextInput>(null);
 
     const handleEmailChange = (email) => {
         setEmail(email);
@@ -72,7 +77,39 @@ export default function JoinScreen() {
     };
 
     const handleJoin = async () => {
-        if (!isEmailValid) return;
+        // Focus on empty fields in sequence and return early
+        if (!userEmail) {
+            emailInputRef.current?.focus();
+            setEmailMessage('이메일을 입력하세요.');
+            return;
+        }
+
+        if (!isEmailValid) {
+            emailInputRef.current?.focus();
+            return;
+        }
+
+        if (!userPw) {
+            passwordInputRef.current?.focus();
+            setPasswordMessage('비밀번호를 입력하세요.');
+            return;
+        }
+
+        if (userPw !== userPwConfirm) {
+            passwordConfirmInputRef.current?.focus();
+            setPasswordMessage('비밀번호가 다릅니다.');
+            return;
+        }
+
+        if (!userNick) {
+            nicknameInputRef.current?.focus();
+            return;
+        }
+
+        if (!userBirthdate) {
+            birthdateInputRef.current?.focus();
+            return;
+        }
 
         let birthdateString;
         if (userBirthdate.length === 8) {
@@ -82,11 +119,6 @@ export default function JoinScreen() {
             birthdateString = `${year}-${month}-${day}T00:00:00`;
         } else {
             birthdateString = null;
-        }
-
-        if (userPw !== userPwConfirm) {
-            setPasswordMessage('비밀번호가 다릅니다.');
-            return;
         }
 
         const userData = {
@@ -105,7 +137,6 @@ export default function JoinScreen() {
             });
         } catch (error) {
             console.error('Error:', error);
-            Alert.alert('Error', 'Something went wrong!');
         }
     };
 
@@ -146,6 +177,7 @@ export default function JoinScreen() {
                                 )}
                             </View>
                             <TextInput
+                                ref={emailInputRef}
                                 style={styles.input}
                                 value={userEmail}
                                 onChangeText={handleEmailChange}
@@ -165,6 +197,7 @@ export default function JoinScreen() {
                                 )}
                             </View>
                             <TextInput
+                                ref={passwordInputRef}
                                 style={styles.input}
                                 value={userPw}
                                 onChangeText={setPassword}
@@ -174,6 +207,7 @@ export default function JoinScreen() {
                             />
                             <Text style={styles.label}>비밀번호 확인</Text>
                             <TextInput
+                                ref={passwordConfirmInputRef}
                                 style={styles.input}
                                 value={userPwConfirm}
                                 onChangeText={handlePasswordConfirmChange}
@@ -183,6 +217,7 @@ export default function JoinScreen() {
                             />
                             <Text style={styles.label}>닉네임</Text>
                             <TextInput
+                                ref={nicknameInputRef}
                                 style={styles.input}
                                 value={userNick}
                                 onChangeText={setNickname}
@@ -191,6 +226,7 @@ export default function JoinScreen() {
                             />
                             <Text style={styles.label}>생년월일</Text>
                             <TextInput
+                                ref={birthdateInputRef}
                                 style={styles.input}
                                 value={userBirthdate}
                                 onChangeText={handleBirthdateChange}
@@ -213,7 +249,6 @@ export default function JoinScreen() {
     );
 }
 
-// 스타일 정의
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
@@ -249,7 +284,7 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: '#e8f5e9',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 15,
         marginBottom: 15,
     },

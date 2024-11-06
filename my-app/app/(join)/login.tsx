@@ -106,7 +106,7 @@ export default function LoginScreen() {
               />
               <TouchableOpacity
                 style={styles.passButton}
-                onPress={() => router.push('../(tabs)')}
+                onPress={() => router.push('/index3')}
               >
                 <Text style={styles.passButtonText}>패스</Text>
               </TouchableOpacity>
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: '#e8f5e9',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 10,
         marginBottom: 15,
     },

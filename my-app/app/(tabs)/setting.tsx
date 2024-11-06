@@ -220,27 +220,56 @@ const SettingsScreen = () => {
           )}
         </ScrollView>
         <View style={styles.buttonContainer}>
-          <SmoothCurvedButton title="설정 저장" onPress={handleSave}  />
-          <SmoothCurvedButton title="로그아웃" onPress={handleLogout} />
-        </View>
+              <SmoothCurvedButton
+                title="설정 저장"
+                onPress={handleSave}
+                svgWidth={120}
+                svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+              />
+              <SmoothCurvedButton
+                title="로그아웃"
+                onPress={handleLogout}
+                svgWidth={120}
+                svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+              />
+            </View>
 
         <Modal visible={modalVisible} transparent={true} animationType="fade">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
-              <Text style={styles.modalText}>이미지를 선택하거나 기본 이미지로 재설정할 수 있습니다.</Text>
-              <Pressable style={[styles.modalButton, styles.resetButton]} onPress={handleResetProfileImage}>
-                <Text style={styles.modalButtonText}>기본 이미지로 재설정</Text>
-              </Pressable>
-              <Pressable style={styles.modalButton} onPress={handleImageSelect}>
-                <Text style={styles.modalButtonText}>갤러리에서 이미지 선택</Text>
-              </Pressable>
-              <Pressable style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
-                <Text style={[styles.modalButtonText, styles.cancelButtonText]}>취소</Text>
-              </Pressable>
+
+              <SmoothCurvedButton
+                title="기본 이미지로 재설정"
+                onPress={handleResetProfileImage}
+                svgWidth={160}
+                svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+                style={styles.modalButton}
+              />
+
+              <SmoothCurvedButton
+                title="갤러리에서 이미지 선택"
+                onPress={handleImageSelect}
+                svgWidth={160}
+                svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+                style={styles.modalButton}
+              />
+
+              <SmoothCurvedButton
+                title="취소"
+                onPress={() => setModalVisible(false)}
+                svgWidth={160}
+                svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+                style={[styles.modalButton, styles.cancelButton]}
+                color="#cccccc"
+              />
+
             </View>
           </View>
         </Modal>
+
+
+
       </KeyboardAvoidingView>
     );
   };
@@ -342,14 +371,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 12,
     fontSize: 16,
     textAlign: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 16,
     backgroundColor: '#fff',
     elevation: 1
   },
@@ -375,35 +404,19 @@ const styles = StyleSheet.create({
     width: 300,
     padding: 20,
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 20,
     alignItems: 'center'
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10
+    marginBottom: 30
   },
   modalText: {
     fontSize: 16,
     color: '#333',
     textAlign: 'center',
     marginBottom: 20
-  },
-  modalButton: {
-    width: '100%',
-    padding: 10,
-    backgroundColor: '#4a9960',
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 1
-  },
-  cancelButton: {
-    backgroundColor: '#ccc'
   },
   modalButtonText: {
     color: 'white',

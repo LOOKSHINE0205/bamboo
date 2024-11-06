@@ -143,6 +143,7 @@ export default function DiaryEntryScreen() {
           multiline // 여러 줄 입력 가능
           value={entryText} // 입력된 일기 내용
           onChangeText={setEntryText} // 일기 내용 업데이트
+          placeholderTextColor="#707070"
         />
       </View>
       <View style={styles.buttonContainer}>

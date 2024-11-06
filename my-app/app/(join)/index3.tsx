@@ -129,8 +129,6 @@ const UserGuide = () => {
           )}
         </View>
 
-
-
       </View>
     </JoinBG>
   );

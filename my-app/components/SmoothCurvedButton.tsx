@@ -1,33 +1,39 @@
 import React, { useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
-import { TouchableOpacity, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-const SmoothCurvedButton = ({ onPress, title, style, disabled }) => {
+const SmoothCurvedButton = ({ onPress, title, style, disabled, svgWidth = 130, svgPath, color = '#4a9960' }) => {
   const { width, height } = useWindowDimensions();
-  const buttonWidth = style?.width || width * 0.6;
-  const buttonHeight = style?.height || height * 0.06;
-  const [isPressed, setIsPressed] = useState(false); // 눌린 상태 관리
+  const buttonWidth = style?.width || width * 0.6 || svgWidth;
+  const buttonHeight = style?.height || height * 0.06 || 50;
+  const [isPressed, setIsPressed] = useState(false);
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      onPressIn={() => setIsPressed(true)} // 버튼이 눌릴 때 상태 변경
-      onPressOut={() => setIsPressed(false)} // 버튼에서 손을 뗄 때 상태 복원
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
       style={[
         styles.buttonContainer,
         { width: buttonWidth, height: buttonHeight },
-        isPressed && styles.pressedEffect, // 눌린 상태에만 스타일 적용
+        isPressed && styles.pressedEffect,
         style,
       ]}
       disabled={disabled}
     >
-      <Svg height="100%" width="100%" viewBox="0 0 100 50">
+      <Svg height="100%" width="100%" viewBox={`0 0 ${svgWidth} 50`}>
         <Path
-          d="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L80,50 C95,50 100,45 100,30 L100,20 C100,5 95,0 80,0 Z"
-          fill={disabled ? '#cccccc' : isPressed ? '#3a7c54' : '#4a9960'} // 눌린 상태와 기본 상태 색상 구분
+          d={
+            svgPath ||
+            `M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L${svgWidth - 20},50 C${svgWidth - 5},50 ${svgWidth},45 ${svgWidth},30 L${svgWidth},20 C${svgWidth},5 ${svgWidth - 5},0 ${svgWidth - 20},0 Z`
+          }
+          fill={disabled ? '#cccccc' : isPressed ? '#3a7c54' : color}
         />
       </Svg>
-      <Text style={[styles.buttonText, isPressed && styles.buttonTextPressed]}>{title}</Text>
+
+      <View style={styles.textWrapper}>
+        <Text style={[styles.buttonText, isPressed && styles.buttonTextPressed]}>{title}</Text>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -36,18 +42,28 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  textWrapper: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    top: 0,
+    left: 0,
   },
   buttonText: {
-    position: 'absolute',
     color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   buttonTextPressed: {
-    color: '#ffffff', // 눌린 상태에서 텍스트 색상 변경
+    color: '#ffffff',
   },
   pressedEffect: {
-    transform: [{ scale: 0.98 }], // 버튼이 눌렸을 때 살짝 작아지는 효과
+    transform: [{ scale: 0.98 }],
   },
 });
 
