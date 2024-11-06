@@ -10,6 +10,7 @@ import em_fear from "../../assets/images/두려움2.png";
 import em_sad from "../../assets/images/슬픔2.png";
 import em_dislike from "../../assets/images/싫음2.png";
 import em_soso from "../../assets/images/쏘쏘2.png";
+import {serverAddress} from '../../components/Config';
 
 const SendUserInfo = () => {
     const { userData, testResults, chatbotName } = useLocalSearchParams();
@@ -36,7 +37,7 @@ const SendUserInfo = () => {
                     chatbotLevel: 1,
                 };
 
-                const response = await fetch('http://192.168.21.224:8082/api/users/join', {
+                const response = await fetch(`${serverAddress}/api/users/join`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ const SendUserInfo = () => {
                 };
 
                 // 채팅방 생성 요청
-                const chatRoomResponse = await fetch('http://192.168.21.224:8082/api/chat/create_room', {
+                const chatRoomResponse = await fetch(`${serverAddress}/api/chat/create_room`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
