@@ -1,38 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import BackGround from "../../components/FirstBG";
+import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
 export default function InitialScreen() {
     const router = useRouter();
+    const { height, width } = useWindowDimensions(); // 화면 너비와 높이 가져오기
     const [isNavigating, setIsNavigating] = useState(false);
 
     const handlePress = (path) => {
         if (!isNavigating) {
             setIsNavigating(true);
             router.push(path);
-            setTimeout(() => setIsNavigating(false), 1000); // 1초 후 다시 활성화
+            setTimeout(() => setIsNavigating(false), 1000);
         }
     };
 
     return (
         <View style={styles.container}>
-            <BackGround />
-            <View style={styles.buttonsContainer}>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => handlePress('../(join)/login')} // 로그인 버튼 클릭 시 이동할 경로
-                    disabled={isNavigating}
-                >
-                    <Text style={styles.buttonText}>로그인</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => handlePress('../(join)')} // 회원가입 버튼 클릭 시 이동할 경로
-                    disabled={isNavigating}
-                >
-                    <Text style={styles.buttonText}>회원가입</Text>
-                </TouchableOpacity>
+            <View style={styles.backgroundContainer}>
+                <BackGround />
+            </View>
+            <View style={[styles.buttonsContainer, { bottom: height * 0.15 }]}>
+                <View style={styles.buttonWrapper}>
+                    <SmoothCurvedButton
+                        title="로그인"
+                        onPress={() => handlePress('../(join)/login')}
+                        disabled={isNavigating}
+                    />
+                </View>
+                <View style={styles.buttonWrapper}>
+                    <SmoothCurvedButton
+                        title="회원 가입"
+                        onPress={() => handlePress('../(join)')}
+                        disabled={isNavigating}
+                    />
+                </View>
             </View>
         </View>
     );
@@ -45,24 +49,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#ffffff',
     },
+    backgroundContainer: {
+        position: 'absolute',
+        top: -60, // 배경을 위로 조정
+        width: '100%',
+        height: '100%',
+    },
     buttonsContainer: {
         position: 'absolute',
-        bottom: 50,
-        width: '80%',
         alignItems: 'center',
+        justifyContent: 'center',
+        width: '80%', // 너비를 60%로 설정하여 더 넓게 배치
     },
-    button: {
-        backgroundColor: '#4f772d',
-        paddingVertical: 12,
-        paddingHorizontal: 25,
-        borderRadius: 8,
-        marginVertical: 10,
-        width: '100%',
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: '#ffffff',
-        fontSize: 16,
-        fontWeight: 'bold',
+    buttonWrapper: {
+        marginVertical: 15, // 버튼 상하 간격 조정
     },
 });
+
+export default InitialScreen;
