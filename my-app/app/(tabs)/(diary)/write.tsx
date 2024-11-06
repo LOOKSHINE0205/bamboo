@@ -161,7 +161,7 @@ export default function DiaryEntryScreen() {
 
             {/* 이미지 선택 버튼 */}
             <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
-              <Ionicons name="camera" size={30} color="#fff" />
+              <Ionicons name="image" size={30} color="#fff" />
             </TouchableOpacity>
           </View>
         </ScrollView>
