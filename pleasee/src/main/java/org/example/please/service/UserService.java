@@ -97,17 +97,17 @@ public class UserService {
 
             // 새 이미지 파일명 생성 및 중복 체크
             String newFileName = UUID.randomUUID() + "_" + photoFile.getOriginalFilename();
-            if (newFileName.equals(user.getProfileImage())) {
+            if (newFileName.equals(user.getUserProfile())) {
                 logger.info("중복된 이미지 업로드 요청이므로 기존 이미지 사용: {}", newFileName);
                 return newFileName;
             }
 
             // 기존 이미지 삭제 및 새 이미지 저장
-            deleteOldProfileImage(user.getProfileImage());
+            deleteOldProfileImage(user.getUserProfile());
             saveProfileImage(photoFile, newFileName);
 
             // DB에 이미지 정보 업데이트
-            user.setProfileImage(newFileName);
+            user.setUserProfile(newFileName);
             userRepository.save(user);
 
             logger.info("Updated profile image for user: {}", user.getUserEmail());
@@ -137,10 +137,10 @@ public class UserService {
     // 프로필 이미지 초기화
     public void resetProfileImage(String email) {
         userRepository.findByUserEmail(email).ifPresentOrElse(user -> {
-            if (user.getProfileImage() != null) {
-                deleteOldProfileImage(user.getProfileImage());
+            if (user.getUserProfile() != null) {
+                deleteOldProfileImage(user.getUserProfile());
             }
-            user.setProfileImage(null); // DB의 이미지 정보 초기화
+            user.setUserProfile(null); // DB의 이미지 정보 초기화
             userRepository.save(user);
             logger.info("Reset profile image for user: {}", user.getUserEmail());
         }, () -> logger.warn("User not found with email: {}", email));

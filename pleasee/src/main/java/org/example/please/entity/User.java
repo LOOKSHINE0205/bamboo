@@ -63,5 +63,5 @@ public class User {
 
     //유저 프로필
     @Column(name = "user_profile")
-    private String profileImage;
+    private String userProfile;
 }
