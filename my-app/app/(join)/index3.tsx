@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Button, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
 const UserGuide = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ const UserGuide = () => {
       description: '지난 대화를 기억해 밤부와 얘기할 수 있습니다.',
     },
     {
-      icon: 'journal-outline',
+      icon: 'calendar-outline',
       title: '일기장',
       description: '일기를 작성할 수 있고, 작성된 일기를 밤부가 학습합니다.',
     },
@@ -87,16 +88,47 @@ const UserGuide = () => {
             />
           ))}
         </View>
-        <View style={styles.buttonGroup}>
+        <View
+          style={[
+            styles.buttonGroup,
+            {
+              flexDirection: 'row',
+              justifyContent: pageIndex > 0 && pageIndex < pages.length - 1 ? 'space-between' : 'center',
+              width: '80%',
+            },
+          ]}
+        >
           {pageIndex > 0 && (
-            <Button title="이전" onPress={handlePrevious} color="#4a9960" />
+            <SmoothCurvedButton
+              title="이전"
+              onPress={handlePrevious}
+              style={{
+                width: '45%',       // 버튼의 너비를 화면의 절반으로 설정
+                marginHorizontal: 5, // 좌우 버튼 간 간격을 조절하기 위해 설정
+              }}
+            />
           )}
           {pageIndex < pages.length - 1 ? (
-            <Button title="다음" onPress={handleNext} color="#4a9960" />
+            <SmoothCurvedButton
+              title="다음"
+              onPress={handleNext}
+              style={{
+                width: '45%',       // 버튼의 너비를 화면의 절반으로 설정
+                marginHorizontal: 5, // 좌우 버튼 간 간격을 조절하기 위해 설정
+              }}
+            />
           ) : (
-            <Button title="완료" onPress={() => router.push('../../(init)')} color="#4a9960" />
+            <SmoothCurvedButton
+              title="완료"
+              onPress={() => router.push('../../(init)')}
+              style={{
+                width: '45%',       // 버튼의 너비를 화면의 절반으로 설정
+                marginHorizontal: 5, // 좌우 버튼 간 간격을 조절하기 위해 설정
+              }}
+            />
           )}
         </View>
+
       </View>
     </JoinBG>
   );
