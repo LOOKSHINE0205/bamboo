@@ -2,6 +2,7 @@ package org.example.please.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 
@@ -13,7 +14,7 @@ import java.sql.Timestamp;
 @ToString
 @Table(name = "chatting_tb")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Chatting {
+public class  Chatting {
     @Id
     @Column(name = "chat_idx")
     @EqualsAndHashCode.Include
@@ -41,10 +42,15 @@ public class Chatting {
     private String chatFile;
 
     // 발화 시간
-    @Column(name = "created_at" , insertable = false)
+    @CreationTimestamp
+    @Column(name = "created_at")
     private Timestamp createdAt;
 
     // 감정 태그
     @Column(name = "emotion_tag")
     private String emotionTag;
+
+    // 세션 식별자
+    @Column(name = "session_idx")
+    private int sessionIdx;
 }
