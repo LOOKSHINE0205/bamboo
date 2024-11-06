@@ -28,7 +28,7 @@ export default function ChatbotPage() {
     const [userAvatar, setUserAvatar] = useState(BambooPanda);
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
-    const serverUrl = 'http://10.0.2.2:8082/api/chat/getChatResponse';
+    const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
