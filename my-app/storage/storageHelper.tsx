@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';  // 서버와 통신을 위한 axios
-
+import { serverAddress } from '../components/Config';
 // User 인터페이스 정의
 export interface User {
     userEmail: string;
@@ -17,7 +17,6 @@ export interface User {
 }
 
 // 서버 주소 상수로 정의
-const serverAddress = 'http://172.31.98.238:8082';
 const profileImageUploadUrl = `${serverAddress}/api/users/uploadProfile`;
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 

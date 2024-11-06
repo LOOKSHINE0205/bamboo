@@ -4,6 +4,8 @@ import {
   Text,
   TextInput,
   Switch,
+  Button,
+  StyleSheet,
   Alert,
   Image,
   TouchableOpacity,
@@ -12,8 +14,7 @@ import {
   ScrollView,
   Platform,
   Modal,
-  Pressable,
-  StyleSheet
+  Pressable
 } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
@@ -22,35 +23,33 @@ import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage } 
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
-// 서버 주소 및 이미지 경로 설정
-const serverAddress = 'http://172.31.98.238:8082';
-const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
-
 const SettingsScreen = () => {
   const router = useRouter();
-  const [userInfo, setUserInfo] = useState(null); // 사용자 정보
-  const [password, setPassword] = useState(''); // 현재 비밀번호
-  const [newPassword, setNewPassword] = useState(''); // 새 비밀번호
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false); // 알림 활성화 여부
-  const [startTime, setStartTime] = useState('09:00'); // 알림 시작 시간
-  const [endTime, setEndTime] = useState('18:00'); // 알림 종료 시간
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태
-  const [modalVisible, setModalVisible] = useState(false); // 이미지 선택 모달 표시 여부
-  const [profileImageUri, setProfileImageUri] = useState(null); // 프로필 이미지 URI
+  const [userInfo, setUserInfo] = useState(null);
+  const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('18:00');
+  const [isLoading, setIsLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [profileImageUri, setProfileImageUri] = useState(null);
 
-  // 컴포넌트가 마운트될 때 사용자 데이터를 불러옴
+  // API base URL
+  const serverAddress = 'http://192.168.21.224:8082';
+  const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
+
   useEffect(() => {
     fetchUserData();
   }, []);
 
-  // 사용자 데이터를 불러오는 함수
   const fetchUserData = async () => {
     try {
       const data = await getUserInfo();
       const profileImage = await getUserProfileImage();
       if (data) {
         setUserInfo({ ...data, profileImage });
-        setProfileImageUri(profileImage ? `${profileImage}?${new Date().getTime()}` : null); // 캐시 방지를 위해 시간 추가
+        setProfileImageUri(profileImage ? `${profileImage}?${new Date().getTime()}` : null);
       } else {
         Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
       }
@@ -62,64 +61,70 @@ const SettingsScreen = () => {
     }
   };
 
-  // 이미지 선택 모달 표시
-  const handleImagePicker = () => setModalVisible(true);
-
-  // 이미지 선택 후 서버에 업로드
-  const handleImageSelect = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets?.length > 0) {
-      const selectedImageUri = result.assets[0].uri;
-
-      // 선택된 이미지가 현재 이미지와 동일한지 확인
-      if (profileImageUri === selectedImageUri) {
-          console.log("동일한 이미지를 업로드하려고 합니다. 동작을 중지합니다.");
-          return;
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append('photo', {
-          uri: selectedImageUri,
-          type: 'image/jpeg',
-          name: 'profile.jpg',
-        });
-        formData.append('email', userInfo?.userEmail);
-
-        const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        if (response.status === 200) {
-          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
-          setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
-          setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
-          await setUserProfileImage(serverImagePath);
-          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
-        }
-      } catch (error) {
-        console.error("프로필 이미지 업로드 중 오류:", error.response ? error.response.data : error);
-        Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
-      }
-    }
-    setModalVisible(false);
+  const handleImagePicker = () => {
+    setModalVisible(true);
   };
 
-  // 기본 이미지로 프로필 이미지 재설정
+  const handleImageSelect = async () => {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const selectedImageUri = result.assets[0].uri;
+
+        // 이전 프로필 이미지와 같은지 확인
+        if (profileImageUri === selectedImageUri) {
+            console.log("동일한 이미지를 업로드하려고 합니다. 동작을 중지합니다.");
+            return;
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append('photo', {
+            uri: selectedImageUri,
+            type: 'image/jpeg',
+            name: 'profile.jpg',
+          });
+          formData.append('email', userInfo?.userEmail);
+
+          const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+
+          if (response.status === 200) {
+            const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
+            setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
+            setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
+            await setUserProfileImage(serverImagePath);
+            Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
+          }
+        } catch (error) {
+          console.error("프로필 이미지 업로드 중 오류:", error.response ? error.response.data : error);
+          Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
+        }
+      }
+      setModalVisible(false);
+  };
+
+
+
   const handleResetProfileImage = async () => {
     try {
-      await axios.post(`${serverAddress}/api/users/resetProfileImage`, { userEmail: userInfo?.userEmail });
+      await axios.post(`${serverAddress}/api/users/resetProfileImage`, {
+        userEmail: userInfo?.userEmail,
+      });
+
       await setUserProfileImage(null);
       setUserInfo((prev) => ({ ...prev, profileImage: null }));
       setProfileImageUri(null);
@@ -131,10 +136,10 @@ const SettingsScreen = () => {
     setModalVisible(false);
   };
 
-  // 알림 스위치 토글
-  const toggleSwitch = () => setNotificationsEnabled((prev) => !prev);
+  const toggleSwitch = () => {
+    setNotificationsEnabled((prev) => !prev);
+  };
 
-  // 설정 저장
   const handleSave = async () => {
     if (notificationsEnabled && startTime >= endTime) {
       Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
@@ -157,7 +162,6 @@ const SettingsScreen = () => {
     }
   };
 
-  // 로그아웃 처리
   const handleLogout = async () => {
     await clearUserData();
     Alert.alert('알림', '로그아웃 되었습니다.');
