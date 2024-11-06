@@ -4,17 +4,15 @@ import {
   Text,
   TextInput,
   Switch,
-  Button,
-  StyleSheet,
+  ActivityIndicator,
   Alert,
   Image,
   TouchableOpacity,
-  ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
   Modal,
-  Pressable
+  StyleSheet,
 } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
@@ -22,6 +20,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage } from '../../storage/storageHelper';
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+
+const serverAddress = 'http://192.168.21.224:8082';
+const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -35,23 +36,22 @@ const SettingsScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(null);
 
-  // API base URL
-  const serverAddress = 'http://192.168.21.224:8082';
-  const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
-
   useEffect(() => {
     fetchUserData();
   }, []);
 
+  // 사용자 데이터를 가져오는 함수
   const fetchUserData = async () => {
+    setIsLoading(true);
     try {
       const data = await getUserInfo();
-      console.log("Fetched user data:", data);
       const profileImage = await getUserProfileImage();
       if (data) {
         setUserInfo({ ...data, profileImage });
         setProfileImageUri(profileImage ? `${profileImage}?${new Date().getTime()}` : null);
       } else {
+        setUserInfo(null);
+        setProfileImageUri(null);
         Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
       }
     } catch (error) {
@@ -62,64 +62,67 @@ const SettingsScreen = () => {
     }
   };
 
+  // 알림 설정 토글 함수
+  const toggleSwitch = () => {
+    setNotificationsEnabled((prev) => !prev);
+  };
+
+  // 이미지 선택 핸들러
   const handleImagePicker = () => {
     setModalVisible(true);
   };
 
+  // 이미지 선택 후 서버에 업로드
   const handleImageSelect = async () => {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      const selectedImageUri = result.assets[0].uri;
+
+      if (profileImageUri === selectedImageUri) {
+        console.log("동일한 이미지를 업로드하려고 합니다. 동작을 중지합니다.");
         return;
       }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
 
-      if (!result.canceled && result.assets?.length > 0) {
-        const selectedImageUri = result.assets[0].uri;
+      try {
+        const formData = new FormData();
+        formData.append('photo', {
+          uri: selectedImageUri,
+          type: 'image/jpeg',
+          name: 'profile.jpg',
+        });
+        formData.append('email', userInfo?.userEmail);
 
-        // 이전 프로필 이미지와 같은지 확인
-        if (profileImageUri === selectedImageUri) {
-            console.log("동일한 이미지를 업로드하려고 합니다. 동작을 중지합니다.");
-            return;
+        const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        if (response.status === 200) {
+          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
+          setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
+          setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
+          await setUserProfileImage(serverImagePath);
+          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
         }
-
-        try {
-          const formData = new FormData();
-          formData.append('photo', {
-            uri: selectedImageUri,
-            type: 'image/jpeg',
-            name: 'profile.jpg',
-          });
-          formData.append('email', userInfo?.userEmail);
-
-          const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-
-          if (response.status === 200) {
-            const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
-            setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
-            setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
-            await setUserProfileImage(serverImagePath);
-            Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
-          }
-        } catch (error) {
-          console.error("프로필 이미지 업로드 중 오류:", error.response ? error.response.data : error);
-          Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
-        }
+      } catch (error) {
+        console.error("프로필 이미지 업로드 중 오류:", error.response ? error.response.data : error);
+        Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
       }
-      setModalVisible(false);
+    }
+    setModalVisible(false);
   };
 
-
-
+  // 프로필 이미지를 기본 이미지로 재설정
   const handleResetProfileImage = async () => {
     try {
       await axios.post(`${serverAddress}/api/users/resetProfileImage`, {
@@ -137,10 +140,7 @@ const SettingsScreen = () => {
     setModalVisible(false);
   };
 
-  const toggleSwitch = () => {
-    setNotificationsEnabled((prev) => !prev);
-  };
-
+  // 설정 저장 함수
   const handleSave = async () => {
     if (notificationsEnabled && startTime >= endTime) {
       Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
@@ -163,18 +163,14 @@ const SettingsScreen = () => {
     }
   };
 
+  // 로그아웃 함수
   const handleLogout = async () => {
-    try {
-      await clearUserData(); // 사용자 데이터 제거
-      console.log("로그아웃 성공: 사용자 데이터가 삭제되었습니다.");
-      Alert.alert('알림', '로그아웃 되었습니다.');
-      router.push('../(init)'); // 초기 화면으로 이동
-    } catch (error) {
-      console.error("로그아웃 중 오류 발생:", error);
-      Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.");
-    }
+    await clearUserData();
+    setUserInfo(null);
+    setProfileImageUri(null);
+    Alert.alert('알림', '로그아웃 되었습니다.');
+    router.push('../(init)');
   };
-
 
   if (isLoading) {
     return (
@@ -185,106 +181,98 @@ const SettingsScreen = () => {
     );
   }
 
-   return (
-        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-              <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <View style={styles.profileImageSection}>
-                  <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
-                    {userInfo?.profileImage ? (
-                      <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
-                    ) : (
-                      <View style={styles.defaultProfileImage}>
-                        <Ionicons name="person" size={50} color="#cccccc" />
-                      </View>
-                    )}
-                    <View style={styles.cameraIconContainer}>
-                      <Ionicons name="camera" size={20} color="#fff" />
-                    </View>
-                  </TouchableOpacity>
-          </View>
-          <Text style={styles.label}>닉네임</Text>
-          <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />
-          <Text style={styles.label}>이메일</Text>
-          <TextInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} />
-          <Text style={styles.label}>생일</Text>
-          <TextInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} />
-          <Text style={styles.label}>챗봇 이름</Text>
-          <TextInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} />
-          <Text style={styles.label}>비밀번호 확인</Text>
-          <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="기존 비밀번호 입력" placeholderTextColor="#707070" />
-          <Text style={styles.label}>비밀번호 변경</Text>
-          <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="새 비밀번호 입력" placeholderTextColor="#707070"/>
-          <View style={styles.toggleContainer}>
-            <Text style={styles.label}>알림 받기</Text>
-            <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
-          </View>
-          {notificationsEnabled && (
-            <View style={styles.timeInputContainer}>
-              <View style={styles.timeInput}>
-                <Text style={styles.timeLabel}>시작 시간</Text>
-                <TextInput style={styles.timeInputField} value={startTime} onChangeText={setStartTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
+  return (
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={styles.profileImageSection}>
+          <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
+            {userInfo?.profileImage ? (
+              <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
+            ) : (
+              <View style={styles.defaultProfileImage}>
+                <Ionicons name="person" size={50} color="#cccccc" />
               </View>
-              <View style={styles.timeInput}>
-                <Text style={styles.timeLabel}>종료 시간</Text>
-                <TextInput style={styles.timeInputField} value={endTime} onChangeText={setEndTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
-              </View>
+            )}
+            <View style={styles.cameraIconContainer}>
+              <Ionicons name="camera" size={20} color="#fff" />
             </View>
-          )}
-        </ScrollView>
-        <View style={styles.buttonContainer}>
-              <SmoothCurvedButton
-                title="설정 저장"
-                onPress={handleSave}
-                svgWidth={120}
-                svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-              />
-              <SmoothCurvedButton
-                title="로그아웃"
-                onPress={handleLogout}
-                svgWidth={120}
-                svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-              />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.label}>닉네임</Text>
+        <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />
+        <Text style={styles.label}>이메일</Text>
+        <TextInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} />
+        <Text style={styles.label}>생일</Text>
+        <TextInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} />
+        <Text style={styles.label}>챗봇 이름</Text>
+        <TextInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} />
+        <Text style={styles.label}>비밀번호 확인</Text>
+        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="기존 비밀번호 입력" placeholderTextColor="#707070" />
+        <Text style={styles.label}>비밀번호 변경</Text>
+        <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="새 비밀번호 입력" placeholderTextColor="#707070"/>
+        <View style={styles.toggleContainer}>
+          <Text style={styles.label}>알림 받기</Text>
+          <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
+        </View>
+        {notificationsEnabled && (
+          <View style={styles.timeInputContainer}>
+            <View style={styles.timeInput}>
+              <Text style={styles.timeLabel}>시작 시간</Text>
+              <TextInput style={styles.timeInputField} value={startTime} onChangeText={setStartTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
             </View>
-
-        <Modal visible={modalVisible} transparent={true} animationType="fade">
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
-
-              <SmoothCurvedButton
-                title="기본 이미지로 재설정"
-                onPress={handleResetProfileImage}
-                svgWidth={160}
-                svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
-                style={styles.modalButton}
-              />
-
-              <SmoothCurvedButton
-                title="갤러리에서 이미지 선택"
-                onPress={handleImageSelect}
-                svgWidth={160}
-                svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
-                style={styles.modalButton}
-              />
-
-              <SmoothCurvedButton
-                title="취소"
-                onPress={() => setModalVisible(false)}
-                svgWidth={160}
-                svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
-                style={[styles.modalButton, styles.cancelButton]}
-                color="#cccccc"
-              />
-
+            <View style={styles.timeInput}>
+              <Text style={styles.timeLabel}>종료 시간</Text>
+              <TextInput style={styles.timeInputField} value={endTime} onChangeText={setEndTime} placeholder="00:00" keyboardType="numeric" maxLength={5} />
             </View>
           </View>
-        </Modal>
-
-
-
-      </KeyboardAvoidingView>
-    );
-  };
+        )}
+      </ScrollView>
+      <View style={styles.buttonContainer}>
+        <SmoothCurvedButton
+          title="설정 저장"
+          onPress={handleSave}
+          svgWidth={120}
+          svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+        />
+        <SmoothCurvedButton
+          title="로그아웃"
+          onPress={handleLogout}
+          svgWidth={120}
+          svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+        />
+      </View>
+      <Modal visible={modalVisible} transparent={true} animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
+            <SmoothCurvedButton
+              title="기본 이미지로 재설정"
+              onPress={handleResetProfileImage}
+              svgWidth={160}
+              svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+              style={styles.modalButton}
+            />
+            <SmoothCurvedButton
+              title="갤러리에서 이미지 선택"
+              onPress={handleImageSelect}
+              svgWidth={160}
+              svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+              style={styles.modalButton}
+            />
+            <SmoothCurvedButton
+              title="취소"
+              onPress={() => setModalVisible(false)}
+              svgWidth={160}
+              svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+              style={[styles.modalButton, styles.cancelButton]}
+              color="#cccccc"
+            />
+          </View>
+        </View>
+      </Modal>
+    </KeyboardAvoidingView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -350,7 +338,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
-    borderRadius: 16, // 곡률을 더 부드럽게 변경
+    borderRadius: 16,
     marginBottom: 20,
     paddingLeft: 10,
     shadowColor: '#000',
@@ -402,11 +390,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
   },
-  actionButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -424,12 +407,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 30
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20
   },
   modalButtonText: {
     color: 'white',
