@@ -63,6 +63,7 @@ public class UserController {
 
         User authenticatedUser = userService.login(user);
         Chatbot croomIdx = chattingService.findByUserEmail(authenticatedUser.getUserEmail());
+        System.out.println(user.getUserProfile());
 //        if(croomIdx == null) {
 //            System.out.println("안돼안돼안돼");
 //        }else{

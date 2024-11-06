@@ -28,7 +28,7 @@ export default function ChatbotPage() {
     const [userAvatar, setUserAvatar] = useState(BambooPanda);
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
-    const serverUrl = 'http://192.168.21.179:8082/api/chat/getChatResponse';
+    const serverUrl = 'http://10.0.2.2:8082/api/chat/getChatResponse';
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
@@ -106,19 +106,45 @@ export default function ChatbotPage() {
     const sendBotResponse = async () => {
         if (messagesToSendRef.current.length > 0) {
             const combinedMessages = messagesToSendRef.current.join(' ');
+            const croomIdx = await AsyncStorage.getItem('croomIdx');
+
+            if(!croomIdx){
+                console.error("croomIdx not found in AsyncStorage")
+                return;
+            }
+            console.log("croomIdx found in AsyncStorage",croomIdx);
+
+            const payload = {
+                croomIdx:parseInt(croomIdx),
+                chatter : "user",
+                chatContent : combinedMessages,
+                emotionTag :"happy"
+            }
             try {
-                const response = await axios.post(serverUrl, combinedMessages, { headers: { 'Content-Type': 'text/plain' } });
-                setMessages((prevMessages) => [...prevMessages, {
-                    sender: 'bot',
-                    text: response.data,
-                    avatar: BambooHead,
-                    name: chatbotName,
-                    timestamp: getCurrentTime(),
-                    showTimestamp: true,
-                }]);
+                const response = await axios.post(serverUrl, payload,
+                    { headers: { 'Content-Type': 'application/json' } });
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                        sender: 'bot',
+                        text: response.data,
+                        avatar: BambooHead,
+                        name: chatbotName,
+                        timestamp: getCurrentTime(),
+                        showTimestamp: true,
+                    }]);
                 messagesToSendRef.current = []; // 초기화
             } catch (error) {
                 console.error('Error sending bot response:', error);
+                // 추가: 오류의 상세 정보 출력
+                if (error.response) {
+                    console.error("Server responded with an error:", error.response.data);
+                    console.error("Status code:", error.response.status);
+                } else if (error.request) {
+                    console.error("Request was made but no response received", error.request);
+                } else {
+                    console.error("Error setting up the request:", error.message);
+                }
             }
         }
     };
