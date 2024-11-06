@@ -5,13 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="채팅방 평가 ui 다시 넣음, 회원가입시 chat_tb insert">
-      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChatbotController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/repository/ChattingRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/repository/ChattingRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/ChattingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/ChattingService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/ChatbotService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/ChattingService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,9 +47,6 @@
   <component name="JpbToolWindowState">
     <option name="isToolWindowVisible" value="false" />
   </component>
-  <component name="PackageJsonUpdateNotifier">
-    <dismissed value="$PROJECT_DIR$/my-app/package.json" />
-  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
@@ -63,33 +58,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.Build pleasee.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.PleaseApplicationTests.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.pleasee [:org.example.please.PleaseApplication.main()].executor&quot;: &quot;Run&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;Spring Boot.PleaseApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.Unnamed.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Desktop/ttim&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\jin\\Desktop\\bamboo\\my-app\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build pleasee.executor": "Run",
+    "Gradle.PleaseApplicationTests.executor": "Run",
+    "Gradle.pleasee [:org.example.please.PleaseApplication.main()].executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "Spring Boot.PleaseApplication.executor": "Run",
+    "Spring Boot.Unnamed.executor": "Run",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/USER/Desktop/ttim",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "ts.external.directory.path": "C:\\Users\\jin\\Desktop\\bamboo\\my-app\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\USER\Desktop\ttim\my-app\app\(tabs)\diary" />
@@ -123,8 +118,6 @@
       <workItem from="1730363915267" duration="1215000" />
       <workItem from="1730367847221" duration="4519000" />
       <workItem from="1730373399697" duration="5939000" />
-      <workItem from="1730853872563" duration="9972000" />
-      <workItem from="1730869370251" duration="4846000" />
     </task>
     <task id="LOCAL-00001" summary="aasd">
       <option name="closed" value="true" />
@@ -190,15 +183,7 @@
       <option name="project" value="LOCAL" />
       <updated>1730772168703</updated>
     </task>
-    <task id="LOCAL-00009" summary="채팅방 평가 ui 다시 넣음, 회원가입시 chat_tb insert">
-      <option name="closed" value="true" />
-      <created>1730775287568</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1730775287568</updated>
-    </task>
-    <option name="localTasksCounter" value="10" />
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

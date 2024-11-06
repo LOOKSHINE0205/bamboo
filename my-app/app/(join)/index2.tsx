@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
+import SmoothCurvedButton from '../../components/SmoothCurvedButton'; // 버튼 컴포넌트 임포트
 
 const KeywordSelectionScreen = () => {
   const router = useRouter();
@@ -192,20 +193,6 @@ const KeywordSelectionScreen = () => {
           <Text style={styles.chatText}>{currentQuestion.question}</Text>
         </View>
 
-        {!isLastQuestion && (
-          <View style={styles.progressContainer}>
-            {questions.slice(0, -1).map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  currentQuestionIndex === index && styles.activeDot,
-                ]}
-              />
-            ))}
-          </View>
-        )}
-
         <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85, top: 150 }]}>
           {!isLastQuestion ? (
             <TouchableOpacity
@@ -221,14 +208,23 @@ const KeywordSelectionScreen = () => {
         </Animated.View>
 
         {!isLastQuestion && (
-          <Animated.View style={[styles.cloudContainer, { transform: [{ scale: cloudScale }], opacity: cloudAnim, width: screenWidth * 0.6, height: screenWidth * 0.3 }]}>
+          <Animated.View
+            style={[
+              styles.cloudContainer,
+              { transform: [{ scale: cloudScale }], opacity: cloudAnim, width: screenWidth * 0.6, height: screenWidth * 0.3 }
+            ]}
+          >
             <Image source={require('../../assets/images/구름.png')} style={styles.cloudImage} resizeMode="contain" />
           </Animated.View>
         )}
 
         {isLastQuestion ? (
           <View style={styles.chatbotContainer}>
-            <Animated.Image source={require('../../assets/images/bamboo_head.png')} style={[styles.chatbotImage, { width: screenWidth * 0.4, height: screenWidth * 0.4, top: 110, transform: [{ scale: chatbotScale }] }]} resizeMode="contain" />
+            <Animated.Image
+              source={require('../../assets/images/bamboo_head.png')}
+              style={[styles.chatbotImage, { width: screenWidth * 0.4, height: screenWidth * 0.4, top: 110, transform: [{ scale: chatbotScale }] }]}
+              resizeMode="contain"
+            />
             <TextInput
               style={[
                 styles.nameInput,
@@ -243,32 +239,58 @@ const KeywordSelectionScreen = () => {
             />
             <Text style={styles.warningText}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
 
-            <View style={[styles.navigationButtons, { top: 120 }]}>
-              {currentQuestionIndex > 0 && (
-                <TouchableOpacity style={[styles.navButton, { paddingVertical: screenHeight * 0.02 }]} onPress={handlePrevious} disabled={isProcessing}>
-                  <Text style={styles.navButtonText}>이전</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={[
-                  styles.navButton,
-                  {
-                    paddingVertical: screenHeight * 0.02,
-                    backgroundColor: chatbotName.trim() ? '#4a9960' : '#ccc',
-                    opacity: chatbotName.trim() ? 1 : 0.6
-                  }
-                ]}
-                onPress={handleConfirm}
-                disabled={!chatbotName.trim() || isProcessing}
-              >
-                <Text style={[styles.navButtonText, { color: '#fff' }]}>확인</Text>
-              </TouchableOpacity>
-            </View>
+           <View style={[styles.navigationButtons, { top: 120, flexDirection: 'row', justifyContent: 'center' }]}>
+             {currentQuestionIndex > 0 && (
+               <SmoothCurvedButton
+                 title="이전"
+                 onPress={handlePrevious}
+                 disabled={isProcessing}
+                 style={{
+                   width: screenWidth * 0.4, // 화면 너비의 40%로 설정
+                   height: 50,               // 고정 높이 설정
+                   marginHorizontal: 10,     // 버튼 간 좌우 간격 추가
+                 }}
+               />
+             )}
+             <SmoothCurvedButton
+               title="확인"
+               onPress={handleConfirm}
+               disabled={!chatbotName.trim() || isProcessing}
+               style={{
+                 opacity: chatbotName.trim() ? 1 : 0.6,
+                 width: screenWidth * 0.4,  // 화면 너비의 40%로 설정
+                 height: 50,                // 고정 높이 설정
+                 marginHorizontal: 10,      // 버튼 간 좌우 간격 추가
+               }}
+             />
+           </View>
+
+
+
+
           </View>
         ) : (
-          <View style={[styles.responseContainer, { width: screenWidth * 0.9, marginBottom: '5%' }]}>
+          <View style={styles.responseContainer}>
+            <View style={styles.progressContainer}>
+              {questions.slice(0, -1).map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    currentQuestionIndex === index && styles.activeDot,
+                  ]}
+                />
+              ))}
+            </View>
+
             {currentQuestion.responses.map((response, index) => (
-              <Animated.View key={index} style={[styles.responseButton, { opacity: fadeAnim, width: screenWidth * 0.85, borderColor: index === 0 ? '#4a9960' : '#ccc' }]}>
+              <Animated.View
+                key={index}
+                style={[
+                  styles.responseButton,
+                  { opacity: fadeAnim, height: screenHeight * 0.06, width: screenWidth * 0.85, borderColor: index === 0 ? '#4a9960' : '#ccc' },
+                ]}
+              >
                 <TouchableOpacity
                   style={styles.responseButtonTouchable}
                   onPress={() => !isProcessing && handleResponsePress(index)}
@@ -278,18 +300,25 @@ const KeywordSelectionScreen = () => {
                 </TouchableOpacity>
               </Animated.View>
             ))}
-            {currentQuestionIndex > 0 && (
-              <View style={styles.navigationButtons}>
-                <TouchableOpacity style={styles.navButton} onPress={handlePrevious} disabled={isProcessing}>
-                  <Text style={styles.navButtonText}>이전</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+
+            <View style={styles.navigationButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.navButton,
+                  currentQuestionIndex > 0 ? {} : { opacity: 0 },
+                ]}
+                onPress={currentQuestionIndex > 0 ? handlePrevious : null}
+                disabled={isProcessing || currentQuestionIndex === 0}
+              >
+                <Text style={styles.navButtonText}>이전</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </ScrollView>
     </JoinBG>
   );
+
 };
 
 // 스타일 정의
@@ -311,7 +340,7 @@ const styles = StyleSheet.create({
 
   // 채팅 버블 스타일: 질문 또는 응답 텍스트를 감싸는 영역으로, 모서리를 둥글게 처리하여 버블 모양으로 설정
   chatBubble: {
-    borderRadius: 20,           // 모서리를 둥글게 처리하여 버블 모양을 만듦
+    borderRadius: 30,           // 모서리를 둥글게 처리하여 버블 모양을 만듦
     padding: '4%',              // 버블 내부 여백을 설정하여 텍스트가 가장자리와 떨어져 있도록 함
     marginBottom: '5%'          // 다른 요소와의 간격을 위해 하단에 5% 여백 추가
   },
@@ -338,7 +367,7 @@ const styles = StyleSheet.create({
   nameInput: {
     borderWidth: 1,             // 입력 필드 테두리 두께를 1px로 설정
     borderColor: '#999',        // 테두리 색상을 회색으로 설정
-    borderRadius: 10,           // 모서리를 둥글게 처리하여 깔끔한 외형 제공
+    borderRadius: 12,           // 모서리를 둥글게 처리하여 깔끔한 외형 제공
     padding: 10,                // 입력 필드 내부 여백 설정
     fontSize: 16,               // 입력 텍스트 크기를 16px로 설정
     textAlign: 'center',        // 텍스트를 중앙 정렬하여 보기 좋게 표시
@@ -357,7 +386,7 @@ const styles = StyleSheet.create({
   // AI 응답 스타일: AI가 생성한 응답을 표시할 때 사용하는 스타일
   aiResponse: {
     backgroundColor: '#E8E8E8', // 배경색을 연회색으로 설정하여 채팅 버블과 구분
-    borderRadius: 20,           // 모서리를 둥글게 처리하여 부드러운 외형 제공
+    borderRadius: 30,           // 모서리를 둥글게 처리하여 부드러운 외형 제공
     padding: '4%',              // 내부 여백을 설정하여 텍스트와 가장자리 간격 확보
     position: 'absolute',       // 고정된 위치에 배치
     top: 180,                   // 화면 상단에서 180px 아래에 배치
@@ -378,7 +407,7 @@ const styles = StyleSheet.create({
   // 응답 버튼 터치 가능한 영역 스타일: 사용자 응답 버튼의 터치 가능한 영역
   responseButtonTouchable: {
     width: '100%',              // 터치 영역을 컨테이너 너비에 맞춤
-    padding: 10                 // 터치 영역 내부 여백 추가
+    padding: 3                 // 터치 영역 내부 여백 추가
   },
 
   // 구름 컨테이너 스타일: 애니메이션 효과가 적용된 구름 이미지 컨테이너
@@ -399,29 +428,33 @@ const styles = StyleSheet.create({
   aiResponseText: {
     fontSize: 16                // 텍스트 크기를 16px로 설정하여 읽기 쉽게 표시
   },
-
   // 응답 버튼 스타일: 사용자 응답 옵션 버튼의 스타일
   responseButton: {
     backgroundColor: '#FFF',    // 버튼 배경색을 흰색으로 설정
-    borderRadius: 20,           // 모서리를 둥글게 처리하여 버튼 외형 부드럽게 만듦
-    padding: '4%',              // 내부 여백을 설정하여 텍스트와 가장자리 간격 확보
+    borderRadius: 30,           // 모서리를 둥글게 처리하여 버튼 외형 부드럽게 만듦
+    paddingVertical: 10,        // 상하 패딩을 설정하여 버튼 크기 조절
+    paddingHorizontal: '4%',
     marginBottom: '3%',         // 버튼 간격을 위해 하단에 3% 마진 추가
     shadowColor: '#000',        // 그림자 색상 설정
     shadowOffset: { width: 0, height: 2 }, // 그림자 위치 조정
     shadowOpacity: 0.2,         // 그림자 투명도 설정
     shadowRadius: 3.84,         // 그림자 반경 설정
-    elevation: 5                // 안드로이드 그림자 효과 적용
+    elevation: 5,               // 안드로이드 그림자 효과 적용
+    justifyContent: 'center',   // 텍스트를 수직 중앙에 정렬
+    alignItems: 'center',       // 텍스트를 가로 중앙에 정렬
+    width: '90%',               // 버튼 너비를 90%로 설정하여 화면에 맞춤
   },
 
   // 응답 텍스트 스타일: 응답 텍스트의 폰트 크기와 정렬 설정
   responseText: {
     fontSize: 16,               // 텍스트 크기를 16px로 설정
-    textAlign: 'center'         // 텍스트를 중앙 정렬하여 버튼 내에서 보기 좋게 표시
+    textAlign: 'center',        // 텍스트를 중앙 정렬하여 버튼 내에서 보기 좋게 표시
+    lineHeight: 20,             // 줄 높이를 설정하여 수직 중앙에 위치하도록 함
   },
+
 
   // 내비게이션 버튼 컨테이너 스타일: '이전' 및 '확인' 버튼들을 담고 있는 컨테이너
   navigationButtons: {
-    flexDirection: 'row',       // 버튼을 가로로 나란히 배치
     justifyContent: 'center',   // 버튼을 중앙에 정렬
     marginTop: '5%',            // 상단에 5% 마진 추가
     marginBottom: 20            // 하단에 20px 마진 추가하여 다른 요소와 간격 확보
@@ -429,10 +462,11 @@ const styles = StyleSheet.create({
 
   // 내비게이션 버튼 스타일: '이전' 및 '확인' 버튼의 외형 스타일
   navButton: {
-    backgroundColor: '#FFF',    // 버튼 배경색을 흰색으로 설정
-    borderRadius: 15,           // 모서리를 둥글게 처리하여 외형을 부드럽게 만듦
-    paddingHorizontal: '4%',    // 버튼 좌우에 4% 패딩을 추가
-    marginHorizontal: '2%'      // 버튼 간격을 위해 좌우에 2% 마진 추가
+    paddingVertical: 12,          // 버튼의 상하 패딩을 추가하여 터치 영역 확대
+    paddingHorizontal: 30,        // 좌우 패딩을 추가하여 터치 영역 확대
+    marginHorizontal: '2%',       // 버튼 간격을 위해 좌우에 2% 마진 추가
+    minWidth: 80,                 // 버튼의 최소 너비 설정
+    alignItems: 'center',         // 텍스트를 중앙에 정렬
   },
 
   // 내비게이션 버튼 텍스트 스타일: '이전' 및 '확인' 버튼 텍스트 스타일
@@ -448,7 +482,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',       // 도트를 수직 중앙에 정렬
     marginBottom: '5%',         // 하단에 5% 마진 추가
     marginTop: '-2%',            // 상단에 -2% 마진 추가하여 다른 요소와 간격 조정
-    top:330,
   },
 
   // 비활성 도트 스타일: 기본 도트의 크기와 색상
