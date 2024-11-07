@@ -35,70 +35,68 @@ public class ChattingController {
 
     @Transactional
     @PostMapping("/getChatResponse")
-    public ResponseEntity<String> getChatResponse(@RequestBody Chatting chatting) {
-//        채팅내용 저장 및 답변 사용자에게 전송
+    public ResponseEntity<Map<String, Object>> getChatResponse(@RequestBody Chatting chatting) {
         LocalDateTime now = LocalDateTime.now();
         try {
-//            System.out.println("1. Received request to process chat response.");
-//            요청이온 CroomIdx의 가장 최신의 레코드 확인
+            // 최신 채팅 기록 조회 및 세션 인덱스 설정
             Chatting latestChatting = chattingRepository.findLatestChatByCroomIdx(chatting.getCroomIdx());
             if (latestChatting != null) {
-//                System.out.println("2. Latest chat record found for CroomIdx: " + chatting.getCroomIdx());
                 LocalDateTime latestCreatedAt = latestChatting.getCreatedAt().toLocalDateTime();
-// 마지막세션 얻고
                 chatting.setSessionIdx(latestChatting.getSessionIdx());
-//                System.out.println("   - Latest session index: " + latestChatting.getSessionIdx());
-//                더하고
+
                 if (Duration.between(latestCreatedAt, now).toMinutes() > 30) {
                     chatting.setSessionIdx(latestChatting.getSessionIdx() + 1);
-//                    System.out.println("   - More than 30 minutes passed. Incrementing session index to: " + chatting.getSessionIdx());
                 }
             } else {
-                // latestChatting이 null일 경우 그대로 insert 진행
                 chatting.setSessionIdx(1);
-//                System.out.println("No previous chat record found. Proceeding with insertion.");
             }
-            if (chatting.getChatter().equals("user")) {
-//                System.out.println("3. Saving user chat message.");
+
+            // 사용자 메시지 저장
+            if ("user".equals(chatting.getChatter())) {
                 chattingService.saveChatbotDialogue(chatting);
-                entityManager.flush(); // 현재까지의 상태를 DB에 동기화
-                entityManager.clear(); // 세션 초기화
-//                System.out.println("   - User chat message saved and session cleared.");
+
+                entityManager.flush();
+                entityManager.clear();
+                System.out.println("userChatIdxxxx"+chattingService.saveChatbotDialogue(chatting));
             }
-//오오오오오오오오오옹 채솞연결하기 setEmotionTag, setChatContent 등
+
+            // 봇 응답 생성 및 저장
             String botMessage = "답변입니다";
-//            System.out.println("4. Saving bot response message.");
-            saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botMessage, "happy");
+            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botMessage, "happy");
 
-            return ResponseEntity.ok().body(botMessage);
+            // 응답 데이터 생성
+            Map<String, Object> response = new HashMap<>();
+            response.put("chatContent", botResponse.getChatContent());
+            response.put("chatIdx", botResponse.getChatIdx()); // 저장된 chatIdx 반환
+            response.put("evaluation", botResponse.getEvaluation());
 
-        }catch (Exception e) {
-            e.printStackTrace(); // 예외 발생 시 디버그 용도로 스택 추적 출력
-            System.out.println("Error occurred while processing chat response.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버오류");
-        }
-    }
+            System.out.println("Returning chatIdx: " + botResponse.getChatIdx()); // 디버그 로그
 
-    public void saveBotMessage(int croomIdx, int sessionIdx, String content, String emotionTag) {
-        Chatting botResponseChatting = new Chatting();
-        botResponseChatting.setCroomIdx(croomIdx);
-        botResponseChatting.setSessionIdx(sessionIdx);
-        botResponseChatting.setChatter("bot");
-        botResponseChatting.setChatContent(content);
-        botResponseChatting.setEmotionTag(emotionTag);
-        botResponseChatting.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-        try {
-            System.out.println("   - Attempting to save bot message.");
-            chattingService.saveChatbotDialogue(botResponseChatting);
-            entityManager.flush(); // DB 동기화
-            entityManager.clear(); // 세션 초기화
-            System.out.println("   - Bot message saved successfully and session cleared.");
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error occurred while saving bot message.");
+            System.out.println("Error occurred while processing chat response.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-//    }
     }
+
+    private Chatting saveBotMessage(int croomIdx, int sessionIdx, String content, String emotionTag) {
+        Chatting botMessage = new Chatting();
+        botMessage.setCroomIdx(croomIdx);
+        botMessage.setSessionIdx(sessionIdx);
+        botMessage.setChatContent(content);
+        botMessage.setChatter("bot");
+        botMessage.setEmotionTag(emotionTag);
+
+
+        Chatting savedMessage = chattingRepository.saveAndFlush(botMessage);
+        System.out.println("chatIDXXXXXX: " + savedMessage.getChatIdx());
+        // 저장 후, 데이터베이스에서 다시 조회하여 반환 (생성된 chatIdx 포함)
+        return chattingRepository.findById(savedMessage.getChatIdx())
+                .orElseThrow(() -> new RuntimeException("Failed to retrieve saved bot message"));
+    }
+
 
 
     @PostMapping("/create_room")

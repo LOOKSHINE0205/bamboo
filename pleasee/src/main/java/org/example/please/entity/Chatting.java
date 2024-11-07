@@ -18,6 +18,7 @@ public class  Chatting {
     @Id
     @Column(name = "chat_idx")
     @EqualsAndHashCode.Include
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     // 채팅 식별자
     private int chatIdx;
 
