@@ -1,6 +1,7 @@
 // ChatController.java
 package org.example.please.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -35,47 +36,48 @@ public class ChattingController {
     @Autowired
     private ChattingRepository chattingRepository;
 
-    @PostMapping("/sendUserMessage")
-    public ResponseEntity<Map<String, Object>> sendUserMessage(String userEmail, int croomIdx, int sessionIdx, String chatContent) {
+    public Map<String, Object> sendUserMessage(String userEmail, int croomIdx, int sessionIdx, String chatContent) {
         Map<String, Object> response = new HashMap<>();
 
-        String url = "https://4103-35-231-206-55.ngrok-free.app/predict";
+        String url = "https://9d24-35-231-206-55.ngrok-free.app/predict";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-
         try {
+            Map<String, Object> requestPayload = new HashMap<>();
             // 필요한 데이터 준비
             String firstUserMessage = chattingService.getFirstUserMessageInSession(croomIdx, sessionIdx);
             String previousMessage = chattingService.getLatestMessageInRoom(croomIdx, sessionIdx);
-
+            // 기본값 설정
+            if (firstUserMessage == null) {
+                firstUserMessage = "[NO_FIRST]";
+            }
+            if (previousMessage == null) {
+                previousMessage = "[NO_PREV]";
+            }
             // 요청에 필요한 데이터 구성
-            response.put("user_email", userEmail);
-            response.put("croom_idx", croomIdx);
-            response.put("session_idx", sessionIdx);
-            response.put("first_user_message", firstUserMessage);
-            response.put("previous_message", previousMessage);
-            response.put("current_user_message", chatContent);
+            requestPayload.put("user_email", userEmail);
+            requestPayload.put("croom_idx", croomIdx);
+            requestPayload.put("session_idx", sessionIdx);
+            requestPayload.put("first_user_message", firstUserMessage);
+            requestPayload.put("previous_message", previousMessage);
+            requestPayload.put("current_user_message", chatContent);
+            // ngrok로 요청 보내기 전에 요청 데이터 확인 (디버깅용 로그)
+            System.out.println("Request Payload: " + requestPayload);
 
-            // HTTP 엔터티 생성
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(response, headers);
+            // ngrok로 요청 보내기
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestPayload, headers);
+            ResponseEntity<Map> ngrokResponse = restTemplate.postForEntity(url, requestEntity, Map.class);
 
-            // ngrok 서버에 POST 요청을 보내고 응답 받기
-            ResponseEntity<Map> responseEntity = restTemplate.postForEntity(url, requestEntity, Map.class);
-
-            // ngrok에서 받은 응답 데이터 가져오기
-            Map<String, Object> responseBody = responseEntity.getBody();
-
-            // 응답 데이터를 출력하거나 필요한 경우 로직에 사용
-            System.out.println("Received from ngrok: " + responseBody);
-
-            // ngrok에서 받은 응답을 클라이언트에 반환
-            return ResponseEntity.ok(responseBody);
+            // ngrok에서 받은 응답을 처리
+            if (ngrokResponse.getBody() != null) {
+                response = ngrokResponse.getBody();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
             response.put("error", "An error occurred while processing the message.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+        return response;
     }
 
 
@@ -96,9 +98,12 @@ public class ChattingController {
             } else {
                 chatting.setSessionIdx(1);
             }
-            //            모델한테 보낼거
-//            Map<String,Object> sendUserMessage(chatting.getUserEmail(),chatting.getCroomIdx(),chatting.getSessionIdx(), chatting.getChatContent());
-
+            ObjectMapper mapper = new ObjectMapper();
+            sendUserMessage(chatting.getUserEmail(),chatting.getCroomIdx(),chatting.getSessionIdx(), chatting.getChatContent());
+            //            모델한테 보내고 답받기
+            Map<String, Object> botResponseToUser = sendUserMessage(chatting.getUserEmail(),chatting.getCroomIdx(),chatting.getSessionIdx(), chatting.getChatContent());
+            String userEmotionTag = mapper.writeValueAsString(botResponseToUser.get("current_emotion_probabilities"));
+            chatting.setEmotionTag(userEmotionTag);
             // 사용자 메시지 저장
             if ("user".equals(chatting.getChatter())) {
                 chattingService.saveChatbotDialogue(chatting);
@@ -106,14 +111,18 @@ public class ChattingController {
                 entityManager.clear();
                 System.out.println("userChatIdxxxx"+chattingService.saveChatbotDialogue(chatting));
             }
-            // 봇 응답 생성 및 저장
-            String botMessage = "답변입니다";
-            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botMessage, "happy");
+            // 봇 응답  저장
+            String botMessage = (String)botResponseToUser.get("bot_response");
+            String botEmotionTag = mapper.writeValueAsString(botResponseToUser.get("bot_response_emotion_probabilities"));
+
+            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botMessage, botEmotionTag);
             // 응답 데이터 생성
             Map<String, Object> response = new HashMap<>();
             response.put("chatContent", botResponse.getChatContent());
             response.put("chatIdx", botResponse.getChatIdx()); // 저장된 chatIdx 반환
             response.put("evaluation", botResponse.getEvaluation());
+            response.put("sessionIdx", botResponse.getSessionIdx());
+
 
             System.out.println("Returning chatIdx: " + botResponse.getChatIdx()); // 디버그 로그
             return ResponseEntity.ok(response);
