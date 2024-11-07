@@ -34,29 +34,54 @@ export default function ChatbotPage() {
     const scrollViewRef = useRef<ScrollView>(null);
     const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
 
+
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
     const countdownDuration = 5; // 5초 카운트다운
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    useLayoutEffect(() => {
+useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const userData = await getUserInfo();
+            if (userData) {
+                setUserNick(userData.userNick || '');
+                setChatbotName(userData.chatbotName || '챗봇');
+            }
+            const profileImage = await getUserProfileImage();
+            setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
+
+        } catch (error) {
+            console.error('데이터를 가져오는 데 실패했습니다:', error);
+        }
+    };
+
+    fetchData();
+}, []); // 초기 로딩용 useEffect
+
+useFocusEffect(
+    React.useCallback(() => {
         const fetchData = async () => {
             try {
                 const userData = await getUserInfo();
                 if (userData) {
-                    setUserNick(userData.userNick);
-                    setChatbotName(userData.chatbotName);
+                    setUserNick(userData.userNick || '');
+                    setChatbotName(userData.chatbotName || '챗봇');
                 }
                 const profileImage = await getUserProfileImage();
                 setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
+
             } catch (error) {
                 console.error('데이터를 가져오는 데 실패했습니다:', error);
             }
         };
-        fetchData();
-    }, []);
 
+        fetchData();
+    }, [])
+);
+
+    // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
     useEffect(() => {
         if (!userNick || !chatbotName) return; // 사용자 이름과 챗봇 이름이 로드된 후에 실행
 
