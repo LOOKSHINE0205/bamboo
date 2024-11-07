@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.sql.Time;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -155,4 +156,31 @@ public class UserController {
         response.put("message", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/updateNotificationSettings")
+    public ResponseEntity<String> updateNotificationSettings(
+            @RequestParam String userEmail,
+            @RequestParam boolean toggle,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime) {
+        try {
+            if (toggle) {
+                // 알람 활성화 시 시간 포맷 확인 후 변환
+                String formattedStartTime = (startTime != null && startTime.length() == 4) ?
+                        startTime.substring(0, 2) + ":" + startTime.substring(2) + ":00" : startTime + ":00";
+                String formattedEndTime = (endTime != null && endTime.length() == 4) ?
+                        endTime.substring(0, 2) + ":" + endTime.substring(2) + ":00" : endTime + ":00";
+
+                userService.updateQuietTimes(userEmail, formattedStartTime, formattedEndTime);
+            }
+            // 알람 토글 상태 업데이트 (활성화/비활성화)
+            userService.updateToggle(userEmail, toggle);
+
+            return ResponseEntity.ok("알림 설정이 업데이트되었습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알림 설정 업데이트 중 오류 발생");
+        }
+    }
+
 }

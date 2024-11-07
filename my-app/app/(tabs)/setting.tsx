@@ -39,39 +39,51 @@ const SettingsScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(null);
 
-  useEffect(() => {
-    // AsyncStorage에서 프로필 이미지를 불러오는 부분
-    const fetchUserData = async () => {
-        setIsLoading(true);
-        try {
-            const data = await getUserInfo(); // DB에서 정보 불러오기
-            if (data) {
-                const profileImageUrl = data.profileImage?.startsWith(serverAddress)
-                    ? data.profileImage
-                    : `${serverAddress}/uploads/profile/images/${data.profileImage}`;
+ useEffect(() => {
+   const fetchUserData = async () => {
+     setIsLoading(true);
+     try {
+       const data = await getUserInfo(); // DB에서 정보 불러오기
+       if (data) {
+         const profileImageUrl = data.profileImage?.startsWith(serverAddress)
+           ? data.profileImage
+           : `${serverAddress}/uploads/profile/images/${data.profileImage}`;
 
-                setUserInfo({ ...data, profileImage: profileImageUrl });
-                setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트
-                await AsyncStorage.setItem('userInfo', JSON.stringify({ ...data, profileImage: profileImageUrl }));
-            } else {
-                setUserInfo(null);
-                setProfileImageUri(null);
-                Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
-            }
-        } catch (error) {
-            console.error('사용자 정보 불러오기 중 오류:', error);
-            Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+         // DB에서 가져온 값을 상태에 반영
+         setUserInfo({ ...data, profileImage: profileImageUrl });
+         setProfileImageUri(profileImageUrl);
+         setNotificationsEnabled(data.toggle === 1); // 토글 설정
+         setStartTime(data.quietStartTime || '09:00'); // 시작 시간 설정
+         setEndTime(data.quietEndTime || '18:00'); // 종료 시간 설정
 
-    fetchUserData();
-  }, []);
+         await AsyncStorage.setItem(
+           'userInfo',
+           JSON.stringify({
+             ...data,
+             profileImage: profileImageUrl,
+             toggle: data.toggle,
+             startTime: data.quietStartTime,
+             endTime: data.quietEndTime,
+           })
+         );
+       } else {
+         setUserInfo(null);
+         setProfileImageUri(null);
+         Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
+       }
+     } catch (error) {
+       console.error('사용자 정보 불러오기 중 오류:', error);
+       Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
+     } finally {
+       setIsLoading(false);
+     }
+   };
 
-  const toggleSwitch = () => {
-    setNotificationsEnabled((prev) => !prev);
-  };
+   fetchUserData();
+ }, []);
+
+
+
 
   const handleImagePicker = () => {
     setModalVisible(true);
@@ -150,17 +162,26 @@ const SettingsScreen = () => {
      setModalVisible(false);
  };
 
+ const toggleSwitch = () => {
+    setNotificationsEnabled((prev) => !prev);
+  };
+
   const handleSave = async () => {
-    if (notificationsEnabled && startTime >= endTime) {
-      Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
-      return;
-    }
-    try {
-      const settings = {
-        nickname: userInfo?.userNick,
-        notificationsEnabled,
-        notificationTimeRange: notificationsEnabled ? { start: startTime, end: endTime } : null,
-      };
+      if (notificationsEnabled && startTime >= endTime) {
+          Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
+          return;
+      }
+      try {
+          // 알림 설정 API 호출
+          await axios.put(`${serverAddress}/api/users/updateNotificationSettings`, null, {
+              params: {
+                  userEmail: userInfo?.userEmail,
+                  toggle: notificationsEnabled, // 알람 활성화 상태 전송
+                  startTime: notificationsEnabled ? startTime : null,
+                  endTime: notificationsEnabled ? endTime : null,
+              }
+          });
+
       if (newPassword) {
         const userData = { userEmail: userInfo?.userEmail, userPw: newPassword };
         await axios.post(`${serverAddress}/api/users/updatePassword`, userData);

@@ -14,11 +14,66 @@ export interface User {
     chatbotName: string;
     chatbotLevel: number;
     profileImage: string; // 전체 URL 저장
+    toggle: boolean; // 알람 활성화 여부
 }
 
 // 서버 주소 상수로 정의
 const profileImageUploadUrl = `${serverAddress}/api/users/uploadProfile`;
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
+
+
+// 사용자 정보 저장 함수
+export const saveUserInfo = async (userInfo: User): Promise<void> => {
+    try {
+        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
+        console.log('사용자 정보 저장에 성공', userInfo);
+    } catch (error) {
+        console.error('사용자 정보 저장에 실패했습니다:', error);
+    }
+};
+
+// 사용자 정보 불러오기 함수 (알람 시간 포함)
+export const getUserInfo = async (): Promise<User | null> => {
+    try {
+        const userInfoString = await AsyncStorage.getItem('userInfo');
+        if (userInfoString) {
+            const userData: User = JSON.parse(userInfoString);
+            return userData;
+        } else {
+            console.warn("사용자 정보가 저장되어 있지 않습니다.");
+            return null;
+        }
+    } catch (error) {
+        console.error('사용자 정보 불러오기에 실패했습니다:', error);
+        return null;
+    }
+};
+
+// 사용자 정보 업데이트 함수 (알람 시간 업데이트 포함)
+export const updateUserInfo = async (newData: Partial<User>): Promise<void> => {
+    try {
+        const currentData = await getUserInfo();
+        if (currentData) {
+            const updatedData = { ...currentData, ...newData }; // 기존 데이터와 새 데이터를 병합
+            await saveUserInfo(updatedData);
+            console.log('사용자 정보 업데이트 성공:', updatedData);
+        } else {
+            console.warn("사용자 정보가 없습니다. 업데이트를 할 수 없습니다.");
+        }
+    } catch (error) {
+        console.error('사용자 정보 업데이트에 실패했습니다:', error);
+    }
+};
+
+// 사용자 정보 제거
+export const clearUserData = async () => {
+    try {
+        await AsyncStorage.removeItem('userInfo'); // 사용자 정보만 삭제
+        console.log("사용자 데이터 삭제 성공");
+    } catch (error) {
+        console.error('사용자 데이터 삭제에 실패했습니다:', error);
+    }
+};
 
 // 서버에 이미지 업로드 함수
 const uploadProfileImageToServer = async (imageUri: string, userEmail: string): Promise<string | null> => {
@@ -85,42 +140,3 @@ export const getUserProfileImage = async (): Promise<string | null> => {
         return null;
     }
 };
-
-// 사용자 정보 저장 함수
-export const saveUserInfo = async (userInfo: User): Promise<void> => {
-    try {
-        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
-        console.log('사용자 정보 저장에 성공', userInfo);
-    } catch (error) {
-        console.error('사용자 정보 저장에 실패했습니다:', error);
-    }
-};
-
-// 사용자 정보 불러오기 함수
-export const getUserInfo = async (): Promise<User | null> => {
-    try {
-        const userInfo = await AsyncStorage.getItem('userInfo');
-        if (userInfo) {
-            const parsedData: User = JSON.parse(userInfo);
-            return parsedData;
-        } else {
-            console.warn("사용자 정보가 저장되어 있지 않습니다.");
-            return null;
-        }
-    } catch (error) {
-        console.error('사용자 정보 불러오기에 실패했습니다:', error);
-        return null;
-    }
-};
-
-
-// 사용자 정보 제거
-export const clearUserData = async () => {
-    try {
-        await AsyncStorage.removeItem('userInfo'); // 사용자 정보만 삭제
-        console.log("사용자 데이터 삭제 성공");
-    } catch (error) {
-        console.error('사용자 데이터 삭제에 실패했습니다:', error);
-    }
-};
-
