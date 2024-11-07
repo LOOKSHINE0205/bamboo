@@ -31,7 +31,6 @@ public class User {
     @Column(name = "user_nick")
     private String userNick;
 
-
     // 생년월일
     @Column(name = "user_birthdate")
     @Temporal(TemporalType.DATE)
@@ -61,7 +60,17 @@ public class User {
     @Column(name = "chatbot_level")
     private int chatbotLevel;
 
-    //유저 프로필
+    // 유저 프로필 이미지 경로
     @Column(name = "user_profile")
-    private String profileImage;
+    private String userProfile;
+
+    // 프로필 이미지 경로 가져오기 메서드
+    public String getProfileImage() {
+        return userProfile;
+    }
+
+    // 필요에 따라 프로필 이미지 설정 메서드 추가
+    public void setProfileImage(String profileImage) {
+        this.userProfile = profileImage;
+    }
 }

@@ -53,4 +53,8 @@ public class  Chatting {
     // 세션 식별자
     @Column(name = "session_idx")
     private int sessionIdx;
+
+    // 평가
+    @Column(name = "evaluation")
+    private String evaluation;
 }

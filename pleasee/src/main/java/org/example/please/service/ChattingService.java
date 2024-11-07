@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 
+import java.util.List;
+
 @Service
 public class ChattingService {
 
@@ -32,4 +34,12 @@ public class ChattingService {
     }
 
 
+    public Chatbot findByUserEmail(String userEmail) {
+        return chatbotRepository.findByUserEmail(userEmail);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Chatting> getChatHistory(int croomIdx) {
+        return chatbotRepository.findByCroomIdxOrderByCreatedAtAsc(croomIdx);
+    }
 }

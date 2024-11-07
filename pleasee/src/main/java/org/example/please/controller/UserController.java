@@ -1,6 +1,8 @@
 package org.example.please.controller;
 
+import org.example.please.entity.Chatbot;
 import org.example.please.entity.User;
+import org.example.please.service.ChattingService;
 import org.example.please.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +27,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // 이메일 중복 확인
+    @Autowired
+    private ChattingService chattingService;
+
     @PostMapping("/checkEmail")
     public ResponseEntity<Map<String, Object>> checkEmail(@RequestBody User user) {
         boolean isDuplicate = userService.checkEmail(user);
@@ -36,7 +40,6 @@ public class UserController {
                 : ResponseEntity.ok(response);
     }
 
-    // 회원 가입
     @PostMapping("/join")
     public ResponseEntity<Map<String, Object>> join(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -50,21 +53,23 @@ public class UserController {
         }
     }
 
-    // 로그인
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
         User authenticatedUser = userService.login(user);
+
         if (authenticatedUser != null) {
+            Chatbot croomIdx = chattingService.findByUserEmail(authenticatedUser.getUserEmail());
             response.put("message", "로그인 성공");
             response.put("user", authenticatedUser);
+            response.put("croomIdx", croomIdx != null ? croomIdx.getCroomIdx() : null);
             return ResponseEntity.ok(response);
         }
+
         response.put("message", "로그인 실패");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
-    // 비밀번호 업데이트
     @PostMapping("/updatePassword")
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -78,7 +83,6 @@ public class UserController {
         }
     }
 
-    // 사용자 정보 조회
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getUserInfo(@RequestParam String email) {
         Optional<User> user = userService.findByEmail(email);
@@ -86,11 +90,11 @@ public class UserController {
             Map<String, Object> response = new HashMap<>();
             response.put("user_nick", value.getUserNick());
             response.put("user_email", value.getUserEmail());
+            response.put("profile_image", value.getProfileImage());
             return ResponseEntity.ok(response);
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    // 알림 시간 조회
     @GetMapping("/getQuietTime")
     public ResponseEntity<Map<String, Object>> getQuietTime(@RequestParam String email) {
         Optional<User> user = userService.findByEmail(email);
@@ -103,15 +107,12 @@ public class UserController {
                 .body(Map.of("message", "User not found")));
     }
 
-    // 프로필 이미지 업로드
     @PostMapping("/uploadProfile")
     public ResponseEntity<Map<String, Object>> uploadProfile(
-            @RequestParam(value = "email", required = true) String email,
-            @RequestParam(value = "photo", required = true) MultipartFile photoFile) {
+            @RequestParam("email") String email,
+            @RequestParam("photo") MultipartFile photoFile) {
 
         Map<String, Object> response = new HashMap<>();
-
-        // 파라미터 유효성 검사
         if (email == null || email.isEmpty()) {
             response.put("message", "이메일이 제공되지 않았습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -123,7 +124,6 @@ public class UserController {
         }
 
         try {
-            // 파일 업로드 처리
             String filePath = userService.uploadProfileImage(email, photoFile);
 
             if (filePath != null) {
@@ -140,7 +140,6 @@ public class UserController {
         }
     }
 
-    // 프로필 이미지 초기화
     @PostMapping("/resetProfileImage")
     public ResponseEntity<Map<String, Object>> resetProfileImage(@RequestBody Map<String, String> request) {
         String email = request.get("userEmail");

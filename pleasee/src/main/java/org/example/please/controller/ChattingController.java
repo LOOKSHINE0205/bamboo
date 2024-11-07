@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -38,35 +39,35 @@ public class ChattingController {
 //        채팅내용 저장 및 답변 사용자에게 전송
         LocalDateTime now = LocalDateTime.now();
         try {
-            System.out.println("1. Received request to process chat response.");
+//            System.out.println("1. Received request to process chat response.");
 //            요청이온 CroomIdx의 가장 최신의 레코드 확인
             Chatting latestChatting = chattingRepository.findLatestChatByCroomIdx(chatting.getCroomIdx());
             if (latestChatting != null) {
-                System.out.println("2. Latest chat record found for CroomIdx: " + chatting.getCroomIdx());
+//                System.out.println("2. Latest chat record found for CroomIdx: " + chatting.getCroomIdx());
                 LocalDateTime latestCreatedAt = latestChatting.getCreatedAt().toLocalDateTime();
 // 마지막세션 얻고
                 chatting.setSessionIdx(latestChatting.getSessionIdx());
-                System.out.println("   - Latest session index: " + latestChatting.getSessionIdx());
+//                System.out.println("   - Latest session index: " + latestChatting.getSessionIdx());
 //                더하고
                 if (Duration.between(latestCreatedAt, now).toMinutes() > 30) {
                     chatting.setSessionIdx(latestChatting.getSessionIdx() + 1);
-                    System.out.println("   - More than 30 minutes passed. Incrementing session index to: " + chatting.getSessionIdx());
+//                    System.out.println("   - More than 30 minutes passed. Incrementing session index to: " + chatting.getSessionIdx());
                 }
             } else {
                 // latestChatting이 null일 경우 그대로 insert 진행
                 chatting.setSessionIdx(1);
-                System.out.println("No previous chat record found. Proceeding with insertion.");
+//                System.out.println("No previous chat record found. Proceeding with insertion.");
             }
             if (chatting.getChatter().equals("user")) {
-                System.out.println("3. Saving user chat message.");
+//                System.out.println("3. Saving user chat message.");
                 chattingService.saveChatbotDialogue(chatting);
                 entityManager.flush(); // 현재까지의 상태를 DB에 동기화
                 entityManager.clear(); // 세션 초기화
-                System.out.println("   - User chat message saved and session cleared.");
+//                System.out.println("   - User chat message saved and session cleared.");
             }
 //오오오오오오오오오옹 채솞연결하기 setEmotionTag, setChatContent 등
             String botMessage = "답변입니다";
-            System.out.println("4. Saving bot response message.");
+//            System.out.println("4. Saving bot response message.");
             saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botMessage, "happy");
 
             return ResponseEntity.ok().body(botMessage);
@@ -105,6 +106,13 @@ public class ChattingController {
         Map<String, Object> response = new HashMap<>();
         chattingService.createRoom(chatbot);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/getChatHistory")
+    public ResponseEntity<List<Chatting>> getChatHisotry(@RequestParam Integer croomIdx) {
+        // 특정 방 ID의 채팅 기록을 가져옴
+        List<Chatting> chatHistory = chattingService.getChatHistory(croomIdx);
+        return ResponseEntity.ok(chatHistory);
     }
 }
 
