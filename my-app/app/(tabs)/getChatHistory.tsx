@@ -21,7 +21,7 @@ export interface ChatMessage {
  */
 export const getChatHistory = async (): Promise<ChatMessage[]> => {
     try {
-        // AsyncStorage에서 croomIdx를 가져오기
+        // AsyncStorage에m서 crooIdx를 가져오기
         const storedCroomIdx = await AsyncStorage.getItem("croomIdx");
         if (!storedCroomIdx) {
             throw new Error("croomIdx not found in AsyncStorage");

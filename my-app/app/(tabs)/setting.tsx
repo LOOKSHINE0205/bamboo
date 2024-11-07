@@ -19,10 +19,11 @@ import {
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage } from '../../storage/storageHelper';
+import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage, saveUserInfo } from '../../storage/storageHelper';
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 import {serverAddress} from '../../components/Config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
@@ -38,136 +39,117 @@ const SettingsScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(null);
 
-useEffect(() => {
-    // 로그인 후 데이터를 다시 확인하기 위해 fetchUserData 호출
-    const checkAsyncStorage = async () => {
-        const userInfo = await AsyncStorage.getItem('userInfo');
-        console.log("로그인 후 저장된 userInfo:", userInfo);
+  useEffect(() => {
+    // AsyncStorage에서 프로필 이미지를 불러오는 부분
+    const fetchUserData = async () => {
+        setIsLoading(true);
+        try {
+            const data = await getUserInfo(); // DB에서 정보 불러오기
+            if (data) {
+                const profileImageUrl = data.profileImage?.startsWith(serverAddress)
+                    ? data.profileImage
+                    : `${serverAddress}/uploads/profile/images/${data.profileImage}`;
+
+                setUserInfo({ ...data, profileImage: profileImageUrl });
+                setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트
+                await AsyncStorage.setItem('userInfo', JSON.stringify({ ...data, profileImage: profileImageUrl }));
+            } else {
+                setUserInfo(null);
+                setProfileImageUri(null);
+                Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
+            }
+        } catch (error) {
+            console.error('사용자 정보 불러오기 중 오류:', error);
+            Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    checkAsyncStorage(); // 로그인 후 저장된 데이터를 확인
-    fetchUserData(); // 새 사용자 정보 로드
-}, []);
+    fetchUserData();
+  }, []);
 
-// 로그인 성공 후 사용자 정보 저장
-const handleLogin = async (user) => {
-    await saveUserInfo(user); // 사용자 정보를 AsyncStorage에 저장
-    await fetchUserData(); // 설정 화면에서 새 정보 불러오기
-};
-
-  // 사용자 데이터를 가져오는 함수
-  const fetchUserData = async () => {
-      setIsLoading(true);
-      try {
-          const data = await getUserInfo();
-          const profileImage = await getUserProfileImage();
-
-          // 데이터를 제대로 가져왔는지 확인하는 로그
-          console.log('Fetched User Data:', data);
-          console.log('Fetched Profile Image:', profileImage);
-
-          if (data) {
-              setUserInfo({ ...data, profileImage });
-              setProfileImageUri(profileImage ? `${profileImage}?${new Date().getTime()}` : null);
-          } else {
-              setUserInfo(null);
-              setProfileImageUri(null);
-              Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
-          }
-      } catch (error) {
-          console.error('사용자 정보 불러오기 중 오류:', error);
-          Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
-      } finally {
-          setIsLoading(false);
-      }
-  };
-
-  // 알림 설정 토글 함수
   const toggleSwitch = () => {
     setNotificationsEnabled((prev) => !prev);
   };
 
-  // 이미지 선택 핸들러
   const handleImagePicker = () => {
     setModalVisible(true);
   };
 
-  // 이미지 선택 후 서버에 업로드
   const handleImageSelect = async () => {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-          Alert.alert("알림", "갤러리에 접근하기 위해 권한이 필요합니다.");
-          return;
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("알림", "갤러리에 접근하기 위해 권한이 필요합니다.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      const selectedImageUri = result.assets[0].uri;
+      console.log("Selected Image URI:", selectedImageUri);
+
+      if (profileImageUri === selectedImageUri) {
+        console.log("동일한 이미지를 업로드하려고 합니다. 중단합니다.");
+        return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1,
-      });
+      try {
+        const formData = new FormData();
+        formData.append('photo', {
+          uri: selectedImageUri,
+          type: 'image/jpeg',
+          name: 'profile.jpg',
+        });
+        formData.append('email', userInfo?.userEmail);
+        console.log("FormData:", formData);
 
-      if (!result.canceled && result.assets?.length > 0) {
-          const selectedImageUri = result.assets[0].uri;
-          console.log("Selected Image URI:", selectedImageUri);
+        const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
 
-          if (profileImageUri === selectedImageUri) {
-              console.log("동일한 이미지를 업로드하려고 합니다. 중단합니다.");
-              return;
-          }
-
-          try {
-              const formData = new FormData();
-              formData.append('photo', {
-                  uri: selectedImageUri,
-                  type: 'image/jpeg',
-                  name: 'profile.jpg',
-              });
-              formData.append('email', userInfo?.userEmail);
-              console.log("FormData:", formData);
-
-              const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
-                  headers: { 'Content-Type': 'multipart/form-data' },
-              });
-
-              if (response.status === 200) {
-                  const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
-                  setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
-                  setProfileImageUri(`${serverImagePath}?${new Date().getTime()}`);
-                  await setUserProfileImage(serverImagePath);
-                  Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
-              } else {
-                  console.warn("이미지 업로드 실패:", response.data);
-              }
-          } catch (error) {
-              console.error("프로필 이미지 업로드 중 오류:", error?.response?.data || error?.message || error);
-              Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
-          }
+        if (response.status === 200) {
+          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
+          const fullProfileImageUri = `${serverImagePath}?${new Date().getTime()}`;
+          setUserInfo((prev) => ({ ...prev, profileImage: fullProfileImageUri }));
+          setProfileImageUri(fullProfileImageUri);
+          await setUserProfileImage(fullProfileImageUri);
+          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
+        } else {
+          console.warn("이미지 업로드 실패:", response.data);
+        }
+      } catch (error) {
+        console.error("프로필 이미지 업로드 중 오류:", error?.response?.data || error?.message || error);
+        Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
       }
-      setModalVisible(false);
-  };
-
-
-
-  // 프로필 이미지를 기본 이미지로 재설정
-  const handleResetProfileImage = async () => {
-    try {
-      await axios.post(`${serverAddress}/api/users/resetProfileImage`, {
-        userEmail: userInfo?.userEmail,
-      });
-
-      await setUserProfileImage(null);
-      setUserInfo((prev) => ({ ...prev, profileImage: null }));
-      setProfileImageUri(null);
-      Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
-    } catch (error) {
-      console.error("프로필 이미지 재설정 중 오류:", error);
-      Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
     }
     setModalVisible(false);
   };
 
-  // 설정 저장 함수
+ const handleResetProfileImage = async () => {
+     try {
+         await axios.post(`${serverAddress}/api/users/resetProfileImage`, {
+             userEmail: userInfo?.userEmail,
+         });
+
+         const defaultImageUrl = `${serverAddress}/path/to/default/profile/image.jpg`; // 기본 이미지 URL 지정
+         await setUserProfileImage(defaultImageUrl); // 기본 이미지로 초기화
+         setUserInfo((prev) => ({ ...prev, profileImage: defaultImageUrl }));
+         setProfileImageUri(defaultImageUrl);
+         Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
+     } catch (error) {
+         console.error("프로필 이미지 재설정 중 오류:", error);
+         Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
+     }
+     setModalVisible(false);
+ };
+
   const handleSave = async () => {
     if (notificationsEnabled && startTime >= endTime) {
       Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
@@ -190,7 +172,6 @@ const handleLogin = async (user) => {
     }
   };
 
-  // 로그아웃 함수
   const handleLogout = async () => {
     try {
       await clearUserData(); // 사용자 데이터 제거

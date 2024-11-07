@@ -8,7 +8,6 @@ import org.example.please.repository.ChatbotRepository;
 import org.example.please.repository.ChattingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 
 import java.util.List;
 
@@ -27,10 +26,11 @@ public class ChattingService {
 
     //    챗봇 답변내용 저장
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveChatbotDialogue(Chatting chatting) {
+    public Chatting saveChatbotDialogue(Chatting chatting) {
         System.out.println("Saving chatbot dialogue in a new transaction.");
         chattingRepository.saveAndFlush(chatting);
         System.out.println("Chatbot dialogue saved successfully.");
+        return chatting;
     }
 
 

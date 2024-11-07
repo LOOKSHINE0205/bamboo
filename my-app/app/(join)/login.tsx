@@ -5,9 +5,8 @@ import { saveUserInfo } from '../../storage/storageHelper';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
-import createReactDOMStyle from "native-base/lib/typescript/utils/react-native-web-fucntions/createReactDOMStyle";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {serverAddress} from '../../components/Config';
+import { serverAddress } from '../../components/Config';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -46,15 +45,18 @@ export default function LoginScreen() {
 
             const { message, user, croomIdx } = response.data;
             if (message === '로그인 성공' && user) {
-                await AsyncStorage.setItem('croomIdx', croomIdx.toString());
-                await saveUserInfo(user);
+                await AsyncStorage.setItem('croomIdx', croomIdx?.toString() || '');
+                await saveUserInfo({
+                    ...user,
+                    profileImage: user.profileImage ? `${serverAddress}/uploads/profile/images/${user.profileImage}` : null,
+                });
                 navigation.navigate('(tabs)');
             } else {
                 setError('로그인 실패: 서버 응답 확인 필요');
             }
         } catch (error) {
             console.error('Login failed:', error);
-            setError(error.response?.data.message || '로그인에 실패했습니다. 다시 시도해주세요.');
+            setError(error?.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.');
             setPassword('');
         } finally {
             setIsLoading(false);
@@ -63,7 +65,6 @@ export default function LoginScreen() {
 
     return (
         <View style={styles.container}>
-            {/* 이메일 입력 필드 */}
             <View style={styles.labelContainer}>
                 <Text style={styles.label}>이메일</Text>
                 {error === '이메일을 입력하세요.' && <Text style={styles.errorText}>{error}</Text>}
@@ -79,7 +80,6 @@ export default function LoginScreen() {
                 placeholderTextColor="#707070"
             />
 
-            {/* 비밀번호 입력 필드 */}
             <View style={styles.labelContainer}>
                 <Text style={styles.label}>비밀번호</Text>
                 {error === '비밀번호를 입력하세요.' && <Text style={styles.errorText}>{error}</Text>}
@@ -95,20 +95,18 @@ export default function LoginScreen() {
             />
 
             <View style={styles.buttonWrapper}>
-              <SmoothCurvedButton
-                title={isLoading ? '로그인 중...' : '로그인'}
-                onPress={handleLogin}
-                disabled={isLoading}
-                style={[
-                  isLoading && styles.disabledButton,
-                ]}
-              />
-              <TouchableOpacity
-                style={styles.passButton}
-                onPress={() => router.push('/index3')}
-              >
-                <Text style={styles.passButtonText}>패스</Text>
-              </TouchableOpacity>
+                <SmoothCurvedButton
+                    title={isLoading ? '로그인 중...' : '로그인'}
+                    onPress={handleLogin}
+                    disabled={isLoading}
+                    style={[isLoading && styles.disabledButton]}
+                />
+                <TouchableOpacity
+                    style={styles.passButton}
+                    onPress={() => router.push('/index3')}
+                >
+                    <Text style={styles.passButtonText}>패스</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -145,7 +143,7 @@ const styles = StyleSheet.create({
     errorText: {
         color: '#ff0000',
         fontSize: 12,
-        marginLeft: 10, // label과의 간격
+        marginLeft: 10,
     },
     passButton: {
         backgroundColor: '#ff9800',
