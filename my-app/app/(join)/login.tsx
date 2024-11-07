@@ -39,7 +39,7 @@ export default function LoginScreen() {
         setError(null);
 
         try {
-            const response = await axios.post('http://192.168.21.253:8082/api/users/login', {
+            const response = await axios.post(`${serverAddress}/api/users/login`, {
                 userEmail: email,
                 userPw: password,
             });
