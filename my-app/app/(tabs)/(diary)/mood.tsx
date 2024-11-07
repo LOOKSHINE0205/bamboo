@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image, Animated } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import SmoothCurvedButton from '../../../components/SmoothCurvedButton';
 
 export default function MoodSelectionScreen() {
   const { date } = useLocalSearchParams();
@@ -133,9 +134,9 @@ export default function MoodSelectionScreen() {
           )}
         />
       </View>
-      <TouchableOpacity style={styles.completeButton} onPress={handleSelectionComplete}>
-        <Text style={styles.completeButtonText}>완료</Text>
-      </TouchableOpacity>
+          <View style={styles.completeButtonContainer}>
+            <SmoothCurvedButton onPress={handleSelectionComplete} style={styles.completeButton} title={'완료'} />
+          </View>
 
     {/* 하단 텍스트 알림 메시지 */}
       {errorMessage ? (
@@ -209,17 +210,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
     resizeMode: "contain",
   },
-  completeButton: {
-    marginTop: 5,
-    backgroundColor: "#4a9960",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  completeButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "bold",
+  completeButtonContainer: {
+    alignItems: 'center',  // 버튼을 수평 중앙 정렬
+    marginTop: 20,         // 상단 여백 조정 (필요에 따라 조절)
   },
   alertBox: {
     flexDirection: "row",

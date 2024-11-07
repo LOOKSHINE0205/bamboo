@@ -1,127 +1,181 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, ScrollView, Image, TouchableOpacity, Pressable } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
+import { VictoryChart, VictoryStack, VictoryBar, VictoryTheme, VictoryAxis } from "victory-native";
 
-// 화면의 너비를 가져옴
 const screenWidth = Dimensions.get("window").width;
 
-// 월간 데이터 Mock (데이터가 없는 경우를 대비한 가짜 데이터)
-const MOCK_DATA = {
-    userNick: "김철수",
-    emotions: [
-        { emotionTag: "기쁨", count: 145, fill: "#FFC436" },
-        { emotionTag: "화남", count: 89, fill: "#BF3131" },
-        { emotionTag: "슬픔", count: 76, fill: "#0174BE" },
-        { emotionTag: "쏘쏘", count: 65, fill: "#FF9BD2" },
-        { emotionTag: "놀람", count: 43, fill: "#5C8374" },
-        { emotionTag: "싫은", count: 28, fill: "#81689D" },
-        { emotionTag: "두려움", count: 12, fill: "#758694" },
-    ]
+import em_happy from "../../assets/images/기쁨2.png";
+import em_angry from "../../assets/images/화남2.png";
+import em_surprise from "../../assets/images/놀람2.png";
+import em_fear from "../../assets/images/두려움2.png";
+import em_sad from "../../assets/images/슬픔2.png";
+import em_dislike from "../../assets/images/싫음2.png";
+import em_soso from "../../assets/images/쏘쏘2.png";
+
+// LineChart의 chartConfig
+const lineChartConfig = {
+    backgroundColor: '#FFFFFF',
+    backgroundGradientFrom: '#FFFFFF',
+    backgroundGradientTo: '#FFFFFF',
+    decimalPlaces: 1,
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    propsForBackgroundLines: { strokeWidth: 0 },
+    propsForDots: {
+        r: "3",
+        strokeWidth: "0",
+        stroke: "rgba(255, 255, 255, 0)"
+    },
+    fillShadowGradient: 'transparent',
+    fillShadowGradientTo: 'transparent',
+    fillShadowGradientOpacity: 0,
+    useShadowColorFromDataset: false,
+    propsForVerticalLabels: { fontSize: 12, color: 'rgba(0, 0, 0, 0.6)', translateX: 1 },
+    propsForHorizontalLabels: { translateX: -20 }
 };
 
-// 메인 컴포넌트 정의
 export default function EmotionReport() {
-    // 현재 연도와 월을 상태로 관리
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
+    const [selectedEmotions, setSelectedEmotions] = useState([]);
 
-    // 연도와 월 상태를 관리하는 useState 훅 사용
-    const [selectedYear, setSelectedYear] = useState(currentYear);
-    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const emotions = [
+        { key: "공포", label: "공포", icon: em_fear },
+        { key: "놀람", label: "놀람", icon: em_surprise },
+        { key: "분노", label: "분노", icon: em_angry },
+        { key: "슬픔", label: "슬픔", icon: em_sad },
+        { key: "중립", label: "중립", icon: em_soso },
+        { key: "행복", label: "행복", icon: em_happy },
+        { key: "혐오", label: "혐오", icon: em_dislike },
+    ];
 
-    // 스크롤뷰 참조 생성
-    const scrollViewRef = useRef(null);
-
-    // 이전 연도로 이동
-    const handlePrevYear = () => {
-        setSelectedYear(prev => prev - 1);
+    const chartData = {
+        labels: ["월", "화", "수", "목", "금", "토", "일"],
+        datasets: [
+            { data: [0.05, 0.25, 0.12, 0.20, 0.30, 0.15, 0.20], color: () => "#758694", label: "공포" }, // 월요일
+            { data: [0.10, 0.15, 0.18, 0.10, 0.20, 0.25, 0.10], color: () => "#5C8374", label: "놀람" }, // 화요일
+            { data: [0.20, 0.05, 0.25, 0.05, 0.10, 0.10, 0.15], color: () => "#BF3131", label: "분노" }, // 수요일
+            { data: [0.15, 0.10, 0.10, 0.25, 0.15, 0.10, 0.10], color: () => "#0174BE", label: "슬픔" }, // 목요일
+            { data: [0.04, 0.05, 0.10, 0.15, 0.05, 0.20, 0.05], color: () => "#FF9BD2", label: "중립" }, // 금요일
+            { data: [0.35, 0.20, 0.12, 0.10, 0.10, 0.05, 0.15], color: () => "#FFC436", label: "행복" }, // 토요일
+            { data: [0.11, 0.17, 0.18, 0.10, 0.16, 0.25, 0.15], color: () => "#81689D", label: "혐오" }, // 일요일
+        ]
     };
 
-    // 다음 연도로 이동
-    const handleNextYear = () => {
-        setSelectedYear(prev => prev + 1);
+
+    const filteredData = {
+        labels: chartData.labels,
+        datasets: chartData.datasets.filter(d => selectedEmotions.includes(d.label)),
     };
 
-    // 이전 월로 이동
-    const handlePrevMonth = () => {
-        setSelectedMonth(prev => prev === 1 ? 12 : prev - 1);
-        if (selectedMonth === 1) {
-            setSelectedYear(prev => prev - 1);
-        }
+    const toggleEmotion = (emotion) => {
+        setSelectedEmotions(prevSelected =>
+            prevSelected.includes(emotion)
+                ? prevSelected.filter(e => e !== emotion)
+                : [...prevSelected, emotion]
+        );
     };
 
-    // 다음 월로 이동
-    const handleNextMonth = () => {
-        setSelectedMonth(prev => prev === 12 ? 1 : prev + 1);
-        if (selectedMonth === 12) {
-            setSelectedYear(prev => prev + 1);
-        }
+    const chartDataStack = {
+        labels: ["월", "화", "수", "목", "금", "토", "일"],
+        data: [
+            [0.05, 0.10, 0.20, 0.15, 0.04, 0.35, 0.11], // 월요일
+            [0.25, 0.15, 0.05, 0.10, 0.05, 0.20, 0.20], // 화요일
+            [0.12, 0.18, 0.25, 0.10, 0.10, 0.12, 0.13], // 수요일
+            [0.20, 0.10, 0.05, 0.25, 0.10, 0.15, 0.15], // 목요일
+            [0.30, 0.20, 0.10, 0.15, 0.05, 0.10, 0.10], // 금요일
+            [0.15, 0.25, 0.10, 0.10, 0.20, 0.05, 0.15], // 토요일
+            [0.20, 0.10, 0.15, 0.10, 0.05, 0.25, 0.15]  // 일요일
+        ],
+        barColors: ["#758694", "#5C8374", "#BF3131", "#0174BE", "#FF9BD2", "#FFC436", "#81689D"]
     };
 
-    // UI 렌더링
+    // selectedEmotions에 해당하는 데이터만 필터링하여 Victory에 적용
+    const transformedData = chartDataStack.data[0].map((_, i) =>
+        chartDataStack.data.map((dataset, j) => ({
+            x: chartDataStack.labels[j],
+            y: dataset[i],
+            fill: chartDataStack.barColors[i]
+        }))
+    ).filter((_, i) => selectedEmotions.includes(emotions[i].label));
+
     return (
-        <ScrollView style={styles.scrollView} ref={scrollViewRef}>
+        <ScrollView style={styles.scrollView}>
             <View style={styles.container}>
-                {/* 사용자 감정 상태 섹션 */}
                 <View style={styles.sectionContainer}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>{MOCK_DATA.userNick}님의 감정 상태</Text>
-                        <View style={styles.yearSelector}>
-                            {/* 이전 연도로 이동 버튼 */}
-                            <Pressable onPress={handlePrevYear} style={styles.arrowButton}>
-                                <Text style={styles.arrowButtonText}>◀</Text>
-                            </Pressable>
-                            {/* 현재 선택된 연도 표시 */}
-                            <Text style={styles.yearText}>{selectedYear}년</Text>
-                            {/* 다음 연도로 이동 버튼 */}
-                            <Pressable onPress={handleNextYear} style={styles.arrowButton}>
-                                <Text style={styles.arrowButtonText}>▶</Text>
-                            </Pressable>
-                        </View>
-                    </View>
+                    <Text style={styles.title}>사용자의 감정 상태</Text>
                 </View>
 
-                {/* 감정 분포 섹션 */}
                 <View style={styles.sectionContainer}>
-                    <View style={styles.chartHeader}>
-                        <Text style={styles.subtitle}>감정 분포</Text>
-                        {/* 이전 및 다음 월 선택기 */}
-                        <View style={styles.monthSelector}>
-                            <Pressable onPress={handlePrevMonth} style={styles.arrowButton}>
-                                <Text style={styles.arrowButtonText}>◀</Text>
-                            </Pressable>
-                            <Text style={styles.monthText}>{selectedMonth}월</Text>
-                            <Pressable onPress={handleNextMonth} style={styles.arrowButton}>
-                                <Text style={styles.arrowButtonText}>▶</Text>
-                            </Pressable>
-                        </View>
+                    <Text style={styles.subtitle}>감정 그래프</Text>
+                    <View style={styles.iconContainer}>
+                        {emotions.map((emotion) => (
+                            <TouchableOpacity
+                                key={emotion.key}
+                                onPress={() => toggleEmotion(emotion.label)}
+                                style={[
+                                    styles.iconLabelContainer,
+                                    { opacity: selectedEmotions.includes(emotion.label) ? 1 : 0.4 }
+                                ]}
+                            >
+                                <Image source={emotion.icon} style={styles.icon} />
+                                <Text style={styles.iconLabel}>{emotion.label}</Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-                    {/* 감정 분포 데이터를 표시할 자리 */}
-                    <View style={styles.chartPlaceholderContainer}>
-                        <Text style={styles.placeholderText}>감정 분포가 들어갈 예정입니다.</Text>
-                    </View>
-                </View>
+                    <LineChart
+                        data={filteredData}
+                        width={screenWidth - 60}
+                        height={250}
+                        chartConfig={lineChartConfig}
+                        withShadow={false}
+                        fromZero={true}
+                        withInnerLines={false}
+                        style={styles.chartStyle}
+                        yAxisLabel=""
+                        yAxisSuffix=""
+                        yAxisInterval={1}
+                    />
+                    <View style={styles.stackcontainer}>
+                    <VictoryChart
+                        theme={VictoryTheme.material}
+                        domainPadding={{ x: 80, y: 1 }}
+                        padding={{ top:20, bottom: 40, left: 20, right: 20 }}
+                        height={screenWidth * 0.7}
+                    >
+                        <VictoryAxis
+                            tickFormat={chartDataStack.labels}
+                            style={{
+                                axis: { stroke: "transparent" },
+                                grid: { stroke: "transparent" },
+                                ticks: { stroke: "transparent" },
+                                tickLabels: { dx: 0, dy: 5, padding: 5 }
+                            }}
+                        />
+                        <VictoryAxis
+                            dependentAxis
+                            domain={[0, 1]} // y축 범위를 고정
+                            tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]} // 0을 포함한 tickValues 설정
+                            style={{
+                                axis: { stroke: "transparent" },
+                                grid: { stroke: "transparent" },
+                                ticks: { stroke: "transparent" },
+                                tickLabels: { dx: 25 }
+                            }}
+                        />
+                        <VictoryStack>
+                            {transformedData.map((data, index) => (
+                                <VictoryBar
+                                    key={index}
+                                    data={data}
+                                    style={{ data: { fill: ({ datum }) => datum.fill } }}
+                                    barWidth={15}
+                                />
+                            ))}
+                        </VictoryStack>
+                    </VictoryChart>
 
-                {/* 감정 그래프 섹션 */}
-                <View style={styles.sectionContainer}>
-                    <View style={styles.chartHeader}>
-                        <Text style={styles.subtitle}>감정 그래프</Text>
-                        {/* 그래프 관련 컨트롤 추가 가능 */}
-                    </View>
-                    {/* 감정 그래프 데이터를 표시할 자리 */}
-                    <View style={styles.chartPlaceholderContainer}>
-                        <Text style={styles.placeholderText}>감정 그래프가 들어갈 예정입니다.</Text>
-                    </View>
-                </View>
 
-                {/* 감정 키워드 섹션 */}
-                <View style={styles.sectionContainer}>
-                    <View style={styles.chartHeader}>
-                        <Text style={styles.subtitle}>감정 키워드</Text>
-                        {/* 키워드 관련 컨트롤 추가 가능 */}
-                    </View>
-                    {/* 워드클라우드 데이터를 표시할 자리 */}
-                    <View style={styles.chartPlaceholderContainer}>
-                        <Text style={styles.placeholderText}>워드 클라우드가 들어갈 예정입니다.</Text>
+
                     </View>
                 </View>
             </View>
@@ -129,126 +183,16 @@ export default function EmotionReport() {
     );
 }
 
-// 스타일 정의
 const styles = StyleSheet.create({
-    // 차트의 자리 표시자 컨테이너 스타일
-    chartPlaceholderContainer: {
-        width: '100%', // 너비를 전체로 설정
-        height: 200, // 높이 설정
-        backgroundColor: '#FFFFFF', // 흰색 배경
-        borderRadius: 10, // 둥근 모서리
-        justifyContent: 'center', // 수직 중앙 정렬
-        alignItems: 'center', // 가로 중앙 정렬
-        padding: 15, // 내부 여백
-        marginTop: 10, // 상단 여백
-        borderWidth: 1, // 테두리 두께
-        borderColor: '#E5E5E5', // 테두리 색상
-    },
-    // 자리 표시자 텍스트 스타일
-    placeholderText: {
-        fontSize: 14, // 텍스트 크기
-        color: '#666666', // 텍스트 색상 (회색)
-        textAlign: 'center', // 텍스트 가운데 정렬
-    },
-    // ScrollView 스타일
-    scrollView: {
-        flex: 1, // 전체 화면을 채움
-        backgroundColor: '#FFFFFF', // 배경색 흰색
-    },
-    // 전체 컨테이너 스타일
-    container: {
-        flex: 1, // 전체 화면을 채움
-        padding: 15, // 내부 여백
-        backgroundColor: '#FFFFFF', // 배경색 흰색
-        gap: 0, // 요소 간 간격 없음
-    },
-    // 각 섹션을 감싸는 컨테이너 스타일
-    sectionContainer: {
-        backgroundColor: '#F5F5F5', // 연한 회색 배경
-        borderRadius: 15, // 둥근 모서리
-        padding: 15, // 내부 여백
-        marginBottom: 10, // 하단 여백
-    },
-    // 헤더 스타일
-    header: {
-        flexDirection: 'row', // 가로 정렬
-        alignItems: 'center', // 수직 중앙 정렬
-        justifyContent: 'space-between', // 좌우 끝에 배치
-        width: '100%', // 전체 너비 사용
-    },
-    // 차트 헤더 스타일
-    chartHeader: {
-        flexDirection: 'row', // 가로 정렬
-        alignItems: 'center', // 수직 중앙 정렬
-        justifyContent: 'space-between', // 좌우 끝에 배치
-        marginBottom: 10, // 하단 여백
-        paddingHorizontal: 10, // 좌우 여백
-    },
-    // 제목 텍스트 스타일
-    title: {
-        fontSize: 18, // 텍스트 크기
-        fontWeight: '600', // 텍스트 두껍게
-        color: '#000', // 검정색 텍스트
-    },
-    // 부제목 텍스트 스타일
-    subtitle: {
-        fontSize: 18, // 텍스트 크기
-        fontWeight: '600', // 텍스트 두껍게
-        left: -8, // 왼쪽으로 위치 조정
-        color: '#000', // 검정색 텍스트
-    },
-    // 연도 선택기 스타일
-    yearSelector: {
-        flexDirection: 'row', // 가로 정렬
-        alignItems: 'center', // 수직 중앙 정렬
-        backgroundColor: '#FFFFFF', // 흰색 배경
-        borderRadius: 8, // 둥근 모서리
-        paddingVertical: 4, // 위아래 여백
-        height: 36, // 높이 설정
-        width: 140, // 너비 설정
-        justifyContent: 'center', // 가로 중앙 정렬
-    },
-    // 월 선택기 스타일
-    monthSelector: {
-        flexDirection: 'row', // 가로 정렬
-        alignItems: 'center', // 수직 중앙 정렬
-        backgroundColor: '#FFFFFF', // 흰색 배경
-        borderRadius: 8, // 둥근 모서리
-        paddingVertical: 4, // 위아래 여백
-        height: 36, // 높이 설정
-        right: -10, // 오른쪽으로 위치 조정
-        width: 140, // 너비 설정
-        justifyContent: 'center', // 가로 중앙 정렬
-    },
-    // 화살표 버튼 스타일
-    arrowButton: {
-        padding: 4, // 내부 여백
-        width: 28, // 너비 설정
-        height: 28, // 높이 설정
-        alignItems: 'center', // 수직 중앙 정렬
-        justifyContent: 'center', // 가로 중앙 정렬
-    },
-    // 화살표 버튼 텍스트 스타일
-    arrowButtonText: {
-        fontSize: 16, // 텍스트 크기
-        color: '#000', // 검정색 텍스트
-    },
-    // 연도 텍스트 스타일
-    yearText: {
-        fontSize: 16, // 텍스트 크기
-        fontWeight: '500', // 텍스트 중간 굵기
-        marginHorizontal: 12, // 좌우 여백
-        color: '#333', // 어두운 회색 텍스트
-        minWidth: 60, // 최소 너비 설정
-        textAlign: 'center', // 텍스트 가운데 정렬
-    },
-    // 월 텍스트 스타일
-    monthText: {
-        fontSize: 16, // 텍스트 크기
-        fontWeight: '500', // 텍스트 중간 굵기
-        marginHorizontal: 12, // 좌우 여백
-        color: '#333', // 어두운 회색 텍스트
-        minWidth: 60, // 최소 너비 설정
-        textAlign: 'center', // 텍스트 가운데 정렬
-    },
+    scrollView: { flex: 1, backgroundColor: '#FFFFFF' },
+    container: { flex: 1, padding: 15, backgroundColor: '#FFFFFF' },
+    sectionContainer: { backgroundColor: '#F5F5F5', borderRadius: 20, padding: 15, marginBottom: 10 },
+    title: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 10 },
+    subtitle: { fontSize: 18, fontWeight: '600', color: '#000' },
+    iconContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 10 },
+    iconLabelContainer: { alignItems: 'center', marginHorizontal: 12 },
+    icon: { width: 24, height: 24, marginTop: 15 },
+    iconLabel: { fontSize: 12, color: '#666', marginTop: 5 },
+    chartStyle: { borderRadius: 20, marginTop: 20 },
+    stackcontainer: { backgroundColor: '#FFFFFF', marginTop: 20, borderRadius: 20 },
 });
