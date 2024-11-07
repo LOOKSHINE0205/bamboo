@@ -16,4 +16,7 @@ public interface ChattingRepository extends JpaRepository<Chatting, Integer> {
     @Transactional
     @Query("UPDATE Chatting c SET c.evaluation = :evaluation WHERE c.chatIdx = :chatIdx")
     int updateEvaluationByChatIdx(int chatIdx, String evaluation);
+
+    // chatIdx로 채팅 메시지 조회
+    Chatting findByChatIdx(int chatIdx);
 }

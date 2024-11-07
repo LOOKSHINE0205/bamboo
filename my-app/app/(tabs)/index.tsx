@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,19 +19,20 @@ interface Message {
     timestamp: string;
     showTimestamp?: boolean;
     evaluation?: 'like' | 'dislike' | null;
+    chatIdx?:number;
 }
 
 
 export default function ChatbotPage() {
+
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
-    const [userName, setUserName] = useState<string>('');
-    const [chatbotName, setChatbotName] = useState<string>('챗봇');
+    const [userNick, setUserNick] = useState<string>('');
+    const [chatbotName, setChatbotName] = useState<string>('');
     const [userAvatar, setUserAvatar] = useState(BambooPanda);
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
     const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
-
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
@@ -39,51 +40,55 @@ export default function ChatbotPage() {
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            const fetchData = async () => {
-                try {
-                    const userData = await getUserInfo();
-                    if (userData) {
-                        setUserName(userData.userNick || '');
-                        setChatbotName(userData.chatbotName || '챗봇');
-                    }
-                    const profileImage = await getUserProfileImage();
-                    setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
-                } catch (error) {
-                    console.error('데이터를 가져오는 데 실패했습니다:', error);
+    useLayoutEffect(() => {
+        const fetchData = async () => {
+            try {
+                const userData = await getUserInfo();
+                if (userData) {
+                    setUserNick(userData.userNick);
+                    setChatbotName(userData.chatbotName);
                 }
-            };
+                const profileImage = await getUserProfileImage();
+                setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
+            } catch (error) {
+                console.error('데이터를 가져오는 데 실패했습니다:', error);
+            }
+        };
+        fetchData();
+    }, []);
 
-            fetchData();
-        }, [])
-    );
-
-    // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
     useEffect(() => {
+        if (!userNick || !chatbotName) return; // 사용자 이름과 챗봇 이름이 로드된 후에 실행
+
         const loadChatHistory = async () => {
             try {
-                const chatHistory = await getChatHistory();
-                // chatHistory 데이터를 messages 형식으로 변환하여 설정
+                const chatHistory = await getChatHistory(); // 서버에서 채팅 기록을 가져오는 함수
+                // console.log("Chat history from server:", chatHistory);
+                // 서버로부터 받은 채팅 기록을 messages 형식으로 변환하여 저장
                 const formattedMessages = chatHistory.map((chat: ChatMessage) => ({
                     sender: chat.chatter === 'bot' ? 'bot' : 'user',
                     text: chat.chatContent,
                     avatar: chat.chatter === 'bot' ? BambooHead : userAvatar,
-                    name: chat.chatter === 'bot' ? chatbotName : userName,
+                    name: chat.chatter === 'bot' ? chatbotName : userNick,
                     timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
                     showTimestamp: true,
-                    evaluation: chat.evaluation === 1 ? 'like' : chat.evaluation === -1 ? 'dislike' : null
+                    evaluation: chat.evaluation, // 평가 상태 반영
+                    chatIdx: chat.chatIdx // 메시지의 고유 ID 추가
                 }));
-                setMessages(formattedMessages);
+                // 디버깅용 로그 추가: 각 메시지의 evaluation 값 확인
+                formattedMessages.forEach((formattedMessage) => {
+                    // console.log(`Message ${formattedMessage.chatIdx} evaluations:`, formattedMessage.evaluation);
+                });
+                setMessages(formattedMessages); // 변환된 메시지 목록을 상태로 설정
             } catch (error) {
                 console.error("Failed to load chat history:", error);
             }
         };
 
         loadChatHistory();
-    }, []);
+    }, [userNick, chatbotName, userAvatar]);
 
-    // 평가 처리
+    // 평가 처리 함수
     const handleEvaluation = async (messageIndex: number, type: 'like' | 'dislike') => {
         const messageToUpdate = messages[messageIndex];
         const newEvaluation = messageToUpdate.evaluation === type ? null : type;
@@ -100,7 +105,7 @@ export default function ChatbotPage() {
 
         // DB 업데이트 요청
         try {
-            await axios.put('http://10.0.2.2:8082/api/chat/updateEvaluation', {
+            await axios.put(`${serverAddress}/api/chat/updateEvaluation`, {
                 chatIdx: messageToUpdate.chatIdx,
                 evaluation: newEvaluation
             });
@@ -211,7 +216,7 @@ export default function ChatbotPage() {
                 sender: 'user',
                 text: input.trim(),
                 avatar: userAvatar,
-                name: userName,
+                name: userNick,
                 timestamp: getCurrentTime(),
                 showTimestamp: false,
             };
@@ -258,9 +263,10 @@ export default function ChatbotPage() {
         return false;
     };
 
-    // 메시지에 대한 평가 버튼 컴포넌트
+    // 평가 버튼 컴포넌트
     const EvaluationButtons = ({ message, index }: { message: Message; index: number }) => {
         if (message.sender !== 'bot') return null;
+        // console.log(`Message ${index} evaluation:`, message.evaluation);
         return (
             <View style={styles.evaluationContainer}>
                 <TouchableOpacity

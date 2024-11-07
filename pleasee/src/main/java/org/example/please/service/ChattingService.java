@@ -42,7 +42,23 @@ public class ChattingService {
     public List<Chatting> getChatHistory(int croomIdx) {
         return chatbotRepository.findByCroomIdxOrderByCreatedAtAsc(croomIdx);
     }
-    public int updateEvaluation(int chatIdx, String evaluation) {
-        return chattingRepository.updateEvaluationByChatIdx(chatIdx, evaluation);
+
+    @Transactional
+    public int updateEvaluation(int chatIdx, String newEvaluation) {
+        Chatting existingChatting = findById(chatIdx);
+
+        if (existingChatting != null) {
+            // 기존 평가와 같으면 null 처리
+            String evaluationToUpdate = existingChatting.getEvaluation() != null &&
+                    existingChatting.getEvaluation().equals(newEvaluation) ? null : newEvaluation;
+
+            return chattingRepository.updateEvaluationByChatIdx(chatIdx, evaluationToUpdate);
+        }
+        return 0;
     }
+
+    public Chatting findById(int chatIdx) {
+        return chattingRepository.findByChatIdx(chatIdx);
+    }
+
 }
