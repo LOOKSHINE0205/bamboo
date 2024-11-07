@@ -46,9 +46,9 @@ const SettingsScreen = () => {
         try {
             const data = await getUserInfo(); // DB에서 정보 불러오기
             if (data) {
-                const profileImageUrl = data.profileImage
-                    ? `${serverAddress}/uploads/profile/images/${data.profileImage}`
-                    : null;
+                const profileImageUrl = data.profileImage?.startsWith(serverAddress)
+                    ? data.profileImage
+                    : `${serverAddress}/uploads/profile/images/${data.profileImage}`;
 
                 setUserInfo({ ...data, profileImage: profileImageUrl });
                 setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트

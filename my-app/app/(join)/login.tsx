@@ -46,7 +46,10 @@ export default function LoginScreen() {
             const { message, user, croomIdx } = response.data;
             if (message === '로그인 성공' && user) {
                 await AsyncStorage.setItem('croomIdx', croomIdx?.toString() || '');
-                await saveUserInfo(user);
+                await saveUserInfo({
+                    ...user,
+                    profileImage: user.profileImage ? `${serverAddress}/uploads/profile/images/${user.profileImage}` : null,
+                });
                 navigation.navigate('(tabs)');
             } else {
                 setError('로그인 실패: 서버 응답 확인 필요');

@@ -41,22 +41,45 @@ export default function ChatbotPage() {
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    useLayoutEffect(() => {
+useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const userData = await getUserInfo();
+            if (userData) {
+                setUserNick(userData.userNick || '');
+                setChatbotName(userData.chatbotName || '챗봇');
+            }
+            const profileImage = await getUserProfileImage();
+            setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
+
+        } catch (error) {
+            console.error('데이터를 가져오는 데 실패했습니다:', error);
+        }
+    };
+
+    fetchData();
+}, []); // 초기 로딩용 useEffect
+
+useFocusEffect(
+    React.useCallback(() => {
         const fetchData = async () => {
             try {
                 const userData = await getUserInfo();
                 if (userData) {
-                    setUserNick(userData.userNick);
-                    setChatbotName(userData.chatbotName);
+                    setUserNick(userData.userNick || '');
+                    setChatbotName(userData.chatbotName || '챗봇');
                 }
                 const profileImage = await getUserProfileImage();
                 setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
+
             } catch (error) {
                 console.error('데이터를 가져오는 데 실패했습니다:', error);
             }
         };
+
         fetchData();
-    }, []);
+    }, [])
+);
 
     // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
     useEffect(() => {
