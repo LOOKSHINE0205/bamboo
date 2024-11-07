@@ -75,11 +75,13 @@ public class UserController {
         User authenticatedUser = userService.login(user);
 
         if (authenticatedUser != null) {
+            Chatbot croomIdx = chattingService.findByUserEmail(authenticatedUser.getUserEmail());
             String profileImageUrl = authenticatedUser.getUserProfile() != null
                     ? SERVER_URL + authenticatedUser.getUserProfile()
                     : null;
             response.put("message", "로그인 성공");
             response.put("user", authenticatedUser);
+            response.put("croomIdx", croomIdx != null ? croomIdx.getCroomIdx() : null);
             response.put("profile_image", profileImageUrl);
             return ResponseEntity.ok(response);
         }

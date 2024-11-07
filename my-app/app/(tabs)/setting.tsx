@@ -23,6 +23,7 @@ import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage, s
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 import {serverAddress} from '../../components/Config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
@@ -43,11 +44,15 @@ const SettingsScreen = () => {
     const fetchUserData = async () => {
         setIsLoading(true);
         try {
-            const data = await getUserInfo();
+            const data = await getUserInfo(); // DB에서 정보 불러오기
             if (data) {
-                const profileImageUrl = data.profileImage ? `${serverAddress}/uploads/profile/images/${data.profileImage}` : null;
+                const profileImageUrl = data.profileImage
+                    ? `${serverAddress}/uploads/profile/images/${data.profileImage}`
+                    : null;
+
                 setUserInfo({ ...data, profileImage: profileImageUrl });
                 setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트
+                await AsyncStorage.setItem('userInfo', JSON.stringify({ ...data, profileImage: profileImageUrl }));
             } else {
                 setUserInfo(null);
                 setProfileImageUri(null);
@@ -127,22 +132,23 @@ const SettingsScreen = () => {
     setModalVisible(false);
   };
 
-  const handleResetProfileImage = async () => {
-    try {
-      await axios.post(`${serverAddress}/api/users/resetProfileImage`, {
-        userEmail: userInfo?.userEmail,
-      });
+ const handleResetProfileImage = async () => {
+     try {
+         await axios.post(`${serverAddress}/api/users/resetProfileImage`, {
+             userEmail: userInfo?.userEmail,
+         });
 
-      await setUserProfileImage(null);
-      setUserInfo((prev) => ({ ...prev, profileImage: null }));
-      setProfileImageUri(null);
-      Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
-    } catch (error) {
-      console.error("프로필 이미지 재설정 중 오류:", error);
-      Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
-    }
-    setModalVisible(false);
-  };
+         const defaultImageUrl = `${serverAddress}/path/to/default/profile/image.jpg`; // 기본 이미지 URL 지정
+         await setUserProfileImage(defaultImageUrl); // 기본 이미지로 초기화
+         setUserInfo((prev) => ({ ...prev, profileImage: defaultImageUrl }));
+         setProfileImageUri(defaultImageUrl);
+         Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
+     } catch (error) {
+         console.error("프로필 이미지 재설정 중 오류:", error);
+         Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
+     }
+     setModalVisible(false);
+ };
 
   const handleSave = async () => {
     if (notificationsEnabled && startTime >= endTime) {

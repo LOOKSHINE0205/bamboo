@@ -100,7 +100,7 @@ export default function ChatbotPage() {
 
         // DB 업데이트 요청
         try {
-            await axios.put('http://10.0.2.2:8082/api/chat/updateEvaluation', {
+            await axios.put('http://192.168.21.253:8082/api/chat/updateEvaluation', {
                 chatIdx: messageToUpdate.chatIdx,
                 evaluation: newEvaluation
             });

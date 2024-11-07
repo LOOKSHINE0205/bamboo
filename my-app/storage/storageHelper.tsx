@@ -53,27 +53,30 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
 };
 
 // 프로필 이미지 저장 함수 (AsyncStorage에 저장)
-export const setUserProfileImage = async (imageUri) => {
+export const setUserProfileImage = async (imageUri: string): Promise<void> => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');
         if (userDataString) {
-            const userData = JSON.parse(userDataString);
+            const userData: User = JSON.parse(userDataString);
 
-            // 업로드된 전체 URL을 저장
-            userData.profileImage = imageUri;
-            await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
-            console.log("프로필 이미지 저장 성공:", imageUri);
+            const uploadedImagePath = await uploadProfileImageToServer(imageUri, userData.userEmail);
+            if (uploadedImagePath) {
+                userData.profileImage = uploadedImagePath; // 전체 URL 저장
+                await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
+                console.log("프로필 이미지 저장 성공:", uploadedImagePath);
+            }
         }
     } catch (error) {
         console.error('프로필 이미지 저장에 실패했습니다:', error);
     }
 };
 
-export const getUserProfileImage = async () => {
+// 저장된 프로필 이미지 URL 가져오기 함수
+export const getUserProfileImage = async (): Promise<string | null> => {
     try {
         const userDataString = await AsyncStorage.getItem('userInfo');
         if (userDataString) {
-            const userData = JSON.parse(userDataString);
+            const userData: User = JSON.parse(userDataString);
             return userData.profileImage || null;
         }
         return null;
@@ -110,11 +113,11 @@ export const getUserInfo = async (): Promise<User | null> => {
     }
 };
 
-// 사용자 데이터 제거 함수 (로그아웃 시 사용)
-export const clearUserData = async (): Promise<void> => {
+
+// 사용자 정보 제거
+export const clearUserData = async () => {
     try {
-        await AsyncStorage.removeItem('userInfo');
-        await AsyncStorage.removeItem('croomIdx');
+        await AsyncStorage.removeItem('userInfo'); // 사용자 정보만 삭제
         console.log("사용자 데이터 삭제 성공");
     } catch (error) {
         console.error('사용자 데이터 삭제에 실패했습니다:', error);
