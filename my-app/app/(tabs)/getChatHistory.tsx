@@ -29,7 +29,7 @@ export const getChatHistory = async (): Promise<ChatMessage[]> => {
         const croomIdx = parseInt(storedCroomIdx, 10); // 가져온 값을 숫자로 변환
 
         // 서버에 요청
-        const response = await axios.get('http://192.168.21.253:8082/api/chat/getChatHistory', {
+        const response = await axios.get(`${serverAddress}/api/chat/getChatHistory`, {
             params: { croomIdx },
         });
         return response.data; // 서버로부터 받은 데이터 반환
