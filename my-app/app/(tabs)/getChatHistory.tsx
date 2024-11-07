@@ -12,7 +12,7 @@ export interface ChatMessage {
     createdAt: string;
     emotionTag?: string;
     sessionIdx: number;
-    evaluation: number;
+    evaluation: string;
 }
 
 /**
