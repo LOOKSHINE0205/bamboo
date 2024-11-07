@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserInfo } from '../../../storage/storageHelper';
-
+import { serverAddress } from '../../../components/Config';
 export interface Diary {
     diaryIdx: number;
     userEmail: string;
@@ -34,7 +34,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ onEntriesLoaded }) => {
         if (!userEmail) return; // userEmail이 없으면 반환
         setLoading(true); // 로딩 시작
         try {
-            const response = await fetch(`http://10.0.2.2:8082/api/diaries/user_diaries?userEmail=${userEmail}`);
+            const response = await fetch(`${ serverAddress }/api/diaries/user_diaries?userEmail=${userEmail}`);
             console.log(`Response status: ${response.status}`); // 응답 상태 로그
 
             if (!response.ok) {

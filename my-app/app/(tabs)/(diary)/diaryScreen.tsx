@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { View, Text, Image, TextInput, StyleSheet, Platform, Alert,
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Platform, Alert,
   KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import axios from "axios";
+import axios from "axios"; // 데이터베이스에서 일기 데이터를 가져오기 위한 axios 라이브러리 사용
 import * as ImagePicker from "expo-image-picker";
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import SmoothCurvedButton from '../../../components/SmoothCurvedButton';
 
+// 감정 이미지 경로를 매핑한 객체
 const moodImageMap = {
   happy: require("../../../assets/images/diary_happy.png"),
   neutral: require("../../../assets/images/diary_neutral.png"),
@@ -17,6 +17,7 @@ const moodImageMap = {
   dislike: require("../../../assets/images/diary_dislike.png"),
 };
 
+// 날씨 이미지 경로를 매핑한 객체
 const weatherImageMap = {
   sunny: require("../../../assets/images/diary_맑음.png"),
   cloudy: require("../../../assets/images/diary_구름.png"),
@@ -25,29 +26,45 @@ const weatherImageMap = {
   thunderstorm: require("../../../assets/images/diary_천둥번개.png"),
 };
 
-export default function DiaryEntryScreen() {
-  const { date, mood, weather } = useLocalSearchParams();
-  const [entryText, setEntryText] = useState("");
-  const [selectedImages, setSelectedImages] = useState([]);
+export default function DiaryScreen() {
+  const { date } = useLocalSearchParams(); // URL 파라미터에서 날짜 정보 가져오기
+  const [entryText, setEntryText] = useState(""); // 일기 내용
+  const [selectedImages, setSelectedImages] = useState([]); // 선택된 이미지 URIs
+  const [mood, setMood] = useState(""); // 감정 상태
+  const [weather, setWeather] = useState(""); // 날씨 상태
 
-  const formatDate = (dateString) => {
-    const dateObj = new Date(dateString);
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const day = String(dateObj.getDate()).padStart(2, "0");
-    const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-    const dayOfWeek = daysOfWeek[dateObj.getDay()];
-    return { formattedDate: `${year}.${month}.${day}`, dayOfWeek };
-  };
+  useEffect(() => {
+    // 일기 데이터를 서버에서 가져오기 (예시 API)
+    const fetchDiaryData = async () => {
+      try {
+        const response = await axios.get("YOUR_DB_ENDPOINT_URL", {
+          params: { date }, // 해당 날짜의 일기 데이터 가져오기
+        });
 
-  const { formattedDate, dayOfWeek } = formatDate(date);
+        const data = response.data;
 
+        if (data) {
+          setEntryText(data.entryText);
+          setMood(data.mood);
+          setWeather(data.weather);
+          setSelectedImages(data.image || []); // 이미지가 있을 경우 설정
+        }
+      } catch (error) {
+        console.error("일기 데이터를 가져오는 데 오류가 발생했습니다:", error);
+      }
+    };
+
+    fetchDiaryData();
+  }, [date]);
+
+  // 갤러리에서 이미지 선택 함수
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
       return;
     }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
@@ -56,24 +73,30 @@ export default function DiaryEntryScreen() {
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const imageUris = result.assets.map(asset => asset.uri);
-      setSelectedImages(prevImages => [...prevImages, ...imageUris]);
+      const imageUris = result.assets.map((asset) => asset.uri);
+      setSelectedImages([...selectedImages, ...imageUris]);
     }
   };
 
+  // 이미지 삭제 함수
+  const handleRemoveImage = (uri) => {
+    setSelectedImages(selectedImages.filter((imageUri) => imageUri !== uri));
+  };
+
+  // 일기 수정 저장 함수
   const handleSaveEntry = async () => {
     try {
-      await axios.post("YOUR_DB_ENDPOINT_URL", {
+      await axios.put("YOUR_DB_ENDPOINT_URL", {
         date,
         mood,
         weather,
         entryText,
         image: selectedImages.length > 0 ? selectedImages : null,
       });
-      alert("일기가 저장되었습니다!");
-      router.push("/somewhere");
+      alert("일기가 수정되었습니다!");
+      router.push("/somewhere"); // 수정 후 이동할 화면
     } catch (error) {
-      console.error("일기 저장 오류:", error);
+      console.error("일기 수정 오류:", error);
     }
   };
 
@@ -84,7 +107,6 @@ export default function DiaryEntryScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-
           <View style={styles.topContainer}>
             <View style={styles.moodImageContainer}>
               {mood && (
@@ -95,9 +117,9 @@ export default function DiaryEntryScreen() {
               )}
             </View>
             <View style={styles.dateDisplayContainer}>
-              <Text style={styles.dateText}>{formattedDate}</Text>
+              <Text style={styles.dateText}>{date}</Text>
               <View style={styles.dayAndWeatherContainer}>
-                <Text style={styles.dayText}>{dayOfWeek + "요일"}</Text>
+                <Text style={styles.dayText}>{`${date}요일`}</Text>
                 {weatherImageMap[weather] && (
                   <Image
                     key={weather}
@@ -114,41 +136,34 @@ export default function DiaryEntryScreen() {
               {selectedImages.map((imageUri, index) => (
                 <View key={index} style={styles.imageWrapper}>
                   <Image source={{ uri: imageUri }} style={styles.photo} />
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleRemoveImage(imageUri)}
+                  >
+                    <Ionicons name="close-circle" size={20} color="gray" />
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
 
             <TextInput
               style={styles.textInput}
-              placeholder="오늘 하루를 기록해 보세요."
-              multiline
               value={entryText}
               onChangeText={setEntryText}
-              placeholderTextColor="#707070"
+              multiline
+              placeholder="오늘 하루를 수정해 보세요."
             />
           </View>
 
           <View style={styles.buttonContainer}>
-            <SmoothCurvedButton
-              title="저장"
-              onPress={handleSaveEntry}
-              svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
-              svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
-              style={styles.commonButton}
-            />
-            <SmoothCurvedButton
-              onPress={pickImage}
-              icon={<Ionicons name="image" size={16} color="#000" />}
-              svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
-              svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
-              style={styles.commonButton}
-            />
+            <TouchableOpacity style={styles.saveButton} onPress={handleSaveEntry}>
+              <Text style={styles.saveButtonText}>저장</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+              <Ionicons name="image" size={30} color="#fff" />
+            </TouchableOpacity>
           </View>
-
-
-
-
-
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -222,6 +237,14 @@ const styles = StyleSheet.create({
     position: 'relative',
     margin: 5,
   },
+  deleteButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 1,
+  },
   photo: {
     width: 150,
     height: 150,
@@ -230,9 +253,25 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     padding: 10,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  saveButton: {
+    backgroundColor: '#4a9960',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  imageButton: {
+    backgroundColor: '#4a9960',
+    padding: 10,
+    borderRadius: 5,
   },
 });

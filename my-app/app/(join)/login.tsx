@@ -103,7 +103,7 @@ export default function LoginScreen() {
                 />
                 <TouchableOpacity
                     style={styles.passButton}
-                    onPress={() => router.push('/index3')}
+                    onPress={() => router.push('/(tabs)/report')}
                 >
                     <Text style={styles.passButtonText}>패스</Text>
                 </TouchableOpacity>
