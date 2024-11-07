@@ -30,6 +30,7 @@ export default function ChatbotPage() {
     const [userNick, setUserNick] = useState<string>('');
     const [chatbotName, setChatbotName] = useState<string>('');
     const [userAvatar, setUserAvatar] = useState(BambooPanda);
+    const[userEmail, setUserEmail] = useState<string>('');
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
     const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
@@ -68,6 +69,8 @@ useFocusEffect(
                 if (userData) {
                     setUserNick(userData.userNick || '');
                     setChatbotName(userData.chatbotName || '챗봇');
+                    setUserEmail(userData.userEmail);
+
                 }
                 const profileImage = await getUserProfileImage();
                 setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
@@ -184,20 +187,21 @@ useFocusEffect(
                 console.error("croomIdx not found in AsyncStorage");
                 return;
             }
-            console.log("croomIdx found in AsyncStorage", croomIdx);
+            // console.log("croomIdx found in AsyncStorage", croomIdx);
 
             const payload = {
+                userEmail :userEmail,
                 croomIdx: parseInt(croomIdx),
                 chatter: "user",
                 chatContent: combinedMessages,
-                emotionTag: "happy",
             };
 
             try {
                 const response = await axios.post(serverUrl, payload, {
                     headers: { 'Content-Type': 'application/json' },
                 });
-
+                    console.log(response.data)
+                    console.log(payload)
                 // 구조화된 응답 데이터가 있는지 확인
                 const botMessageContent = response.data.chatContent;
                 const chatIdx = response.data.chatIdx || null;

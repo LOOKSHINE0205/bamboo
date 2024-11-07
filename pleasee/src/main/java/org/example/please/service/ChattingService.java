@@ -1,5 +1,6 @@
 package org.example.please.service;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
 import org.example.please.entity.Chatbot;
@@ -59,6 +60,13 @@ public class ChattingService {
 
     public Chatting findById(int chatIdx) {
         return chattingRepository.findByChatIdx(chatIdx);
+    }
+    public String getFirstUserMessageInSession(int croomIdx, int sessionIdx) {
+        return chattingRepository.findFirstUserMessageContentInSession(croomIdx, sessionIdx).orElse(null);
+    }
+
+    public String getLatestMessageInRoom(int croomIdx, int sessionIdx) {
+        return chattingRepository.findLatestMessageInRoom(croomIdx, sessionIdx).orElse(null);
     }
 
 }

@@ -58,4 +58,6 @@ public class  Chatting {
     // 평가
     @Column(name = "evaluation")
     private String evaluation;
+
+    private String userEmail;
 }

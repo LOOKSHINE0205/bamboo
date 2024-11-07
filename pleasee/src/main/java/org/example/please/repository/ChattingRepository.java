@@ -5,6 +5,9 @@ import org.example.please.entity.Chatting;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 
 public interface ChattingRepository extends JpaRepository<Chatting, Integer> {
@@ -19,4 +22,13 @@ public interface ChattingRepository extends JpaRepository<Chatting, Integer> {
 
     // chatIdx로 채팅 메시지 조회
     Chatting findByChatIdx(int chatIdx);
+
+    // 특정 세션에서 첫 번째 사용자 메시지의 chatContent를 찾는 메서드
+    @Query("SELECT c.chatContent FROM Chatting c WHERE c.croomIdx = :croomIdx AND c.sessionIdx = :sessionIdx AND c.chatter = 'user' ORDER BY c.createdAt ASC LIMIT 1")
+    Optional<String> findFirstUserMessageContentInSession(@Param("croomIdx") Integer croomIdx, @Param("sessionIdx") Integer sessionIdx);
+
+
+    // 특정 채팅방의 마지막 메시지를 찾는 메서드
+    @Query("SELECT c.chatContent FROM Chatting c WHERE c.croomIdx = :croomIdx AND c.sessionIdx = :sessionIdx AND c.chatter = 'bot' ORDER BY c.createdAt DESC LIMIT 1")
+    Optional<String> findLatestMessageInRoom(@Param("croomIdx") Integer croomIdx, @Param("sessionIdx") Integer sessionIdx);
 }
