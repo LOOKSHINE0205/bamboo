@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { TouchableOpacity, Text, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-const SmoothCurvedButton = ({ onPress, title, style, disabled, svgWidth = 130, svgPath, color = '#4a9960' }) => {
+const SmoothCurvedButton = ({ onPress, title, icon, style, disabled, svgWidth = 130, svgPath, color = '#4a9960' }) => {
   const { width, height } = useWindowDimensions();
   const buttonWidth = style?.width || width * 0.6 || svgWidth;
   const buttonHeight = style?.height || height * 0.06 || 50;
@@ -31,8 +31,9 @@ const SmoothCurvedButton = ({ onPress, title, style, disabled, svgWidth = 130, s
         />
       </Svg>
 
-      <View style={styles.textWrapper}>
-        <Text style={[styles.buttonText, isPressed && styles.buttonTextPressed]}>{title}</Text>
+      <View style={styles.contentWrapper}>
+        {icon && <View style={styles.iconWrapper}>{icon}</View>}
+        {title && <Text style={[styles.buttonText, isPressed && styles.buttonTextPressed]}>{title}</Text>}
       </View>
     </TouchableOpacity>
   );
@@ -44,14 +45,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
-  textWrapper: {
+  contentWrapper: {
     position: 'absolute',
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    top: 0,
-    left: 0,
+    justifyContent: 'center',
+  },
+  iconWrapper: {
+    marginRight: 5, // icon과 title 사이 간격
   },
   buttonText: {
     color: 'black',

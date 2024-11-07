@@ -261,28 +261,33 @@ const SettingsScreen = () => {
             <SmoothCurvedButton
               title="기본 이미지로 재설정"
               onPress={handleResetProfileImage}
-              svgWidth={160}
-              svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+              svgWidth={220}  // 버튼 전체 크기 확대
+              svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
               style={styles.modalButton}
             />
             <SmoothCurvedButton
               title="갤러리에서 이미지 선택"
               onPress={handleImageSelect}
-              svgWidth={160}
-              svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+              svgWidth={220}  // 버튼 전체 크기 확대
+              svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
               style={styles.modalButton}
             />
             <SmoothCurvedButton
               title="취소"
               onPress={() => setModalVisible(false)}
-              svgWidth={160}
-              svgPath="M20,0 C5,0 0,5 0,20 L0,20 C0,35 5,40 20,40 L140,40 C155,40 160,35 160,20 L160,20 C160,5 155,0 140,0 Z"
+              svgWidth={220}  // 버튼 전체 크기 확대
+              svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
               style={[styles.modalButton, styles.cancelButton]}
               color="#cccccc"
             />
+
+
+
+
           </View>
         </View>
       </Modal>
+
     </KeyboardAvoidingView>
   );
 };
@@ -403,6 +408,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
   },
+
   actionButtonText: {
     color: '#fff',
     fontWeight: 'bold',
@@ -421,14 +427,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center'
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 30
+  modalButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 5,      // 버튼 간 간격을 줄입니다
+    paddingVertical: 4,     // 버튼의 세로 여백을 키웁니다
   },
-  modalButtonText: {
-    color: 'white',
-    fontWeight: 'bold'
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

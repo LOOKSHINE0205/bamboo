@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
@@ -8,11 +8,10 @@ import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 const UserGuide = () => {
   const router = useRouter();
 
-  // 상태 관리
   const [pageIndex, setPageIndex] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(1));
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // 페이지 데이터
   const pages = [
     {
       icon: 'chatbubbles-outline',
@@ -37,25 +36,31 @@ const UserGuide = () => {
   ];
 
   const handleNext = () => {
-    if (pageIndex < pages.length - 1) {
-      animateContent(() => setPageIndex(pageIndex + 1));
+    if (pageIndex < pages.length - 1 && !isAnimating) {
+      setIsAnimating(true);
+      animateContent(() => {
+        setPageIndex(pageIndex + 1);
+        setIsAnimating(false);
+      });
     }
   };
 
   const handlePrevious = () => {
-    if (pageIndex > 0) {
-      animateContent(() => setPageIndex(pageIndex - 1));
+    if (pageIndex > 0 && !isAnimating) {
+      setIsAnimating(true);
+      animateContent(() => {
+        setPageIndex(pageIndex - 1);
+        setIsAnimating(false);
+      });
     }
   };
 
   const animateContent = (callback: () => void) => {
-    // 아이콘, 타이틀, 설명이 점점 사라졌다가 나타나는 애니메이션
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      // 페이지를 변경하고 나서 다시 나타나는 애니메이션 시작
       callback();
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -102,9 +107,11 @@ const UserGuide = () => {
             <SmoothCurvedButton
               title="이전"
               onPress={handlePrevious}
+              disabled={isAnimating} // 애니메이션 중일 때 비활성화
               style={{
-                width: '45%',       // 버튼의 너비를 화면의 절반으로 설정
-                marginHorizontal: 5, // 좌우 버튼 간 간격을 조절하기 위해 설정
+                width: '45%',
+                marginHorizontal: 5,
+                opacity: isAnimating ? 0.5 : 1, // 애니메이션 중일 때 스타일 변경
               }}
             />
           )}
@@ -112,23 +119,26 @@ const UserGuide = () => {
             <SmoothCurvedButton
               title="다음"
               onPress={handleNext}
+              disabled={isAnimating} // 애니메이션 중일 때 비활성화
               style={{
-                width: '45%',       // 버튼의 너비를 화면의 절반으로 설정
-                marginHorizontal: 5, // 좌우 버튼 간 간격을 조절하기 위해 설정
+                width: '45%',
+                marginHorizontal: 5,
+                opacity: isAnimating ? 0.5 : 1, // 애니메이션 중일 때 스타일 변경
               }}
             />
           ) : (
             <SmoothCurvedButton
               title="완료"
               onPress={() => router.push('../../(init)')}
+              disabled={isAnimating} // 애니메이션 중일 때 비활성화
               style={{
-                width: '45%',       // 버튼의 너비를 화면의 절반으로 설정
-                marginHorizontal: 5, // 좌우 버튼 간 간격을 조절하기 위해 설정
+                width: '45%',
+                marginHorizontal: 5,
+                opacity: isAnimating ? 0.5 : 1, // 애니메이션 중일 때 스타일 변경
               }}
             />
           )}
         </View>
-
       </View>
     </JoinBG>
   );
