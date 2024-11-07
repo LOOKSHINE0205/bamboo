@@ -114,5 +114,16 @@ public class ChattingController {
         List<Chatting> chatHistory = chattingService.getChatHistory(croomIdx);
         return ResponseEntity.ok(chatHistory);
     }
+    @PostMapping("/updateEvaluation")
+    public ResponseEntity<String> updateEvaluation(@RequestBody Chatting chatting) {
+        int rowsUpdated = chattingService.updateEvaluation(chatting.getChatIdx(), chatting.getEvaluation());
+        if (rowsUpdated > 0) {
+            return ResponseEntity.ok("평가완료");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chat message not found");
+        }
+    }
+
+
 }
 

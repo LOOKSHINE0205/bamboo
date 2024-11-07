@@ -84,15 +84,30 @@ export default function ChatbotPage() {
     }, []);
 
     // 평가 처리
-    const handleEvaluation = (messageIndex: number, type: 'like' | 'dislike') => {
+    const handleEvaluation = async (messageIndex: number, type: 'like' | 'dislike') => {
+        const messageToUpdate = messages[messageIndex];
+        const newEvaluation = messageToUpdate.evaluation === type ? null : type;
+
+        // 메시지 상태 업데이트
         setMessages(prevMessages =>
             prevMessages.map((msg, index) => {
-                if (index === messageIndex) {
-                    return { ...msg, evaluation: msg.evaluation === type ? null : type };
+                if (index === messageIndex && msg.sender === 'bot') {
+                    return { ...msg, evaluation: newEvaluation };
                 }
                 return msg;
             })
         );
+
+        // DB 업데이트 요청
+        try {
+            await axios.put('http://10.0.2.2:8082/api/chat/updateEvaluation', {
+                chatIdx: messageToUpdate.chatIdx,
+                evaluation: newEvaluation
+            });
+            console.log('Evaluation updated in DB:', newEvaluation);
+        } catch (error) {
+            console.error('Failed to update evaluation in DB:', error);
+        }
     };
 
     useEffect(() => {
