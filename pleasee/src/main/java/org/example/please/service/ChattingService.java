@@ -42,4 +42,7 @@ public class ChattingService {
     public List<Chatting> getChatHistory(int croomIdx) {
         return chatbotRepository.findByCroomIdxOrderByCreatedAtAsc(croomIdx);
     }
+    public int updateEvaluation(int chatIdx, String evaluation) {
+        return chattingRepository.updateEvaluationByChatIdx(chatIdx, evaluation);
+    }
 }

@@ -8,9 +8,9 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/my-app/app/(join)/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(join)/login.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/repository/ChattingRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/repository/ChattingRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/ChattingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/ChattingService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
