@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="채팅연결">
+    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="오류 70% 해결">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/getChatHistory.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/getChatHistory.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -207,7 +206,23 @@
       <option name="project" value="LOCAL" />
       <updated>1730882148297</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="오류 70% 해결">
+      <option name="closed" value="true" />
+      <created>1730938734649</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1730938734649</updated>
+    </task>
+    <task id="LOCAL-00011" summary="오류 70% 해결">
+      <option name="closed" value="true" />
+      <created>1730938793390</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1730938793390</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -233,6 +248,7 @@
     <MESSAGE value="채팅방 평가 ui 다시 넣음, 회원가입시 chat_tb insert" />
     <MESSAGE value="채티세션추가 및 user,bot message db insert" />
     <MESSAGE value="채팅연결" />
-    <option name="LAST_COMMIT_MESSAGE" value="채팅연결" />
+    <MESSAGE value="오류 70% 해결" />
+    <option name="LAST_COMMIT_MESSAGE" value="오류 70% 해결" />
   </component>
 </project>
