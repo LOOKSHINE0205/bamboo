@@ -22,8 +22,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage } from '../../storage/storageHelper';
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import {serverAddress} from '../../components/Config';
 
-const serverAddress = 'http://192.168.21.253:8082';
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
 const SettingsScreen = () => {
