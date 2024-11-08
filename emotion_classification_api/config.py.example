@@ -1,0 +1,2 @@
+# config.py 파일 예시
+OPENAI_API_KEY = "api 키값"
