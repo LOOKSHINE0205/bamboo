@@ -133,7 +133,7 @@ export default function CustomDiaryScreen() {
     if (selectedDates[dateKey]) {
       // 감정 태그가 매핑되어 있으면 /diary 페이지로 이동
       router.push({
-        pathname: "/(diary)/diaryScreen",
+        pathname: "/(diary)/diaryView",
         params: { date: dateKey },
       });
     } else {
@@ -158,7 +158,16 @@ export default function CustomDiaryScreen() {
         <TouchableOpacity onPress={() => console.log("Search clicked",diaryEntries)} style={styles.icon}>
           <Ionicons name="search-outline" size={24} color="#4a9960" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => console.log("List clicked")} style={styles.icon}>
+        <TouchableOpacity
+            onPress={() => router.push({
+              pathname: "/(diary)/monthView",
+              params: {
+                year: currentYear,
+                month: currentMonth + 1  // JavaScript는 월이 0부터 시작하므로 1을 더해줍니다
+              }
+            })}
+            style={styles.icon}
+          >
           <Foundation name="list" size={24} color="#4a9960" />
         </TouchableOpacity>
       </View>
