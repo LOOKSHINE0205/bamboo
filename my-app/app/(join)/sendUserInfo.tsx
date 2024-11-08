@@ -100,13 +100,13 @@ const SendUserInfo = () => {
             <View style={styles.container}>
                 <View style={styles.circle}>
                     <Image source={BambooHead} style={styles.bambooImage} />
-                    <Animated.Image source={em_happy} style={[styles.emotionImage, styles.position1, { opacity: fadeAnim[0] }]} />
-                    <Animated.Image source={em_angry} style={[styles.emotionImage, styles.position2, { opacity: fadeAnim[1] }]} />
-                    <Animated.Image source={em_surprise} style={[styles.emotionImage, styles.position3, { opacity: fadeAnim[2] }]} />
-                    <Animated.Image source={em_fear} style={[styles.emotionImage, styles.position4, { opacity: fadeAnim[3] }]} />
-                    <Animated.Image source={em_sad} style={[styles.emotionImage, styles.position5, { opacity: fadeAnim[4] }]} />
-                    <Animated.Image source={em_dislike} style={[styles.emotionImage, styles.position6, { opacity: fadeAnim[5] }]} />
-                    <Animated.Image source={em_soso} style={[styles.emotionImage, styles.position7, { opacity: fadeAnim[6] }]} />
+                    <Animated.Image source={em_happy} style={[styles.emotionImage, styles.position1,{ opacity: fadeAnim[0] }]} />
+                    <Animated.Image source={em_angry} style={[styles.emotionImage, styles.position2,{ opacity: fadeAnim[1] }]} />
+                    <Animated.Image source={em_surprise} style={[styles.emotionImage, styles.position3,{ opacity: fadeAnim[2] }]} />
+                    <Animated.Image source={em_fear} style={[styles.emotionImage, styles.position4,{ opacity: fadeAnim[3] }]} />
+                    <Animated.Image source={em_sad} style={[styles.emotionImage, styles.position5,{ opacity: fadeAnim[4] } ]} />
+                    <Animated.Image source={em_dislike} style={[styles.emotionImage, styles.position6,{ opacity: fadeAnim[5] }]} />
+                    <Animated.Image source={em_soso} style={[styles.emotionImage, styles.position7,{ opacity: fadeAnim[6] }]} />
                 </View>
                 <Text style={styles.text}>정보를 서버로 전송 중입니다...</Text>
             </View>
@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
     },
     circle: {
         position: 'relative',
-        width: 300,
-        height: 300,
+        width: 320,
+        height: 320,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -134,15 +134,15 @@ const styles = StyleSheet.create({
     },
     emotionImage: {
         position: 'absolute',
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        resizeMode: 'cover',
+        width: 40,
+        height: 40,
+        resizeMode: 'contain',
+        margin: 5, // 위치를 고정하면서 여백 확보
     },
     position1: {
         top: 20,
         left: '50%',
-        marginLeft: -25,
+        marginLeft: -20,
     },
     position2: {
         top: '20%',
