@@ -135,7 +135,7 @@ export default function MoodSelectionScreen() {
         />
       </View>
           <View style={styles.completeButtonContainer}>
-            <SmoothCurvedButton onPress={handleSelectionComplete} style={styles.completeButton} title={'완료'} />
+            <SmoothCurvedButton onPress={handleSelectionComplete} style={styles.completeButton} title={'다음'} />
           </View>
 
     {/* 하단 텍스트 알림 메시지 */}

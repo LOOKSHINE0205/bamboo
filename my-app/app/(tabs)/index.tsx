@@ -101,7 +101,8 @@ useFocusEffect(
                     timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
                     showTimestamp: true,
                     evaluation: chat.evaluation, // 평가 상태 반영
-                    chatIdx: chat.chatIdx // 메시지의 고유 ID 추가
+                    chatIdx: chat.chatIdx,// 메시지의 고유 ID 추가
+                    emotionTag:chat.emotionTag
                 }));
                 // 디버깅용 로그 추가: 각 메시지의 evaluation 값 확인
                 formattedMessages.forEach((formattedMessage) => {

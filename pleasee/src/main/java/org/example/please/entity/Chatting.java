@@ -42,11 +42,9 @@ public class  Chatting {
     @Column(name = "chat_file")
     private String chatFile;
 
-    // 발화 시간
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(name = "created_at")
     private Timestamp createdAt;
-
     // 감정 태그
     @Column(name = "emotion_tag")
     private String emotionTag;

@@ -29,6 +29,7 @@ const uploadProfileImageToServer = async (imageUri: string, userEmail: string): 
         }
 
         const formData = new FormData();
+        // @ts-ignore
         formData.append('photo', {
             uri: imageUri,
             type: 'image/jpeg',
