@@ -64,6 +64,11 @@ public class User {
     @Column(name = "user_profile")
     private String userProfile;
 
+    // 알람받기
+    @Column(name = "toggle", nullable = false)
+    private boolean toggle;
+
+
     // 프로필 이미지 경로 가져오기 메서드
     public String getProfileImage() {
         return userProfile;

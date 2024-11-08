@@ -70,6 +70,8 @@ export default function CustomDiaryScreen() {
     // entries를 날짜별로 매핑하여 selectedDates 상태를 업데이트
     const datesMap: Record<string, string> = {};
     entries.forEach((entry) => {
+      // createdAt의 날짜를 YYYY-MM-DD 형식으로 변환
+      const date = new Date(entry.createdAt);
       const dateKey = new Date(entry.createdAt).toISOString().split("T")[0]; // 'YYYY-MM-DD' 형식
       datesMap[dateKey] = entry.emotionTag; // 감정 태그 저장
     });
@@ -114,7 +116,10 @@ export default function CustomDiaryScreen() {
   // 날짜 클릭 핸들러 함수
   const handleDayPress = (day) => {
     const selectedDate = new Date(currentYear, currentMonth, day);
+    // 날짜 형식을 YYYY-MM-DD로 일관되게 맞추기
+    const dateKey = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
+    // 선택한 날짜가 미래 날짜인 경우
     if (selectedDate > today) {
       setAlertMessage("앗, 미래 날짜는 아직 기록할 수 없어요!");
       alertTimeout = setTimeout(() => setAlertMessage(""), 3000);
@@ -124,13 +129,25 @@ export default function CustomDiaryScreen() {
     clearTimeout(alertTimeout);
     setAlertMessage("");
 
-    router.push({
-      pathname: "/(diary)/mood",
-      params: { date: selectedDate.toISOString().split("T")[0] },
-    });
+    // 날짜에 감정 태그가 매핑되어 있는지 확인
+    if (selectedDates[dateKey]) {
+      // 감정 태그가 매핑되어 있으면 /diary 페이지로 이동
+      router.push({
+        pathname: "/(diary)/diaryScreen",
+        params: { date: dateKey },
+      });
+    } else {
+      // 감정 태그가 없으면 /mood 페이지로 이동
+      router.push({
+        pathname: "/(diary)/mood",
+        params: { date: dateKey },
+      });
+    }
   };
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+
+
 
   return (
 

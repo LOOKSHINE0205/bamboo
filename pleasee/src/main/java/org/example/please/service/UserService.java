@@ -37,26 +37,40 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    // 이메일 중복 체크
+    /**
+     * 이메일 중복 체크
+     * @param user 이메일 중복 확인할 사용자 객체
+     * @return 이메일 중복 여부
+     */
     public boolean checkEmail(User user) {
         return userRepository.existsByUserEmail(user.getUserEmail());
     }
 
-    // 회원 저장 (회원가입)
+    /**
+     * 새로운 사용자 저장 (회원가입)
+     * @param user 저장할 사용자 객체
+     */
     public void saveUser(User user) {
-        user.setUserPw(passwordEncoder.encode(user.getUserPw()));
+        user.setUserPw(passwordEncoder.encode(user.getUserPw())); // 비밀번호 암호화
         userRepository.save(user);
         logger.info("New user registered with email: {}", user.getUserEmail());
     }
 
-    // 로그인 로직
+    /**
+     * 사용자 로그인 로직
+     * @param user 로그인할 사용자 객체
+     * @return 인증된 사용자 객체 또는 null (인증 실패 시)
+     */
     public User login(User user) {
         return userRepository.findByUserEmail(user.getUserEmail())
                 .filter(foundUser -> passwordEncoder.matches(user.getUserPw(), foundUser.getUserPw()))
-                .orElse(null); // 인증 실패 시 null 반환
+                .orElse(null);
     }
 
-    // 비밀번호 업데이트
+    /**
+     * 사용자 비밀번호 업데이트
+     * @param user 비밀번호를 업데이트할 사용자 객체
+     */
     public void updatePassword(User user) {
         Optional<User> optionalUser = userRepository.findByUserEmail(user.getUserEmail());
         if (optionalUser.isPresent() && user.getUserPw() != null && !user.getUserPw().isEmpty()) {
@@ -69,47 +83,40 @@ public class UserService {
         }
     }
 
-    // 이메일로 사용자 조회
+    /**
+     * 이메일로 사용자 조회
+     * @param email 조회할 사용자 이메일
+     * @return 조회된 사용자 객체 (Optional)
+     */
     public Optional<User> findByEmail(String email) {
         logger.info("Searching for user by email: {}", email);
         return userRepository.findByUserEmail(email);
     }
 
-    // 알림 시간 업데이트
-    public void updateQuietTime(String email, String quietStartTime, String quietEndTime) {
-        userRepository.findByUserEmail(email).ifPresentOrElse(user -> {
-            user.setQuietStartTime(Time.valueOf(quietStartTime));
-            user.setQuietEndTime(Time.valueOf(quietEndTime));
-            userRepository.save(user);
-            logger.info("Updated quiet time for user: {}", email);
-        }, () -> {
-            logger.warn("User not found for email: {}", email);
-            throw new RuntimeException("User not found");
-        });
-    }
 
-    // 프로필 이미지 업로드 및 기존 이미지 삭제
+
+    /**
+     * 사용자 프로필 이미지 업로드 및 기존 이미지 삭제
+     * @param email 사용자 이메일
+     * @param photoFile 업로드할 프로필 이미지 파일
+     * @return 저장된 프로필 이미지 파일명 또는 null (사용자를 찾을 수 없는 경우)
+     * @throws IOException 파일 처리 오류
+     */
     public String uploadProfileImage(String email, MultipartFile photoFile) throws IOException {
         Optional<User> optionalUser = userRepository.findByUserEmail(email);
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-
-            // 새 이미지 파일명 생성 및 중복 체크
             String newFileName = UUID.randomUUID() + "_" + photoFile.getOriginalFilename();
             if (newFileName.equals(user.getUserProfile())) {
                 logger.info("중복된 이미지 업로드 요청이므로 기존 이미지 사용: {}", newFileName);
                 return newFileName;
             }
 
-            // 기존 이미지 삭제 및 새 이미지 저장
             deleteOldProfileImage(user.getUserProfile());
             saveProfileImage(photoFile, newFileName);
-
-            // DB에 이미지 정보 업데이트
             user.setUserProfile(newFileName);
             userRepository.save(user);
-
             logger.info("Updated profile image for user: {}", user.getUserEmail());
             return newFileName;
         } else {
@@ -118,7 +125,10 @@ public class UserService {
         }
     }
 
-    // 기존 프로필 이미지 삭제
+    /**
+     * 기존 프로필 이미지 삭제
+     * @param fileName 삭제할 파일명
+     */
     private void deleteOldProfileImage(String fileName) {
         if (fileName != null) {
             try {
@@ -134,7 +144,10 @@ public class UserService {
         }
     }
 
-    // 프로필 이미지 초기화
+    /**
+     * 프로필 이미지 초기화 (이미지 삭제 후 DB의 이미지 정보 초기화)
+     * @param email 사용자 이메일
+     */
     public void resetProfileImage(String email) {
         userRepository.findByUserEmail(email).ifPresentOrElse(user -> {
             if (user.getUserProfile() != null) {
@@ -146,14 +159,39 @@ public class UserService {
         }, () -> logger.warn("User not found with email: {}", email));
     }
 
-    // 프로필 이미지 저장 (파일로 저장)
+    /**
+     * 프로필 이미지 저장 (파일로 저장)
+     * @param photoFile 저장할 이미지 파일
+     * @param fileName 저장할 파일명
+     * @throws IOException 파일 처리 오류
+     */
     private void saveProfileImage(MultipartFile photoFile, String fileName) throws IOException {
         Path targetPath = Paths.get(profileImageDir, fileName).normalize();
-
-        // 파일 저장 디렉토리 생성
-        Files.createDirectories(targetPath.getParent());
-        photoFile.transferTo(targetPath.toFile());
-
+        Files.createDirectories(targetPath.getParent()); // 디렉토리 생성
+        photoFile.transferTo(targetPath.toFile()); // 파일 저장
         logger.info("Saved new profile image: {}", fileName);
     }
+
+
+
+
+    public void updateQuietTimes(String userEmail, String startTime, String endTime) {
+        userRepository.findByUserEmail(userEmail).ifPresentOrElse(user -> {
+            user.setQuietStartTime(Time.valueOf(startTime));
+            user.setQuietEndTime(Time.valueOf(endTime));
+            userRepository.save(user);
+        }, () -> {
+            throw new RuntimeException("해당 사용자를 찾을 수 없습니다.");
+        });
+    }
+
+    public void updateToggle(String userEmail, boolean toggle) {
+        userRepository.findByUserEmail(userEmail).ifPresentOrElse(user -> {
+            user.setToggle(toggle);
+            userRepository.save(user);
+        }, () -> {
+            throw new RuntimeException("해당 사용자를 찾을 수 없습니다.");
+        });
+    }
+
 }
