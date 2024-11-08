@@ -1,11 +1,18 @@
-from fastapi import FastAPI
+# main.py
+
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from threading import Thread
 import uvicorn
 from pyngrok import ngrok
 from emotion_model import predict_with_probabilities
 from openai_service import generate_gpt_response
-from database_service import get_user_preference, get_diary_info, get_chat_history
+from data_fetcher import fetch_user_data
+from prompt_builder import get_combined_prompt
+from keyword_extractor import extract_emotion_keyword
+from memory_manager import get_user_memory
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -23,43 +30,62 @@ class EmotionRequest(BaseModel):
 @app.post("/predict")
 async def predict(request: EmotionRequest):
     try:
-        # 데이터베이스에서 사용자 정보 및 일기 정보 가져오기
-        user_preference = get_user_preference(request.user_email)
-        diary_info = get_diary_info(request.user_email)
-        chat_history = get_chat_history(request.croom_idx, request.session_idx)
-
-        if not user_preference:
-            return {"error": "사용자 선호 정보가 없습니다"}
-
-        # 채팅 내역 메시지 구성
-        messages = [{"role": "user", "content": msg} if chatter == "user" else {"role": "assistant", "content": msg}
-                    for chatter, msg in chat_history]
-
-        # 현재 사용자 메시지를 추가
-        messages.append({"role": "user", "content": request.current_user_message})
-
-        # 시스템 프롬프트 구성
-        system_prompt = (
-            f"당신은 {user_preference} 스타일의 공감적인 챗봇입니다.\n"
-            f"사용자의 일기 정보:\n{diary_info}\n"
+        # 데이터 페칭
+        user_data = fetch_user_data(request.user_email, request.croom_idx, request.session_idx)
+        
+        if not user_data["user_preference"]:
+            raise HTTPException(status_code=400, detail="사용자 선호 정보가 없습니다")
+        
+        # 감정 분류
+        emotion_ratios = predict_with_probabilities(request.current_user_message)
+        
+        # 특수 감정 키워드 추출
+        emotion_keyword = extract_emotion_keyword(emotion_ratios)
+        
+        # 시스템 프롬프트 및 메시지 생성
+        combined_messages = get_combined_prompt(
+            user_preference=user_data["user_preference"],
+            diary_info=user_data["diary_info"],
+            emotion_ratios=emotion_ratios,
+            chat_history=user_data["chat_history"],
+            current_user_message=request.current_user_message,
+            emotion_keyword=emotion_keyword
         )
-
-        # OpenAI API를 사용해 모델 응답 생성
-        bot_response = generate_gpt_response(system_prompt, messages)
-
+        
+        # LangChain 메모리 관리 (사용자 세션별)
+        session_id = f"{request.croom_idx}_{request.session_idx}"
+        memory = get_user_memory(session_id)
+        
+        # LangChain을 사용한 응답 생성
+        llm_chain = LLMChain(
+            prompt=PromptTemplate.from_template(""),
+            llm=memory  # 메모리를 사용하는 LLMChain 설정
+        )
+        # LangChain 체인을 통해 응답 생성
+        bot_response = llm_chain.run({
+            "user_preference": user_data["user_preference"],
+            "diary_info": user_data["diary_info"],
+            "emotion_ratios": emotion_ratios,
+            "emotion_keyword": emotion_keyword,
+            "current_user_message": request.current_user_message
+        })
+        
         # 감정 분류 수행
-        current_emotion_probabilities = predict_with_probabilities(request.current_user_message)
-
+        # 이미 감정 분류를 수행했으므로, 필요 없다면 생략 가능
+        
         # 응답 데이터 생성
         response_data = {
-            "current_emotion_probabilities": current_emotion_probabilities,
+            "current_emotion_probabilities": emotion_ratios,
+            "emotion_keyword": emotion_keyword,
             "bot_response": bot_response
         }
         return response_data
 
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        print("오류 발생:", e)
-        return {"error": "서버 오류 발생", "details": str(e)}
+        # 로깅 또는 에러 핸들링 추가 가능
+        raise HTTPException(status_code=500, detail=str(e))
 
 # 테스트 엔드포인트 추가
 @app.get("/test")
