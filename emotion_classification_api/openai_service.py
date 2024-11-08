@@ -1,9 +1,10 @@
 # openai_service.py
 
 import openai
+from config import OPENAI_API_KEY
 
 # OpenAI API 키 설정
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = OPENAI_API_KEY
 
 # GPT 응답 생성 함수
 def generate_gpt_response(system_prompt, messages):
