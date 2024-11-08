@@ -1,10 +1,14 @@
 # openai_service.py
 
+import os
 import openai
-from config import OPENAI_API_KEY
+from dotenv import load_dotenv
 
-# OpenAI API 키 설정
-openai.api_key = OPENAI_API_KEY
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수에서 OpenAI API 키 가져오기
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # GPT 응답 생성 함수
 def generate_gpt_response(system_prompt, messages):

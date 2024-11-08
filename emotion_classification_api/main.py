@@ -49,13 +49,11 @@ async def predict(request: EmotionRequest):
 
         # 감정 분류 수행
         current_emotion_probabilities = predict_with_probabilities(request.current_user_message)
-        bot_response_emotion_probabilities = predict_with_probabilities(bot_response)
 
         # 응답 데이터 생성
         response_data = {
             "current_emotion_probabilities": current_emotion_probabilities,
-            "bot_response": bot_response,
-            "bot_response_emotion_probabilities": bot_response_emotion_probabilities
+            "bot_response": bot_response
         }
         return response_data
 
