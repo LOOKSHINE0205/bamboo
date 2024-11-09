@@ -14,12 +14,14 @@ export default function LoginScreen() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isFindingPassword, setIsFindingPassword] = useState(false);
 
-    // 이메일과 비밀번호 입력 필드에 대한 참조 생성
     const emailInputRef = useRef<TextInput>(null);
     const passwordInputRef = useRef<TextInput>(null);
+    const dateOfBirthInputRef = useRef<TextInput>(null);
 
     // 로그인 핸들러 함수
     const handleLogin = async () => {
@@ -63,11 +65,59 @@ export default function LoginScreen() {
         }
     };
 
+    // 생년월일을 YYYY-MM-DD 형식으로 변환하는 함수
+    const formatBirthdate = (birthdate) => {
+        if (birthdate.length === 8) {
+            return `${birthdate.slice(0, 4)}-${birthdate.slice(4, 6)}-${birthdate.slice(6)}`;
+        }
+        return birthdate; // 변환할 수 없는 경우 그대로 반환
+    };
+
+    // 비밀번호 찾기 핸들러 함수
+    const handleFindPassword = async () => {
+        if (!email) {
+            setError('이메일을 입력하세요.');
+            emailInputRef.current?.focus();
+            return;
+        }
+        if (!dateOfBirth) {
+            setError('생년월일을 입력하세요.');
+            dateOfBirthInputRef.current?.focus();
+            return;
+        }
+
+        // 생년월일 형식을 YYYY-MM-DD로 변환
+        const formattedDateOfBirth = formatBirthdate(dateOfBirth);
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post(`${serverAddress}/auth/find-password`, {
+                email,
+                dateOfBirth: formattedDateOfBirth, // 변환된 생년월일을 전송
+            });
+
+            if (response.data.success) {
+                alert('임시 비밀번호가 이메일로 전송되었습니다.');
+                setIsFindingPassword(false); // 로그인 폼으로 돌아가기
+            } else {
+                setError('일치하는 사용자 정보를 찾을 수 없습니다.');
+            }
+        } catch (error) {
+            console.error('비밀번호 찾기 오류:', error);
+            setError(error?.response?.data?.message || '비밀번호 찾기 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
     return (
         <View style={styles.container}>
             <View style={styles.labelContainer}>
                 <Text style={styles.label}>이메일</Text>
-                {error === '이메일을 입력하세요.' && <Text style={styles.errorText}>{error}</Text>}
+                {error && <Text style={styles.errorText}>{error}</Text>}
             </View>
             <TextInput
                 ref={emailInputRef}
@@ -80,33 +130,57 @@ export default function LoginScreen() {
                 placeholderTextColor="#707070"
             />
 
-            <View style={styles.labelContainer}>
-                <Text style={styles.label}>비밀번호</Text>
-                {error === '비밀번호를 입력하세요.' && <Text style={styles.errorText}>{error}</Text>}
-            </View>
+            {isFindingPassword ? (
+                <View style={styles.labelContainer}>
+                    <Text style={styles.label}>생년월일</Text>
+                </View>
+            ) : (
+                <View style={styles.labelContainer}>
+                    <Text style={styles.label}>비밀번호</Text>
+                </View>
+            )}
             <TextInput
-                ref={passwordInputRef}
+                ref={isFindingPassword ? dateOfBirthInputRef : passwordInputRef}
                 style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="비밀번호를 입력하세요"
-                secureTextEntry
+                value={isFindingPassword ? dateOfBirth : password}
+                onChangeText={isFindingPassword ? setDateOfBirth : setPassword}
+                placeholder={isFindingPassword ? "생년월일을 입력하세요 (YYYY-MM-DD)" : "비밀번호를 입력하세요"}
+                secureTextEntry={!isFindingPassword}
+                keyboardType={isFindingPassword ? 'default' : 'default'}
                 placeholderTextColor="#707070"
             />
 
             <View style={styles.buttonWrapper}>
+                {isFindingPassword ? (
+                    <SmoothCurvedButton
+                        title={isLoading ? '비밀번호 찾는 중...' : '비밀번호 찾기'}
+                        onPress={handleFindPassword}
+                        disabled={isLoading}
+                        style={[isLoading && styles.disabledButton]}
+                    />
+                ) : (
+                    <SmoothCurvedButton
+                        title={isLoading ? '로그인 중...' : '로그인'}
+                        onPress={handleLogin}
+                        disabled={isLoading}
+                        style={[isLoading && styles.disabledButton]}
+                    />
+                )}
+
                 <SmoothCurvedButton
-                    title={isLoading ? '로그인 중...' : '로그인'}
-                    onPress={handleLogin}
-                    disabled={isLoading}
-                    style={[isLoading && styles.disabledButton]}
+                    title={isFindingPassword ? '로그인으로 돌아가기' : '비밀번호 찾기'}
+                    onPress={() => setIsFindingPassword(!isFindingPassword)}
+                    style={{ marginTop: 20 }}
                 />
-                <TouchableOpacity
-                    style={styles.passButton}
-                    onPress={() => router.push('/(tabs)/report')}
-                >
-                    <Text style={styles.passButtonText}>패스</Text>
-                </TouchableOpacity>
+
+                {!isFindingPassword && (
+                    <TouchableOpacity
+                        style={styles.passButton}
+                        onPress={() => router.push('/(tabs)/report')}
+                    >
+                        <Text style={styles.passButtonText}>패스</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );

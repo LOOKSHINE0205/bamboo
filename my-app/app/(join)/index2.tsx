@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
-import SmoothCurvedButton from '../../components/SmoothCurvedButton'; // 버튼 컴포넌트 임포트
+import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
 const KeywordSelectionScreen = () => {
   const router = useRouter();
@@ -21,7 +21,7 @@ const KeywordSelectionScreen = () => {
   const [testResults, setTestResults] = useState<string>('');
   const [chatbotName, setChatbotName] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isFocused, setIsFocused] = useState(false); // 입력 필드 포커스 상태
+  const [isFocused, setIsFocused] = useState(false);
 
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
@@ -30,13 +30,51 @@ const KeywordSelectionScreen = () => {
   const cloudScale = useRef(new Animated.Value(0.1)).current;
   const chatbotScale = useRef(new Animated.Value(0)).current;
 
-  const scrollViewRef = useRef<ScrollView>(null); // ScrollView 참조
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const questions = [
-    { question: '밤부의 성격을 형성하는 단계 입니다.\n답변을 선택해주세요.', aiResponse: "나는 '무인도에 떨어지면 어떡하지?' 같은 생각을", responses: ['종종 있다', '없거나 드물다'] },
-    { question: '다음 질문입니다.\n어떻게 생각하시나요?', aiResponse: '당신이 만약 \n무인도에 떨어진다면', responses: ['혼자라서 너무 외로울 것 같다', '무섭지만 혼자라 편할 것 같기도 하다'] },
-    { question: '다음 질문입니다.\n어떻게 생각하시나요?', aiResponse: '같이 무인도에 떨어진 사람이 계속 울고 있다. 이때 나는?', responses: ['무섭긴 하겠지만.. 빨리 일을 시작해야 하는데.. 약간 답답하다', '나도 무서워.. 옆에 앉아서 같이 운다'] },
-    { question: '마지막 질문입니다.\n어떻게 생각하시나요?', aiResponse: '무인도에서 계속 살아가야 한다면 나는', responses: ['이렇게 된 김에 자유로운 삶을 산다', '안정적으로 살기 위해 집도 짓고 시설을 설치한다'] },
+    //외향/ 내향
+    {
+        "question": "밤부의 성격을 형성하는 단계입니다.\n답변을 선택해주세요.",
+        "aiResponse": "당신이 새로운 사람과 만날 때, 어떻게 느끼시나요?",
+        "responses": ["재미있고 활기찬 시간을 기대한다 ", "약간 부담스럽고 긴장된다 "]
+    },
+    {
+        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
+        "aiResponse": "처음 가본 낯선 곳에서 시간 보낼 때,",
+        "responses": ["이곳저곳 탐험하고 싶다 ", "조용히 내 시간을 보낸다 "]
+    },
+    {
+        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
+        "aiResponse": "팀 프로젝트가 주어졌을 때, 나는",
+        "responses": ["사람들과 적극적으로 의견을 나눈다 ", "조용히 맡은 부분을 처리한다 "]
+    },
+    // 공감 / 논리
+    {
+        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
+        "aiResponse": "친구가 고민을 이야기할 때, 나는",
+        "responses": ["상대방의 감정을 공감하며 위로한다 ", "상황을 객관적으로 분석하며 조언한다 "]
+    },
+    {
+        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
+        "aiResponse": "무인도에 떨어졌을 때, 나는",
+        "responses": ["함께 살아남을 방법을 고민한다 ", "혼자 생존을 위한 방안을 마련한다 "]
+    },
+    {
+        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
+        "aiResponse": "실수를 했을 때, 나는",
+        "responses": ["상대방의 감정을 헤아리며 사과한다 ", "상황을 분석하고 개선 방안을 제시한다 "]
+    },
+    {
+        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
+        "aiResponse": "누군가가 도움을 요청할 때, 나는",
+        "responses": ["당연히 돕고 싶다 ", "신중하게 판단한 후 돕는다 "]
+    },
+    {
+        "question": "마지막 질문입니다.\n어떻게 생각하시나요?",
+        "aiResponse": "사람들과의 갈등 상황에서, 나는",
+        "responses": ["상대방의 입장을 이해하며 대화한다 ", "상황을 객관적으로 정리하며 논리적으로 해결한다 "]
+    },
     { question: '밤부의 이름을 지어주세요', aiResponse: '좋은 이름을 기대할게요!', responses: [] },
   ];
 
@@ -93,7 +131,6 @@ const KeywordSelectionScreen = () => {
   };
 
   const handlePrevious = () => {
-
     if (currentQuestionIndex > 0) {
       if (currentQuestionIndex === questions.length - 1) {
         cloudAnim.setValue(1);
@@ -150,9 +187,14 @@ const KeywordSelectionScreen = () => {
   const updateCloudScale = (index: number) => {
     let targetScale = 1;
     if (index === 0) targetScale = 0.1;
-    else if (index === 1) targetScale = 0.3;
-    else if (index === 2) targetScale = 0.6;
-    else if (index > 2) targetScale = 1;
+    else if (index === 1) targetScale = 0.2;
+    else if (index === 2) targetScale = 0.4;
+    else if (index === 3) targetScale = 0.7;
+    else if (index === 4) targetScale = 1.1;
+    else if (index === 5) targetScale = 1.6;
+    else if (index === 6) targetScale = 2.2;
+    else if (index >= 7) targetScale = 2.9;
+
 
     Animated.timing(cloudScale, {
       toValue: targetScale,
@@ -183,7 +225,7 @@ const KeywordSelectionScreen = () => {
   return (
     <JoinBG>
       <ScrollView
-        ref={scrollViewRef} // ScrollView 참조 설정
+        ref={scrollViewRef}
         contentContainerStyle={[
           styles.container,
           { paddingVertical: screenHeight * 0.05, paddingBottom: 200 }
@@ -239,35 +281,31 @@ const KeywordSelectionScreen = () => {
             />
             <Text style={styles.warningText}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
 
-           <View style={[styles.navigationButtons, { top: 120, flexDirection: 'row', justifyContent: 'center' }]}>
-             {currentQuestionIndex > 0 && (
-               <SmoothCurvedButton
-                 title="이전"
-                 onPress={handlePrevious}
-                 disabled={isProcessing}
-                 style={{
-                   width: screenWidth * 0.4, // 화면 너비의 40%로 설정
-                   height: 50,               // 고정 높이 설정
-                   marginHorizontal: 10,     // 버튼 간 좌우 간격 추가
-                 }}
-               />
-             )}
-             <SmoothCurvedButton
-               title="확인"
-               onPress={handleConfirm}
-               disabled={!chatbotName.trim() || isProcessing}
-               style={{
-                 opacity: chatbotName.trim() ? 1 : 0.6,
-                 width: screenWidth * 0.4,  // 화면 너비의 40%로 설정
-                 height: 50,                // 고정 높이 설정
-                 marginHorizontal: 10,      // 버튼 간 좌우 간격 추가
-               }}
-             />
-           </View>
-
-
-
-
+            <View style={[styles.navigationButtons, { top: 120, flexDirection: 'row', justifyContent: 'center' }]}>
+              {currentQuestionIndex > 0 && (
+                <SmoothCurvedButton
+                  title="이전"
+                  onPress={handlePrevious}
+                  disabled={isProcessing}
+                  style={{
+                    width: screenWidth * 0.4,
+                    height: 50,
+                    marginHorizontal: 10,
+                  }}
+                />
+              )}
+              <SmoothCurvedButton
+                title="확인"
+                onPress={handleConfirm}
+                disabled={!chatbotName.trim() || isProcessing}
+                style={{
+                  opacity: chatbotName.trim() ? 1 : 0.6,
+                  width: screenWidth * 0.4,
+                  height: 50,
+                  marginHorizontal: 10,
+                }}
+              />
+            </View>
           </View>
         ) : (
           <View style={styles.responseContainer}>
@@ -318,7 +356,6 @@ const KeywordSelectionScreen = () => {
       </ScrollView>
     </JoinBG>
   );
-
 };
 
 // 스타일 정의
