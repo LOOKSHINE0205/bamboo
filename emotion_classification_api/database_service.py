@@ -12,7 +12,7 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
-db_url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+db_url = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 engine = create_engine(db_url)
 
 # 사용자 선호 답변 스타일 가져오기 함수
