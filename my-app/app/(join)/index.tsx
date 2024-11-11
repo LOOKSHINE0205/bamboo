@@ -240,7 +240,6 @@ export default function JoinScreen() {
                             <SmoothCurvedButton
                                 title="다음"
                                 onPress={handleJoin}
-                                disabled={!isEmailValid}
                             />
                         </View>
                     </View>
