@@ -19,6 +19,7 @@ import em_soso from "../../assets/images/쏘쏘2.png";
 export interface EmotionTag {
     emotionTag: string;
 }
+/*
 
 // 최근 7일의 날짜 라벨을 생성하는 함수
 const getLast7DaysLabels = () => {
@@ -48,7 +49,8 @@ const initialChartData  = {
         { data: [null, null, null, null, null, null, null], color: () => "#81689D", label: "혐오" }
     ]
 };
-/*
+ */
+
 // 초기 차트 데이터 정의: 요일별 데이터와 감정별 색상을 설정합니다.
 const initialChartData = {
     labels: ["월", "화", "수", "목", "금", "토", "일"], // 요일 라벨
@@ -62,7 +64,7 @@ const initialChartData = {
         { data: [0.1, 0.05, 0.2, 0.15, 0.3, 0.25, 0.1], color: "#81689D", label: "혐오" }
     ]
 };
- */
+
 
 // EmotionReport 컴포넌트: 사용자가 감정을 선택하여 그래프에 표시하도록 하는 메인 컴포넌트
 export default function EmotionReport() {
@@ -186,7 +188,6 @@ export default function EmotionReport() {
                 </View>
 
                 {/* 감정 선택 버튼 */}
-                <View style={[styles.sectionContainer, { height: screenHeight * 0.125 }]}>
                     <View style={[styles.innerContainer]}>
                         <Text style={styles.subtitle}>감정 선택</Text>
                         <View style={[styles.iconContainer, { bottom: 5 }]}>
@@ -205,10 +206,8 @@ export default function EmotionReport() {
                             ))}
                         </View>
                     </View>
-                </View>
 
                 {/* 감정 라인 그래프 */}
-                <View style={[styles.sectionContainer, { height: screenHeight * 0.25 }]}>
                     <View style={[styles.innerContainer]}>
                         <Text style={[styles.subtitle, styles.graphSubtitle]}>감정 라인 그래프</Text>
                         <VictoryChart
@@ -229,8 +228,8 @@ export default function EmotionReport() {
                             />
                             <VictoryAxis
                                 dependentAxis
-                                domain={[0, yAxisMaxValue]} // yAxisMaxValue 사용하여 동적 설정
-                                tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1].map(tick => tick * yAxisMaxValue)}
+                                domain={[0, 1]} // yAxisMaxValue 사용하여 동적 설정
+                                tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
                                 tickFormat={(t) => (t === 0 ? "0" : t.toFixed(1))}
                                 style={{
                                     axis: { stroke: 'transparent' },
@@ -255,10 +254,8 @@ export default function EmotionReport() {
                             ))}
                         </VictoryChart>
                     </View>
-                </View>
 
                 {/* 감정 스택 그래프 */}
-                <View style={[styles.sectionContainer, { height: screenHeight * 0.25 }]}>
                     <View style={[styles.innerContainer]}>
                         <Text style={[styles.subtitle, styles.graphSubtitle]}>감정 스택 그래프</Text>
 
@@ -326,16 +323,13 @@ export default function EmotionReport() {
                             </VictoryStack>
                         </VictoryChart>
                     </View>
-                </View>
                 {/* 워드클라우드 컨테이너 */}
-                <View style={styles.sectionContainer}>
                     {/* 흰색 내부 컨테이너 */}
                     <View style={styles.innerContainer}>
                     <Text style={styles.subtitle}>워드클라우드</Text>
                         {/* 워드클라우드 내용이 들어갈 자리 */}
                         {/* 워드클라우드 컴포넌트 또는 이미지 추가 가능 */}
                     </View>
-                </View>
 
 
             </View>
@@ -347,18 +341,19 @@ export default function EmotionReport() {
 const styles = StyleSheet.create({
     scrollView: { flex: 1, backgroundColor: '#FFFFFF' },
     container: { flex: 1, padding: 15, backgroundColor: '#FFFFFF' },
-    sectionContainer: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 20,
-        padding: 10,
-        marginBottom: 10,
-        justifyContent: 'center'
-    },
     innerContainer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'white',
         borderRadius: 20,
         padding: 10,
-        justifyContent: 'center',
+        marginVertical: 8,
+        marginHorizontal: 10,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1,
+        borderWidth: 1,           // 테두리 추가
+        borderColor: '#eee',      // 테두리 색상
     },
     title: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 10 },
     subtitle: { fontSize: 18, fontWeight: '600', color: '#000' },
