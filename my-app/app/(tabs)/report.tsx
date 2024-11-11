@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { VictoryChart, VictoryLine, VictoryTheme, VictoryAxis, VictoryStack, VictoryBar, VictoryGroup } from "victory-native";
-
+import {getChatHistory} from "@/app/(tabs)/getChatHistory";
 // 화면 크기 측정을 위해 Dimensions 모듈을 사용하여 화면의 너비와 높이를 가져옵니다.
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -20,8 +20,24 @@ export interface EmotionTag {
     emotionTag: string;
 }
 
+// 최근 7일의 날짜 라벨을 생성하는 함수
+const getLast7DaysLabels = () => {
+    const labels = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+        const day = new Date(today);
+        day.setDate(today.getDate() - i);
+        const dayLabel = `${String(day.getDate()).padStart(2, '0')}일`; // '05일', '06일' 형식으로 포맷팅
+        labels.push(dayLabel);
+    }
+
+    return labels;
+};
+
+// initialChartData 생성 시 labels을 최근 7일로 설정
 const initialChartData  = {
-    labels: ["월", "화", "수", "목", "금", "토", "일"],
+    labels: getLast7DaysLabels(),  // 최근 7일의 날짜를 라벨로 설정
     datasets: [
         { data: [null, null, null, null, null, null, null], color: () => "#758694", label: "공포" },
         { data: [null, null, null, null, null, null, null], color: () => "#5C8374", label: "놀람" },
@@ -57,14 +73,11 @@ export default function EmotionReport() {
     const loadChatHistory = async () => {
         try {
             const chatHistory = await getChatHistory(); // 서버에서 채팅 기록을 가져오는 함수
-
-            // 현재 날짜와 시간을 기준으로 이번 주의 월요일과 일요일 계산
+            // console.log("adfafadsfasfasdf",chatHistory)
+            // 현재 날짜와 7일 전 날짜를 구합니다.
             const today = new Date();
-            const dayOfWeek = today.getDay();
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
-            const sunday = new Date(monday);
-            sunday.setDate(monday.getDate() + 6);
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 6); // 최근 7일 전부터 오늘까지의 범위 설정
 
             const emotionDataByDay = {
                 공포: [null, null, null, null, null, null, null],
@@ -77,22 +90,30 @@ export default function EmotionReport() {
             };
 
             // 'chatter'가 'bot'이면서 'createdAt'이 이번 주 월요일과 일요일 사이에 있는 메시지만 필터링
+            // 'bot'의 메시지 중 최근 7일 내에 작성된 데이터만 필터링
             chatHistory.forEach(chat => {
-                const chatDate = new Date(chat.createdAt);
-                if (chat.emotionTag) {
-                    try {
-                        const parsedEmotionTag = JSON.parse(chat.emotionTag);
-                        const dayIndex = chatDate.getDay();
+                if (chat.chatter === "bot") { // chatter가 'bot'인 경우에만 처리
+                    const chatDate = new Date(chat.createdAt);
 
-                        if (dayIndex !== -1) {
-                            for (const [emotion, value] of Object.entries(parsedEmotionTag)) {
-                                if (emotionDataByDay[emotion] && dayIndex !== -1) {
-                                    emotionDataByDay[emotion][dayIndex] = value as number | null;
+                    // chatDate가 최근 7일 내에 있을 경우에만 처리
+                    if (chatDate >= sevenDaysAgo && chatDate <= today) {
+                        console.log("최근 7일 데이터xjj:", chatDate, chat.emotionTag);
+                        if (chat.emotionTag) {
+                            try {
+                                const parsedEmotionTag = JSON.parse(chat.emotionTag);
+                                const dayIndex = chatDate.getDay(); // 요일 인덱스(0: 일요일, 6: 토요일)
+
+                                if (dayIndex !== -1) {
+                                    for (const [emotion, value] of Object.entries(parsedEmotionTag)) {
+                                        if (emotionDataByDay[emotion] && dayIndex !== -1) {
+                                            emotionDataByDay[emotion][dayIndex] = value as number | null;
+                                        }
+                                    }
                                 }
+                            } catch (error) {
+                                console.error("Failedd s to parse emotionTag:", error);
                             }
                         }
-                    } catch (error) {
-                        console.error("Failed to parse emotionTag:", error);
                     }
                 }
             });
@@ -126,21 +147,17 @@ export default function EmotionReport() {
 
     // Y축 최대값 계산 함수: 선택된 감정의 요일별 합계를 계산하고, 최대값을 반환하여 Y축 범위를 설정합니다.
     const yAxisMaxValue = useMemo(() => {
-        if (selectedEmotions.length === 0) return 1; // 기본값 1
+        if (selectedEmotions.length === 0) return 1;
 
-        // 선택된 감정 데이터만 필터링하여 가져옵니다.
-        const dataToUse = initialChartData.datasets.filter(dataset =>
-            selectedEmotions.includes(dataset.label)
-        );
+        const dataToUse = chartData.datasets.filter(dataset => selectedEmotions.includes(dataset.label));
 
-        // 요일별 선택된 데이터의 합계 중 최대값 계산
-        const maxSum = initialChartData.labels.reduce((max, _, i) => {
-            const daySum = dataToUse.reduce((sum, dataset) => sum + dataset.data[i], 0);
+        const maxSum = chartData.labels.reduce((max, _, i) => {
+            const daySum = dataToUse.reduce((sum, dataset) => sum + (dataset.data[i] || 0), 0);
             return Math.max(max, daySum);
         }, 1);
 
-        return Math.ceil(maxSum * 10) / 10; // 소수점 첫째 자리로 반올림
-    }, [selectedEmotions]);
+        return Math.ceil(maxSum * 10) / 10;
+    }, [selectedEmotions, chartData]);
 
     // 선택된 감정 데이터만 필터링하여 차트에 사용할 데이터를 반환합니다.
     const filteredData = useMemo(() => {
