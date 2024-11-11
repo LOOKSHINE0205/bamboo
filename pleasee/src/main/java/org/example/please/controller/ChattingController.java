@@ -39,7 +39,7 @@ public class ChattingController {
     public Map<String, Object> sendUserMessage(String userEmail, int croomIdx, int sessionIdx, String chatContent) {
         Map<String, Object> response = new HashMap<>();
 
-        String url = "https://9d24-35-231-206-55.ngrok-free.app/predict";
+        String url = "https://6427-121-147-12-202.ngrok-free.app/predict";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         try {
@@ -77,6 +77,7 @@ public class ChattingController {
             e.printStackTrace();
             response.put("error", "An error occurred while processing the message.");
         }
+        System.out.println(response);
         return response;
     }
 
@@ -102,25 +103,34 @@ public class ChattingController {
             //            모델한테 보내고 답받기
             Map<String, Object> botResponseToUser = sendUserMessage(chatting.getUserEmail(), chatting.getCroomIdx(), chatting.getSessionIdx(), chatting.getChatContent());
 
-            if (botResponseToUser.get("bor_response") == null) {
+            if (botResponseToUser.get("bot_response") == null) {
                 System.out.println("botResponseToUser is null. No messages will be saved.");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
             }
             String userEmotionTag = mapper.writeValueAsString(botResponseToUser.get("current_emotion_probabilities"));
-            chatting.setEmotionTag(userEmotionTag);
+//            chatting.setEmotionTag(userEmotionTag);
+
+            String botContent = null;
+            Object botResponseObject = botResponseToUser.get("bot_response");
+            if (botResponseObject instanceof Map) {
+                Map<String, Object> botResponseMap = (Map<String, Object>) botResponseObject;
+                botContent = (String) botResponseMap.get("content");
+            }
+
+            System.out.println("Bot Content: " + botContent);
             // 사용자 메시지 저장
 
-            if ("user".equals(chatting.getChatter())&& botResponseToUser.get("bot_response") == null) {
+            if ("user".equals(chatting.getChatter())) {
                 chattingService.saveChatbotDialogue(chatting);
                 entityManager.flush();
                 entityManager.clear();
                 System.out.println("userChatIdxxxx"+chattingService.saveChatbotDialogue(chatting));
             }
-            // 봇 응답  저장
-            String botMessage = (String)botResponseToUser.get("bot_response");
-            String botEmotionTag = mapper.writeValueAsString(botResponseToUser.get("bot_response_emotion_probabilities"));
 
-            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botMessage, botEmotionTag);
+            // 봇 응답  저장
+            String botEmotionTag = mapper.writeValueAsString(botResponseToUser.get("current_emotion_probabilities"));
+
+            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botContent , botEmotionTag);
             // 응답 데이터 생성
             Map<String, Object> response = new HashMap<>();
             response.put("chatContent", botResponse.getChatContent());
