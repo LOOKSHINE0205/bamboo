@@ -7,7 +7,7 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-llm = ChatOpenAI(model_name="gpt-4", temperature=0.7, openai_api_key=OPENAI_API_KEY)
+llm = ChatOpenAI(model_name="ft:gpt-4o-mini-2024-07-18:personal::AQloTE1f", temperature=0.7, openai_api_key=OPENAI_API_KEY)
 
 
 def generate_gpt_response(messages: list) -> str:

@@ -99,13 +99,18 @@ public class ChattingController {
                 chatting.setSessionIdx(1);
             }
             ObjectMapper mapper = new ObjectMapper();
-            sendUserMessage(chatting.getUserEmail(),chatting.getCroomIdx(),chatting.getSessionIdx(), chatting.getChatContent());
             //            모델한테 보내고 답받기
-            Map<String, Object> botResponseToUser = sendUserMessage(chatting.getUserEmail(),chatting.getCroomIdx(),chatting.getSessionIdx(), chatting.getChatContent());
+            Map<String, Object> botResponseToUser = sendUserMessage(chatting.getUserEmail(), chatting.getCroomIdx(), chatting.getSessionIdx(), chatting.getChatContent());
+
+            if (botResponseToUser.get("bor_response") == null) {
+                System.out.println("botResponseToUser is null. No messages will be saved.");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+            }
             String userEmotionTag = mapper.writeValueAsString(botResponseToUser.get("current_emotion_probabilities"));
             chatting.setEmotionTag(userEmotionTag);
             // 사용자 메시지 저장
-            if ("user".equals(chatting.getChatter())) {
+
+            if ("user".equals(chatting.getChatter())&& botResponseToUser.get("bot_response") == null) {
                 chattingService.saveChatbotDialogue(chatting);
                 entityManager.flush();
                 entityManager.clear();

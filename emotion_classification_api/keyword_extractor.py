@@ -1,11 +1,12 @@
+# keyword_extractor.py
 import numpy as np
 import pandas as pd
 from typing import Dict, List
 
 # 엑셀 파일 경로 및 데이터 로드
-excel_path = 'emotion_classification_api/emotion_words.xlsx'
+excel_path = 'emotion_classification_api/emotion_words.csv'
 try:
-    emotion_df = pd.read_excel(excel_path)
+    emotion_df = pd.read_csv(excel_path)
     if emotion_df is None or emotion_df.empty:
         raise ValueError("Emotion DataFrame is empty or not loaded correctly.")
     # V, A, D 열 확인

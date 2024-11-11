@@ -222,7 +222,7 @@ export default function MonthView() {
 const styles = StyleSheet.create({
  container: {
      flex: 1,
-     backgroundColor: '#f5f5f5',
+     backgroundColor: '#ffffff',
    },
  header: {
     flexDirection: 'row',         // 버튼과 제목을 가로로 배치
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   diaryItem: {
       backgroundColor: 'white',
-      borderRadius: 10,
+      borderRadius: 20,
       padding: 10,
       marginVertical: 8,
       marginHorizontal: 16,
