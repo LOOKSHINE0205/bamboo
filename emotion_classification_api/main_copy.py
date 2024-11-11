@@ -1,3 +1,4 @@
+# main_copy.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from threading import Thread
@@ -8,7 +9,6 @@ from data_fetcher import fetch_user_data, load_chat_history_from_db
 from prompt_builder import get_combined_prompt
 from keyword_extractor import extract_emotion_keyword
 from memory_manager import get_user_memory
-from langchain.schema.runnable import RunnableSequence
 from langchain.prompts import PromptTemplate
 from openai_service import llm
 import os
@@ -72,12 +72,15 @@ async def predict(request: EmotionRequest):
         )
         print("Combined Messages:", combined_messages)
 
+        # 최종 시스템 프롬프트 출력
+        print("Final System Prompt:", combined_messages[0].content)
+
         # Step 6: LangChain 메모리 관리
         session_id = f"{request.croom_idx}_{request.session_idx}"
         memory = get_user_memory(session_id, chat_history)
         print("Session ID:", session_id)
 
-        # Step 7: RunnableSequence를 사용한 LLM 호출
+        # Step 7: LLM 호출
         prompt_template = PromptTemplate.from_template(
             f"{base_prompt}\nYour name is Bamboo, a 27-year-old assistant.\n"
             "User preference: {user_preference}. Diary info: {diary_info}. "
@@ -85,7 +88,7 @@ async def predict(request: EmotionRequest):
             "Current message: {current_user_message}. Please respond appropriately."
         )
 
-        chain = RunnableSequence(prompt_template | llm)
+        chain = prompt_template | llm
 
         bot_response = chain.invoke({
             "user_preference": user_data["user_preference"],
