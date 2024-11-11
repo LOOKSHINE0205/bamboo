@@ -13,7 +13,7 @@ from keyword_extractor import extract_emotion_keyword
 from memory_manager import get_user_memory
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from prompt_builder import classify_intent
+# from prompt_builder import classify_intent
 import os
 
 # FastAPI 앱 생성
