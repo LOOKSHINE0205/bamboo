@@ -51,9 +51,9 @@ class WordCloudRequest(BaseModel):
     session_idx: int
 
 def load_prompt(user_preference):
-    prompt_file_path = f"prompts/chat_style_{user_preference}.txt"
+    prompt_file_path = f"emotion_classification_api/prompts/chat_style_{user_preference}.txt"
     if not os.path.exists(prompt_file_path):
-        prompt_file_path = "C:/Users/qsoqs/Desktop/model_API/bamboo/emotion_classification_api/promts/chat_style_Default preference.txt"
+        prompt_file_path = "emotion_classification_api/promts/chat_style_Default preference.txt"
     with open(prompt_file_path, "r", encoding="utf-8") as file:
         return file.read()
 
@@ -97,7 +97,7 @@ async def predict(request: EmotionRequest):
 
         # Step 3: 사용자 선호도 기반 프롬프트 로드
         base_prompt = load_prompt(user_preference)
-        print("Loaded Base Prompt:", base_prompt[:100])
+        print("Loaded Base Prompt:", base_prompt)
 
         # Step 4: 감정 분류
         emotion_ratios = predict_with_probabilities(
@@ -131,6 +131,17 @@ async def predict(request: EmotionRequest):
         for msg in memory_messages:
             role = "User" if msg.type == "human" else "Assistant"
             conversation_history += f"{role}: {msg.content}\n"
+        
+        # 최종 시스템 프롬프트 출력
+        final_system_prompt = prompt_template.format(
+            user_preference=user_preference,
+            diary_info=diary_info,
+            emotion_ratios=emotion_ratios,
+            emotion_keyword=emotion_keyword,
+            conversation_history=conversation_history
+        )
+        print("Final System Prompt:")
+        print(final_system_prompt)
 
         chain = prompt_template | llm
 
@@ -141,7 +152,6 @@ async def predict(request: EmotionRequest):
             "emotion_keyword": emotion_keyword,
             "conversation_history": conversation_history
         })
-        print("Bot Response:", bot_response)
 
         # Step 7: 메모리에 봇 응답 추가
         update_session_memory(request.croom_idx, request.session_idx, "assistant", bot_response.content)
