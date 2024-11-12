@@ -7,13 +7,13 @@ const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
 // 감정별 아이콘을 불러옵니다.
-import em_happy from "../../assets/images/기쁨2.png";
-import em_angry from "../../assets/images/화남2.png";
-import em_surprise from "../../assets/images/놀람2.png";
-import em_fear from "../../assets/images/두려움2.png";
-import em_sad from "../../assets/images/슬픔2.png";
-import em_dislike from "../../assets/images/싫음2.png";
-import em_soso from "../../assets/images/쏘쏘2.png";
+import em_happy from "../../assets/images/기쁨.png";
+import em_angry from "../../assets/images/화남.png";
+import em_surprise from "../../assets/images/놀람.png";
+import em_fear from "../../assets/images/두려움.png";
+import em_sad from "../../assets/images/슬픔.png";
+import em_dislike from "../../assets/images/혐오.png";
+import em_soso from "../../assets/images/쏘쏘.png";
 
 // EmotionTag 인터페이스는 감정 태그를 정의하는데 사용됩니다.
 export interface EmotionTag {
@@ -47,6 +47,7 @@ const initialChartData  = {
         { data: [null, null, null, null, null, null, null], color: () => "#81689D", label: "혐오" }
     ]
 };
+
 
 
 // EmotionReport 컴포넌트: 사용자가 감정을 선택하여 그래프에 표시하도록 하는 메인 컴포넌트
@@ -173,7 +174,6 @@ export default function EmotionReport() {
                 </View>
 
                 {/* 감정 선택 버튼 */}
-                <View style={[styles.sectionContainer, { height: screenHeight * 0.125 }]}>
                     <View style={[styles.innerContainer]}>
                         <Text style={styles.subtitle}>감정 선택</Text>
                         <View style={[styles.iconContainer, { bottom: 5 }]}>
@@ -192,10 +192,8 @@ export default function EmotionReport() {
                             ))}
                         </View>
                     </View>
-                </View>
 
                 {/* 감정 라인 그래프 */}
-                <View style={[styles.sectionContainer, { height: screenHeight * 0.25 }]}>
                     <View style={[styles.innerContainer]}>
                         <Text style={[styles.subtitle, styles.graphSubtitle]}>감정 라인 그래프</Text>
                         <VictoryChart
@@ -229,7 +227,7 @@ export default function EmotionReport() {
                                 selectedEmotions.includes(dataset.label) && (
                                     <VictoryLine
                                         key={index}
-                                        data={originalEmotionDataByDay[dataset.label].map((y, x) => ({ x: chartData.labels[x], y }))}
+                                        data={(originalEmotionDataByDay[dataset.label] ?? []).map((y, x) => ({ x: chartData.labels[x], y: y ?? 0 }))}
                                         style={{
                                             data: { stroke: dataset.color }
                                         }}
@@ -239,14 +237,14 @@ export default function EmotionReport() {
                                             onExit: { duration: 2000 }
                                         }}
                                     />
+
+
                                 )
                             ))}
                         </VictoryChart>
                     </View>
-                </View>
 
                 {/* 감정 스택 그래프 */}
-                <View style={[styles.sectionContainer, { height: screenHeight * 0.25 }]}>
                     <View style={[styles.innerContainer]}>
                         <Text style={[styles.subtitle, styles.graphSubtitle]}>감정 스택 그래프</Text>
 
@@ -283,13 +281,17 @@ export default function EmotionReport() {
                             <VictoryStack>
                                 {selectedEmotions.map((emotion, index) => {
                                     const dataset = chartData.datasets.find(d => d.label === emotion);
-                                    return dataset ? (
+                                    const data = (emotionDataByDay[dataset.label] ?? []).map((y, x) => ({
+                                        x: chartData.labels[x],
+                                        y: y || 0
+                                    }));
+
+                                    // 데이터가 모두 0이면 렌더링하지 않음
+                                    const hasNonZeroValue = data.some(d => d.y > 0);
+                                    return dataset && hasNonZeroValue ? (
                                         <VictoryBar
                                             key={`selected-${index}`}
-                                            data={emotionDataByDay[dataset.label].map((y, x) => ({
-                                                x: chartData.labels[x],
-                                                y: y || 0  // null일 경우 y값을 0으로 설정
-                                            }))}
+                                            data={data}
                                             style={{
                                                 data: {
                                                     fill: dataset.color,
@@ -307,21 +309,19 @@ export default function EmotionReport() {
                                                 onLoad: { duration: 1000 },
                                             }}
                                         />
-                                    ) : null; // 데이터가 없는 경우 VictoryBar를 렌더링하지 않음
+                                    ) : null; // 데이터가 없거나 모두 0이면 VictoryBar를 렌더링하지 않음
                                 })}
                             </VictoryStack>
+
                         </VictoryChart>
                     </View>
-                </View>
                 {/* 워드클라우드 컨테이너 */}
-                <View style={styles.sectionContainer}>
                     {/* 흰색 내부 컨테이너 */}
                     <View style={styles.innerContainer}>
                     <Text style={styles.subtitle}>워드클라우드</Text>
                         {/* 워드클라우드 내용이 들어갈 자리 */}
                         {/* 워드클라우드 컴포넌트 또는 이미지 추가 가능 */}
                     </View>
-                </View>
 
 
             </View>
@@ -341,17 +341,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     innerContainer: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 20,
-        padding: 10,
-        justifyContent: 'center',
+      backgroundColor: 'white',
+      borderRadius: 20,
+      padding: 10,
+      marginVertical: 8,
+      marginHorizontal: 10,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 1,
+      borderWidth: 1,           // 테두리 추가
+      borderColor: '#eee',      // 테두리 색상
     },
     title: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 10 },
     subtitle: { fontSize: 18, fontWeight: '600', color: '#000' },
     graphSubtitle: { marginBottom: -10 },
     iconContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    iconLabelContainer: { alignItems: 'center', marginHorizontal: 10 },
-    icon: { width: 24, height: 24, marginTop: 15 },
+    iconLabelContainer: { alignItems: 'center', marginHorizontal: 7},
+    icon: { width: 30, height: 30, marginTop: 15,resizeMode: 'contain',  },
     iconLabel: { fontSize: 12, color: '#666', marginTop: 5 },
 
 
