@@ -10,7 +10,7 @@ import {useFocusEffect} from "@react-navigation/native";
 
 interface DiaryEntry{
   diaryIdx:number;
-  createdAt:string;
+  diaryDate: string; // createdAt -> diaryDate로 변경
   emotionTag:string;
 }
 
@@ -64,22 +64,21 @@ export default function CustomDiaryScreen() {
   const [diaryEntries, setDiaryEntries] = useState<Diary[]>([]);
   const [selectedDates, setSelectedDates] = useState<Record<string, string>>({});
   // DiaryScreen의 onEntriesLoaded에서 호출될 함수
-  const handleEntriesLoaded = (entries: Diary[]) => {
-    setDiaryEntries(entries);
+const handleEntriesLoaded = (entries: Diary[]) => {
+  setDiaryEntries(entries);
 
-    // entries를 날짜별로 매핑하여 selectedDates 상태를 업데이트
-    const datesMap: Record<string, string> = {};
-    entries.forEach((entry) => {
-      // createdAt의 날짜를 YYYY-MM-DD 형식으로 변환
-      const date = new Date(entry.createdAt);
-      const dateKey = new Date(entry.createdAt).toISOString().split("T")[0]; // 'YYYY-MM-DD' 형식
-      datesMap[dateKey] = entry.emotionTag; // 감정 태그 저장
-    });
+  // entries를 날짜별로 매핑하여 selectedDates 상태를 업데이트
+  const datesMap: Record<string, string> = {};
+  entries.forEach((entry) => {
+    // diaryDate의 날짜를 YYYY-MM-DD 형식으로 변환
+    const date = new Date(entry.diaryDate);
+    const dateKey = date.toISOString().split("T")[0]; // 'YYYY-MM-DD' 형식
+    datesMap[dateKey] = entry.emotionTag; // 감정 태그 저장
+  });
 
-    setSelectedDates(datesMap);
-    console.log("Selected Dates with Emotions:", datesMap); // 매핑된 날짜와 감정 태그 출력
-  };
-
+  setSelectedDates(datesMap);
+  console.log("Selected Dates with Emotions:", datesMap); // 매핑된 날짜와 감정 태그 출력
+}; // 함수가 닫히지 않았던 부분을 닫음
 
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());

@@ -6,6 +6,9 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SmoothCurvedButton from '../../../components/SmoothCurvedButton';
+import { serverAddress } from '../../../components/Config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const moodImageMap = {
   happy: require("../../../assets/images/diary_happy.png"),
@@ -63,15 +66,39 @@ export default function DiaryEntryScreen() {
 
   const handleSaveEntry = async () => {
     try {
-      await axios.post("YOUR_DB_ENDPOINT_URL", {
-        date,
-        mood,
-        weather,
-        entryText,
-        image: selectedImages.length > 0 ? selectedImages : null,
-      });
+        const storedUserInfo = await AsyncStorage.getItem('userInfo');
+                const userData = storedUserInfo ? JSON.parse(storedUserInfo) : null;
+
+        const formData = new FormData();
+
+        // diary 데이터를 JSON 문자열로 추가
+        const diaryData = JSON.stringify({
+          userEmail: userData?.userEmail,
+          diaryDate: date,
+          emotionTag: mood,
+          diaryWeather: weather,
+          diaryContent: entryText,
+        });
+
+        formData.append("diary", diaryData);
+
+        // 이미지가 있을 경우 FormData에 추가
+        selectedImages.forEach((imageUri, index) => {
+          formData.append("photo", {
+            uri: imageUri,
+            type: "image/jpeg", // 이미지 타입을 지정
+            name: `photo_${index}.jpg`, // 이미지 파일 이름 지정
+          });
+        });
+
+        await axios.post(`${serverAddress}/api/diaries/create-with-photo`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
       alert("일기가 저장되었습니다!");
-      router.push("/somewhere");
+      router.push("/(diary)"); // 원하는 경로로 변경
     } catch (error) {
       console.error("일기 저장 오류:", error);
     }
