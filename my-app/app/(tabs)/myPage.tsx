@@ -1,21 +1,89 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, ImageBackground, Image, ScrollView, useWindowDimensions } from 'react-native';
-
-// 사용자 정보 가져오는 헬퍼 함수 불러오기
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet, Alert, ImageBackground, Image, ScrollView, useWindowDimensions, Animated, Easing } from 'react-native';
 import { getUserInfo } from '../../storage/storageHelper';
+import { useFocusEffect } from '@react-navigation/native';
 
-// 이미지 경로
-const backgroundImage = require('../../assets/images/긴배경.png');
+const backgroundImage = require('../../assets/images/긴배경2.png');
 const pandaImage = require('../../assets/images/판다.png');
 const bambooBody = require('../../assets/images/bamboo_body.png');
 const bambooHead = require('../../assets/images/bamboo_head.png');
+const cloud1 = require('../../assets/images/구름들.png');
+const cloud2 = require('../../assets/images/구름들2.png');
+const bamboo = require('../../assets/images/bamboo.png');
 
 export default function MyPage() {
     const { width, height } = useWindowDimensions();
     const scrollViewRef = useRef(null);
     const [chatbotLevel, setChatbotLevel] = useState(null);
     const [chatbotName, setChatbotName] = useState('');
-    const gapBetweenBodies = -7; // 밤부 바디 간격을 조절하는 변수
+    const [textColor, setTextColor] = useState('#333');
+    const [cloud1Top, setCloud1Top] = useState(`${45 + Math.random() * 8}%`);
+    const [cloud2Top, setCloud2Top] = useState(`${45 + Math.random() * 8}%`);
+    const gapBetweenBodies = -7;
+    const scrollThreshold = 600;
+
+    const cloud1Animation = useRef(new Animated.Value(-width * 0.25)).current;
+    const cloud2Animation = useRef(new Animated.Value(-width * 0.25)).current;
+
+    const createStarAnimations = () => {
+        return Array.from({ length: 20 }, () => ({
+            opacity: new Animated.Value(0),
+            scale: new Animated.Value(1),
+            top: `${1 + Math.random() * 15}%`,
+            left: `${Math.random() * 100}%`,
+        }));
+    };
+
+    const [starAnimations] = useState(createStarAnimations());
+
+    const animateStars = () => {
+        starAnimations.forEach((star) => {
+            const animateStar = () => {
+                const delay = Math.random() * 2000;
+                const loop = () => {
+                    star.opacity.setValue(0);
+                    star.scale.setValue(1);
+                    Animated.sequence([
+                        Animated.delay(delay),
+                        Animated.parallel([
+                            Animated.timing(star.opacity, {
+                                toValue: 1,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                            Animated.timing(star.scale, {
+                                toValue: 1.5,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                        ]),
+                        Animated.parallel([
+                            Animated.timing(star.opacity, {
+                                toValue: 0,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                            Animated.timing(star.scale, {
+                                toValue: 1,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                        ]),
+                    ]).start(() => {
+                        star.top = `${1 + Math.random() * 15}%`;
+                        star.left = `${Math.random() * 100}%`;
+                        requestAnimationFrame(loop);
+                    });
+                };
+                requestAnimationFrame(loop);
+            };
+            animateStar();
+        });
+    };
 
     useEffect(() => {
         const loadUserInfo = async () => {
@@ -33,43 +101,79 @@ export default function MyPage() {
             }
         };
         loadUserInfo();
+        animateStars();
 
-        // 페이지 로드 시 자동으로 하단으로 스크롤
-        setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: false });
-        }, 0);
-    }, []);
+        const animateCloud1 = () => {
+            Animated.sequence([
+                Animated.timing(cloud1Animation, {
+                    toValue: width,
+                    duration: 12000,
+                    easing: Easing.linear,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(cloud1Animation, {
+                    toValue: -width * 0.25,
+                    duration: 0,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                setCloud1Top(`${47 + Math.random() * 8}%`);
+                animateCloud1();
+            });
+        };
 
+        const animateCloud2 = () => {
+            Animated.sequence([
+                Animated.timing(cloud2Animation, {
+                    toValue: width,
+                    duration: 8000,
+                    easing: Easing.linear,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(cloud2Animation, {
+                    toValue: -width * 0.25,
+                    duration: 0,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                setCloud2Top(`${47 + Math.random() * 8}%`);
+                animateCloud2();
+            });
+        };
+
+        animateCloud1();
+        animateCloud2();
+    }, [width, height]);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+        }, [])
+    );
+
+    const bambooLevel = 5;
     const displayLevel = chatbotLevel !== null ? (chatbotLevel - 1) % 30 + 1 : 1;
     const treeLevel = `Lv ${displayLevel}`;
 
-    // 밤부 레벨에 맞춰 밤부 바디와 밤부 헤드를 쌓아 올리는 함수
-    const renderBambooStack = () => {
+    const renderBambooStack = useMemo<JSX.Element[]>(() => {
         const bambooElements = [];
-
-        // 대나무 몸체 너비와 높이 설정
         const bambooBodyWidth = width * 0.5;
         const bambooBodyHeight = height * 0.07;
 
-        // 대나무 머리 추가 (대나무 몸체와 동일한 너비와 비례하는 높이로 설정)
         bambooElements.push(
             <Image
                 key="bamboo-head"
                 source={bambooHead}
                 style={[
                     styles.bambooHead,
-                    {
-                        width: bambooBodyWidth,
-                        height: bambooBodyHeight*1.25,
-                        zIndex: displayLevel + 1,
-                        marginBottom:-7
-                    },
+                    { width: bambooBodyWidth, height: bambooBodyHeight * 1.25, zIndex: displayLevel + 1, marginBottom: -7 },
                 ]}
                 resizeMode="contain"
             />
         );
 
-        // 대나무 바디를 레벨에 맞춰 쌓기
         for (let i = 0; i < displayLevel; i++) {
             bambooElements.push(
                 <Image
@@ -90,28 +194,85 @@ export default function MyPage() {
         }
 
         return bambooElements;
+    }, [displayLevel, width, height]);
+
+    const getBambooStyle = (level) => {
+        switch (level) {
+            case 1:
+                return { width: width * 0.1, height: height * 0.1, bottom: '11%', left: '52%' };
+            case 2:
+                return { width: width * 0.2, height: height * 0.13, bottom: '10%', left: '8%' };
+            case 3:
+                return { width: width * 0.3, height: height * 0.18, bottom: '9%', left: '75%' };
+            case 4:
+                return { width: width * 0.4, height: height * 0.25, bottom: '7.5%', left: '55%' };
+            case 5:
+                return { width: width * 0.5, height: height * 0.31, bottom: '1%', left: -60 };
+            default:
+                return { width: width * 0.5, height: height * 0.1, bottom: '10%' };
+        }
     };
+
+    const renderBambooImages = useMemo<JSX.Element[]>(() => {
+        const bambooElements = [];
+        for (let i = 0; i < bambooLevel; i++) {
+            bambooElements.push(
+                <Image
+                    key={`bamboo-${i}`}
+                    source={bamboo}
+                    style={[
+                        styles.bamboo,
+                        getBambooStyle(i + 1),
+                    ]}
+                    resizeMode="contain"
+                />
+            );
+        }
+        return bambooElements;
+    }, [bambooLevel, width, height]);
 
     return (
         <View style={styles.backgroundContainer}>
-            {/* 오른쪽 위에 고정된 이름과 레벨 */}
             <View style={styles.fixedInfoContainer}>
-                <Text style={styles.levelText}>{treeLevel}</Text>
-                <Text style={styles.treeNameText}>{chatbotName}</Text>
+                <Text style={[styles.levelText, { color: textColor }]}>{treeLevel}</Text>
+                <Text style={[styles.treeNameText, { color: textColor }]}>{chatbotName}</Text>
             </View>
 
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.scrollContainer}
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={[styles.scrollContent]}
+                showsVerticalScrollIndicator={false}
+                onScroll={(event) => {
+                    const scrollY = event.nativeEvent.contentOffset.y;
+                    setTextColor(scrollY > scrollThreshold ? '#000000' : '#FFFFFF');
+                }}
+                scrollEventThrottle={32}
             >
-                <ImageBackground source={backgroundImage} style={[styles.background, { height: height * 2.5 }]} resizeMode="cover">
-                    {/* 대나무 바디와 헤드를 화면에 표시 */}
+                <ImageBackground source={backgroundImage} style={[styles.background, { height: height * 2.1 }]} resizeMode="cover">
+                    <Animated.Image source={cloud1} style={[styles.cloud, { top: cloud1Top, transform: [{ translateX: cloud1Animation }] }]} resizeMode="contain" />
+                    <Animated.Image source={cloud2} style={[styles.cloud, { top: cloud2Top, transform: [{ translateX: cloud2Animation }] }]} resizeMode="contain" />
+
+                    {starAnimations.map((star, index) => (
+                        <Animated.View
+                            key={index}
+                            style={[
+                                styles.star,
+                                {
+                                    top: star.top,
+                                    left: star.left,
+                                    opacity: star.opacity,
+                                    transform: [{ scale: star.scale }],
+                                },
+                            ]}
+                        />
+                    ))}
+
                     <View style={styles.bambooContainer}>
-                        {renderBambooStack()}
+                        {renderBambooStack}
                     </View>
-                    {/* 판다 이미지 */}
                     <Image source={pandaImage} style={[styles.pandaImage, { width: width * 0.2, height: height * 0.2 }]} resizeMode="contain" />
+                    {renderBambooImages}
                 </ImageBackground>
             </ScrollView>
         </View>
@@ -123,8 +284,6 @@ const styles = StyleSheet.create({
     scrollContainer: { flex: 1 },
     scrollContent: { flexGrow: 1, justifyContent: 'flex-end' },
     background: { flex: 1, width: '100%' },
-
-    // 고정된 이름과 레벨 컨테이너 스타일
     fixedInfoContainer: {
         position: 'absolute',
         top: 20,
@@ -132,10 +291,20 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
         zIndex: 1,
     },
-    levelText: { fontSize: 18, color: '#333', fontWeight: 'bold' },
-    treeNameText: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-
-    // 대나무 바디와 헤드를 쌓는 컨테이너 스타일
+    levelText: { fontSize: 18, fontWeight: 'bold' },
+    treeNameText: { fontSize: 20, fontWeight: 'bold' },
+    cloud: {
+        position: 'absolute',
+        width: '25%',
+        height: '25%',
+    },
+    star: {
+        position: 'absolute',
+        width: 2,
+        height: 2,
+        borderRadius: 3,
+        backgroundColor: '#FFFFFF',
+    },
     bambooContainer: {
         alignItems: 'center',
         justifyContent: 'flex-end',
@@ -143,21 +312,19 @@ const styles = StyleSheet.create({
         bottom: '3%',
         left: '25%',
     },
-
-    // 판다 이미지 스타일
     pandaImage: {
         position: 'absolute',
-        bottom: '6%',
-        left: '20%',
+        bottom: '8%',
+        left: '25%',
     },
-
-    // 대나무 바디 이미지 스타일
     bambooBody: {
         alignSelf: 'center',
     },
-
-    // 대나무 헤드 이미지 스타일
     bambooHead: {
         alignSelf: 'center',
+    },
+    bamboo: {
+        position: 'absolute',
+        left: '10%',
     },
 });
