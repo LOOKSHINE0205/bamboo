@@ -33,7 +33,7 @@ app.add_middleware(
 )
 
 # 정적 파일 제공 설정
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # 입력 데이터 모델 정의
