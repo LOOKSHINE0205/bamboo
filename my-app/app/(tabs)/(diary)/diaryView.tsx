@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, StyleSheet, Platform, Alert, KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import axios from "axios"; // 데이터베이스에서 일기 데이터를 가져오기 위한 axios 라이브러리 사용
+import axios from "axios";
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserInfo } from '../../../storage/storageHelper';
+import { serverAddress } from '../../../components/Config';
 
 // 감정 이미지 경로를 매핑한 객체
 const moodImageMap = {
@@ -25,57 +28,57 @@ const weatherImageMap = {
 };
 
 export default function DiaryScreen() {
-  const { date } = useLocalSearchParams(); // URL 파라미터에서 날짜 정보 가져오기
-  const [entryText, setEntryText] = useState(""); // 일기 내용
-  const [selectedImages, setSelectedImages] = useState([]); // 선택된 이미지 URIs
-  const [mood, setMood] = useState(""); // 감정 상태
-  const [weather, setWeather] = useState(""); // 날씨 상태
+  const { date } = useLocalSearchParams();
+  const [entryText, setEntryText] = useState("");
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [mood, setMood] = useState("");
+  const [weather, setWeather] = useState("");
   const [day, setDay] = useState("");
 
   useEffect(() => {
-    // 날짜 포맷팅 및 요일 설정
-    const formattedDate = new Date(date);
-    const dayOfWeek = formattedDate.toLocaleDateString("ko-KR", { weekday: "long" });
-    setDay(dayOfWeek);
-
-// 더미 데이터 설정
-  const dummyData = {
-    entryText: "오늘은 날씨가 정말 좋았다. 기분도 좋고, 여러 가지 새로운 경험을 했다!",
-    mood: "sad",
-    weather: "sunny",
-    image: ["https://via.placeholder.com/150"]
-  };
-
-  // 더미 데이터를 상태에 설정
-  setEntryText(dummyData.entryText);
-  setMood(dummyData.mood);
-  setWeather(dummyData.weather);
-  setSelectedImages(dummyData.image);
-
-  // 실제 백엔드 연결 시 주석 해제
-  /*
-  const fetchDiaryData = async () => {
-    try {
       const formattedDate = new Date(date).toISOString().split('T')[0];
-      const response = await axios.get("https://your-backend-url.com/api/diary", {
-        params: { date: formattedDate.toISOString().split("T")[0] }, // YYYY-MM-DD 형식
-                });
-      const data = response.data;
+      const dayOfWeek = new Date(date).toLocaleDateString("ko-KR", { weekday: "long" });
+      setDay(dayOfWeek);
 
-      if (data) {
-        setEntryText(data.entryText);
-        setMood(data.mood);
-        setWeather(data.weather);
-        setSelectedImages(data.image || []);
-      }
-    } catch (error) {
-      console.error("일기 데이터를 가져오는 데 오류가 발생했습니다:", error);
-    }
-  };
+      const fetchDiaryData = async () => {
+        try {
+          const userInfo = await getUserInfo();
+          if (!userInfo || !userInfo.userEmail) {
+            throw new Error("사용자 이메일이 존재하지 않습니다.");
+          }
 
-  fetchDiaryData();
-  */
-  }, [date]);
+          const response = await axios.get(`${serverAddress}/api/diaries/user_diaries`, {
+            params: { userEmail: userInfo.userEmail },
+          });
+
+          const data = response.data;
+          console.log("Fetched data:", data); // 전체 데이터 확인
+
+          // 선택한 날짜와 일치하는 항목 필터링
+          const selectedDateData = data.find(entry => entry.diaryDate === formattedDate);
+
+          if (selectedDateData) {
+            setEntryText(selectedDateData.diaryContent);
+            setMood(selectedDateData.emotionTag);
+            setWeather(selectedDateData.diaryWeather);
+            setSelectedImages(selectedDateData.diaryPhoto ? [selectedDateData.diaryPhoto] : []);
+          } else {
+            // 선택한 날짜에 해당하는 데이터가 없는 경우
+            setEntryText("");
+            setMood("");
+            setWeather("");
+            setSelectedImages([]);
+            Alert.alert("알림", `${formattedDate}에 해당하는 일기 데이터가 없습니다.`);
+          }
+        } catch (error) {
+          console.error("일기 데이터를 가져오는 데 오류가 발생했습니다:", error);
+          Alert.alert("오류", "일기 데이터를 불러오는 중 문제가 발생했습니다.");
+        }
+      };
+
+      fetchDiaryData(); // 함수를 호출합니다.
+    }, [date]);
+
 
   return (
     <KeyboardAvoidingView
