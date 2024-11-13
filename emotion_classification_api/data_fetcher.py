@@ -1,7 +1,9 @@
 # data_fetcher.py
-from database_service import get_user_preference, get_diary_info, get_chat_history
+from database_service import get_user_preference, get_diary_info, get_chat_history, get_chat_history_by_croom
 from wordcloud import WordCloud
 import os
+from config import static_dir  # static_dir 임포트
+
 
 def fetch_user_data(user_email: str, croom_idx: int, session_idx: int) -> dict:
     try:
