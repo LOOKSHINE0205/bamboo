@@ -1,62 +1,90 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ImageBackground, Image, Dimensions, Animated, Easing, Alert } from 'react-native';
-
-// 이미지 가져오기
-import BackgroundImage from "../../assets/images/bamboobg2.png";
-import BambooBody from "../../assets/images/bamboo_body.png";
-import BambooHead from "../../assets/images/bamboo_head.png";
-import BambooPanda from "../../assets/images/bamboo_panda.png";
-import CloudImage from "../../assets/images/cloud.png";
-
-// 감정 및 일기 이모티콘 이미지 가져오기
-import em_happy from "../../assets/images/기쁨2.png";
-import em_angry from "../../assets/images/화남2.png";
-import em_surprise from "../../assets/images/놀람2.png";
-import em_fear from "../../assets/images/두려움2.png";
-import em_sad from "../../assets/images/슬픔2.png";
-import em_dislike from "../../assets/images/싫음2.png";
-import em_soso from "../../assets/images/쏘쏘2.png";
-import diary_angry from "../../assets/images/diary_angry.png";
-import diary_dislike from "../../assets/images/diary_dislike.png";
-import diary_fear from "../../assets/images/diary_fear.png";
-import diary_happy from "../../assets/images/diary_happy.png";
-import diary_neutral from "../../assets/images/diary_neutral.png";
-import diary_sad from "../../assets/images/diary_sad.png";
-import diary_surprise from "../../assets/images/diary_surprise.png";
-
-// 사용자 정보 가져오는 헬퍼 함수 불러오기
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet, Alert, ImageBackground, Image, ScrollView, useWindowDimensions, Animated, Easing } from 'react-native';
 import { getUserInfo } from '../../storage/storageHelper';
+import { useFocusEffect } from '@react-navigation/native';
+
+const backgroundImage = require('../../assets/images/긴배경2.png');
+const pandaImage = require('../../assets/images/판다.png');
+const bambooBody = require('../../assets/images/bamboo_body.png');
+const bambooHead = require('../../assets/images/bamboo_head.png');
+const cloud1 = require('../../assets/images/구름들.png');
+const cloud2 = require('../../assets/images/구름들2.png');
+const bamboo = require('../../assets/images/bamboo.png');
 
 export default function MyPage() {
-    // 사용자 정보와 화면 크기 상태 관리
+    const { width, height } = useWindowDimensions();
+    const scrollViewRef = useRef(null);
     const [chatbotLevel, setChatbotLevel] = useState(null);
     const [chatbotName, setChatbotName] = useState('');
-    const [screenDimensions, setScreenDimensions] = useState(Dimensions.get("window"));
-    const screenWidth = screenDimensions.width;
-    const screenHeight = screenDimensions.height;
+    const [textColor, setTextColor] = useState('#333');
+    const [cloud1Top, setCloud1Top] = useState(`${45 + Math.random() * 8}%`);
+    const [cloud2Top, setCloud2Top] = useState(`${45 + Math.random() * 8}%`);
+    const gapBetweenBodies = -7;
+    const scrollThreshold = 600;
 
-    // 대나무 크기와 간격 설정
-    const bambooBodyWidth = screenWidth * 0.6;
-    const bambooBodyHeight = screenHeight * 0.027;
-    const gapBetweenBodies = -3.1;
-    const gapBetweenHeadAndBody = 0.6;
+    const cloud1Animation = useRef(new Animated.Value(-width * 0.25)).current;
+    const cloud2Animation = useRef(new Animated.Value(-width * 0.25)).current;
 
-    // 레벨을 통한 대나무의 성장 단계 계산
-    const displayLevel = chatbotLevel !== null ? (chatbotLevel - 1) % 30 + 1 : 1;
-    const treeLevel = `Lv ${displayLevel}`;
-    const effectiveLevel = displayLevel;
+    const createStarAnimations = () => {
+        return Array.from({ length: 20 }, () => ({
+            opacity: new Animated.Value(0),
+            scale: new Animated.Value(1),
+            top: `${1 + Math.random() * 15}%`,
+            left: `${Math.random() * 100}%`,
+        }));
+    };
 
-    // 대나무 전체 높이 계산
-    const getBambooHeight = () => effectiveLevel * (bambooBodyHeight + gapBetweenBodies);
+    const [starAnimations] = useState(createStarAnimations());
 
-    // 화면 크기 변경 감지
-    useEffect(() => {
-        const handleResize = () => setScreenDimensions(Dimensions.get("window"));
-        const subscription = Dimensions.addEventListener("change", handleResize);
-        return () => subscription.remove();
-    }, []);
+    const animateStars = () => {
+        starAnimations.forEach((star) => {
+            const animateStar = () => {
+                const delay = Math.random() * 2000;
+                const loop = () => {
+                    star.opacity.setValue(0);
+                    star.scale.setValue(1);
+                    Animated.sequence([
+                        Animated.delay(delay),
+                        Animated.parallel([
+                            Animated.timing(star.opacity, {
+                                toValue: 1,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                            Animated.timing(star.scale, {
+                                toValue: 1.5,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                        ]),
+                        Animated.parallel([
+                            Animated.timing(star.opacity, {
+                                toValue: 0,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                            Animated.timing(star.scale, {
+                                toValue: 1,
+                                duration: 1000,
+                                easing: Easing.linear,
+                                useNativeDriver: true,
+                            }),
+                        ]),
+                    ]).start(() => {
+                        star.top = `${1 + Math.random() * 15}%`;
+                        star.left = `${Math.random() * 100}%`;
+                        requestAnimationFrame(loop);
+                    });
+                };
+                requestAnimationFrame(loop);
+            };
+            animateStar();
+        });
+    };
 
-    // 사용자 정보 불러오기
     useEffect(() => {
         const loadUserInfo = async () => {
             try {
@@ -73,219 +101,230 @@ export default function MyPage() {
             }
         };
         loadUserInfo();
-    }, []);
+        animateStars();
 
-    // 레벨에 따른 팬더 크기 조정
-    const [pandaScale, setPandaScale] = useState(0.7);
-    useEffect(() => {
-        if (chatbotLevel >= 151) setPandaScale(2.5);
-        else if (chatbotLevel >= 121) setPandaScale(2);
-        else if (chatbotLevel >= 91) setPandaScale(1.8);
-        else if (chatbotLevel >= 61) setPandaScale(1.4);
-        else if (chatbotLevel >= 31) setPandaScale(1);
-    }, [chatbotLevel]);
-
-    // 팬더 위치 계산 함수
-    const getPandaPosition = () => {
-        if (chatbotLevel >= 151) return bambooBodyWidth * -2.9;
-        if (chatbotLevel >= 121) return bambooBodyWidth * -2.6;
-        if (chatbotLevel >= 91) return bambooBodyWidth * -2.5;
-        if (chatbotLevel >= 61) return bambooBodyWidth * -2.3;
-        if (chatbotLevel >= 31) return bambooBodyWidth * -2.1;
-        return bambooBodyWidth * -2;
-    };
-
-    // 대나무 몸체 여러 개 렌더링 함수
-    const renderBambooBodies = () => (
-        Array.from({ length: effectiveLevel }).map((_, index) => (
-            <Image
-                key={index}
-                source={BambooBody}
-                style={[
-                    styles.bambooBody,
-                    {
-                        bottom: index * (bambooBodyHeight + gapBetweenBodies),
-                        width: bambooBodyWidth,
-                        height: bambooBodyHeight,
-                    }
-                ]}
-            />
-        ))
-    );
-
-    // 구름 애니메이션 설정
-    const cloudAnimation1 = useRef(new Animated.Value(-screenDimensions.width)).current;
-    const cloudAnimation2 = useRef(new Animated.Value(-screenDimensions.width * 1.5)).current;
-
-    const animateCloud = (animation, delay) => {
-        Animated.loop(
+        const animateCloud1 = () => {
             Animated.sequence([
-                Animated.timing(animation, {
-                    toValue: screenDimensions.width,
-                    duration: 10000,
+                Animated.timing(cloud1Animation, {
+                    toValue: width,
+                    duration: 12000,
                     easing: Easing.linear,
                     useNativeDriver: true,
-                    delay,
                 }),
-                Animated.timing(animation, {
-                    toValue: -screenDimensions.width,
+                Animated.timing(cloud1Animation, {
+                    toValue: -width * 0.25,
                     duration: 0,
                     useNativeDriver: true,
-                })
-            ])
-        ).start();
-    };
-
-    useEffect(() => {
-        animateCloud(cloudAnimation1, 0);
-        animateCloud(cloudAnimation2, 2000);
-    }, []);
-
-    // 감정을 나타내는 이모티콘 이미지 배열 정의
-    const emojiImages = [
-        { image: em_happy, type: 'regular' },
-        { image: em_angry, type: 'regular' },
-        { image: em_surprise, type: 'regular' },
-        { image: em_fear, type: 'regular' },
-        { image: em_sad, type: 'regular' },
-        { image: em_dislike, type: 'regular' },
-        { image: em_soso, type: 'regular' },
-        { image: diary_angry, type: 'diary' },
-        { image: diary_dislike, type: 'diary' },
-        { image: diary_fear, type: 'diary' },
-        { image: diary_happy, type: 'diary' },
-        { image: diary_neutral, type: 'diary' },
-        { image: diary_sad, type: 'diary' },
-        { image: diary_surprise, type: 'diary' }
-    ];
-
-    // 랜덤 이모티콘 위치와 애니메이션 렌더링
-    const renderEmojis = () => emojiImages.map((emoji, index) => {
-        const opacity = useRef(new Animated.Value(0)).current;
-        const translateY = useRef(new Animated.Value(0)).current;
-        const translateX = useRef(new Animated.Value(0)).current;
-
-        const animateEmoji = () => {
-            const randomX = Math.random() * screenDimensions.width - (screenDimensions.width / 2);
-            const randomY = Math.random() * screenDimensions.height - (screenDimensions.height / 2);
-
-            Animated.sequence([
-                Animated.timing(opacity, { toValue: 1, duration: Math.random() * 2000 + 1000, useNativeDriver: true }),
-                Animated.timing(opacity, { toValue: 0, duration: Math.random() * 2000 + 1000, useNativeDriver: true }),
+                }),
             ]).start(() => {
-                translateY.setValue(randomY);
-                translateX.setValue(randomX);
-                animateEmoji();
+                setCloud1Top(`${47 + Math.random() * 8}%`);
+                animateCloud1();
             });
         };
 
-        useEffect(() => {
-            const initialRandomX = Math.random() * screenDimensions.width - (screenDimensions.width / 2);
-            const initialRandomY = Math.random() * screenDimensions.height - (screenDimensions.height / 2);
-
-            translateY.setValue(initialRandomY);
-            translateX.setValue(initialRandomX);
-            animateEmoji();
-        }, [screenDimensions]);
-
-        return (
-            <Animated.Image
-                key={index}
-                source={emoji.image}
-                style={[
-                    styles.emoji,
-                    emoji.type === 'diary' ? styles.diaryEmoji : {},
-                    {
-                        opacity: opacity,
-                        transform: [
-                            { translateY: translateY },
-                            { translateX: translateX },
-                        ],
-                    }
-                ]}
-            />
-        );
-    });
-
-    // 팬더 회전 애니메이션 설정
-    const pandaTwistAnimation = useRef(new Animated.Value(0)).current;
-
-    const animatePandaTwist = () => {
-        const randomTimingDuration = Math.random() * 1000 + 1000;
-        const randomTwistCount = Math.floor(Math.random() * 3) + 2;
-
-        const twistAnimations = [];
-        for (let i = 0; i < randomTwistCount; i++) {
-            twistAnimations.push(
-                Animated.timing(pandaTwistAnimation, {
-                    toValue: 1,
-                    duration: randomTimingDuration,
-                    easing: Easing.inOut(Easing.ease),
+        const animateCloud2 = () => {
+            Animated.sequence([
+                Animated.timing(cloud2Animation, {
+                    toValue: width,
+                    duration: 8000,
+                    easing: Easing.linear,
                     useNativeDriver: true,
                 }),
-                Animated.timing(pandaTwistAnimation, {
-                    toValue: -1,
-                    duration: randomTimingDuration,
-                    easing: Easing.inOut(Easing.ease),
+                Animated.timing(cloud2Animation, {
+                    toValue: -width * 0.25,
+                    duration: 0,
                     useNativeDriver: true,
-                })
+                }),
+            ]).start(() => {
+                setCloud2Top(`${47 + Math.random() * 8}%`);
+                animateCloud2();
+            });
+        };
+
+        animateCloud1();
+        animateCloud2();
+    }, [width, height]);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+        }, [])
+    );
+
+    const bambooLevel = 5;
+    const displayLevel = chatbotLevel !== null ? (chatbotLevel - 1) % 30 + 1 : 1;
+    const treeLevel = `Lv ${displayLevel}`;
+
+    const renderBambooStack = useMemo<JSX.Element[]>(() => {
+        const bambooElements = [];
+        const bambooBodyWidth = width * 0.5;
+        const bambooBodyHeight = height * 0.07;
+
+        bambooElements.push(
+            <Image
+                key="bamboo-head"
+                source={bambooHead}
+                style={[
+                    styles.bambooHead,
+                    { width: bambooBodyWidth, height: bambooBodyHeight * 1.25, zIndex: displayLevel + 1, marginBottom: -7 },
+                ]}
+                resizeMode="contain"
+            />
+        );
+
+        for (let i = 0; i < displayLevel; i++) {
+            bambooElements.push(
+                <Image
+                    key={`bamboo-body-${i}`}
+                    source={bambooBody}
+                    style={[
+                        styles.bambooBody,
+                        {
+                            width: bambooBodyWidth,
+                            height: bambooBodyHeight,
+                            marginBottom: gapBetweenBodies,
+                            zIndex: displayLevel - i,
+                        },
+                    ]}
+                    resizeMode="contain"
+                />
             );
         }
 
-        twistAnimations.push(
-            Animated.spring(pandaTwistAnimation, {
-                toValue: 0,
-                damping: 2,
-                stiffness: 200,
-                useNativeDriver: true,
-            })
-        );
+        return bambooElements;
+    }, [displayLevel, width, height]);
 
-        Animated.sequence(twistAnimations).start(() => {
-            animatePandaTwist();
-        });
+    const getBambooStyle = (level) => {
+        switch (level) {
+            case 1:
+                return { width: width * 0.1, height: height * 0.1, bottom: '11%', left: '52%' };
+            case 2:
+                return { width: width * 0.2, height: height * 0.13, bottom: '10%', left: '8%' };
+            case 3:
+                return { width: width * 0.3, height: height * 0.18, bottom: '9%', left: '75%' };
+            case 4:
+                return { width: width * 0.4, height: height * 0.25, bottom: '7.5%', left: '55%' };
+            case 5:
+                return { width: width * 0.5, height: height * 0.31, bottom: '1%', left: -60 };
+            default:
+                return { width: width * 0.5, height: height * 0.1, bottom: '10%' };
+        }
     };
 
-    useEffect(() => {
-        animatePandaTwist();
-    }, []);
+    const renderBambooImages = useMemo<JSX.Element[]>(() => {
+        const bambooElements = [];
+        for (let i = 0; i < bambooLevel; i++) {
+            bambooElements.push(
+                <Image
+                    key={`bamboo-${i}`}
+                    source={bamboo}
+                    style={[
+                        styles.bamboo,
+                        getBambooStyle(i + 1),
+                    ]}
+                    resizeMode="contain"
+                />
+            );
+        }
+        return bambooElements;
+    }, [bambooLevel, width, height]);
 
     return (
-        <ImageBackground source={BackgroundImage} style={styles.background}>
-            <View style={styles.container}>
-                <Text style={styles.treeNameText}>{chatbotName}</Text>
-                <Text style={styles.levelText}>{treeLevel}</Text>
-
-                {/* 구름 애니메이션 */}
-                <Animated.Image source={CloudImage} style={[styles.cloudImage, { transform: [{ translateX: cloudAnimation1 }] }]} />
-                <Animated.Image source={CloudImage} style={[styles.cloudImageLower, { transform: [{ translateX: cloudAnimation2 }] }]} />
-
-                {/* 대나무, 팬더, 머리 이미지 */}
-                <View style={[styles.imageContainer, { height: getBambooHeight() + bambooBodyHeight * 1.5 }]}>
-                    {renderBambooBodies()}
-                    <Animated.Image source={BambooPanda} style={[styles.pandaImage, { width: bambooBodyWidth * pandaScale, height: bambooBodyHeight * pandaScale, bottom: 40, right: getPandaPosition(), transform: [{ rotate: pandaTwistAnimation.interpolate({ inputRange: [-1, 1], outputRange: ['310deg', '330deg'] }) }] }]} />
-                    <Image source={BambooPanda} style={[styles.pandaImage, { width: bambooBodyWidth * 0.7, height: bambooBodyHeight * 0.8, bottom: effectiveLevel * (bambooBodyHeight + gapBetweenBodies) + gapBetweenHeadAndBody, transform: [{ translateX: screenWidth * 0.03 }, { translateY: screenHeight * -0.005 }] }]} />
-                    <Image source={BambooHead} style={[styles.bambooHead, { width: bambooBodyWidth, height: bambooBodyHeight * 1.3, bottom: effectiveLevel * (bambooBodyHeight - 0.02 + gapBetweenBodies) + gapBetweenHeadAndBody }]} />
-                </View>
-
-                {renderEmojis()}
+        <View style={styles.backgroundContainer}>
+            <View style={styles.fixedInfoContainer}>
+                <Text style={[styles.levelText, { color: textColor }]}>{treeLevel}</Text>
+                <Text style={[styles.treeNameText, { color: textColor }]}>{chatbotName}</Text>
             </View>
-        </ImageBackground>
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={styles.scrollContainer}
+                contentContainerStyle={[styles.scrollContent]}
+                showsVerticalScrollIndicator={false}
+                onScroll={(event) => {
+                    const scrollY = event.nativeEvent.contentOffset.y;
+                    setTextColor(scrollY > scrollThreshold ? '#000000' : '#FFFFFF');
+                }}
+                scrollEventThrottle={32}
+            >
+                <ImageBackground source={backgroundImage} style={[styles.background, { height: height * 2.1 }]} resizeMode="cover">
+                    <Animated.Image source={cloud1} style={[styles.cloud, { top: cloud1Top, transform: [{ translateX: cloud1Animation }] }]} resizeMode="contain" />
+                    <Animated.Image source={cloud2} style={[styles.cloud, { top: cloud2Top, transform: [{ translateX: cloud2Animation }] }]} resizeMode="contain" />
+
+                    {starAnimations.map((star, index) => (
+                        <Animated.View
+                            key={index}
+                            style={[
+                                styles.star,
+                                {
+                                    top: star.top,
+                                    left: star.left,
+                                    opacity: star.opacity,
+                                    transform: [{ scale: star.scale }],
+                                },
+                            ]}
+                        />
+                    ))}
+
+                    <View style={styles.bambooContainer}>
+                        {renderBambooStack}
+                    </View>
+                    <Image source={pandaImage} style={[styles.pandaImage, { width: width * 0.2, height: height * 0.2 }]} resizeMode="contain" />
+                    {renderBambooImages}
+                </ImageBackground>
+            </ScrollView>
+        </View>
     );
 }
 
-// 스타일 정의
 const styles = StyleSheet.create({
-    background: { flex: 1, resizeMode: 'cover' },
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    treeNameText: { position: 'absolute', top: 30, right: 20, fontSize: 20, fontWeight: 'bold', textAlign: 'right', color: '#333', zIndex: 10 },
-    levelText: { position: 'absolute', top: 10, right: 20, fontSize: 18, color: '#333', fontWeight: 'bold', textAlign: 'right', zIndex: 10 },
-    cloudImage: { position: 'absolute', top: 60, width: 100, height: 100, resizeMode: 'contain', zIndex: 5 },
-    cloudImageLower: { position: 'absolute', top: 130, width: 80, height: 80, resizeMode: 'contain', zIndex: 5 },
-    imageContainer: { alignItems: 'center', position: 'absolute', bottom: 0 },
-    bambooBody: { position: 'absolute', resizeMode: 'contain', zIndex: 2 },
-    bambooHead: { position: 'absolute', resizeMode: 'contain', zIndex: 3 },
-    pandaImage: { position: 'absolute', resizeMode: 'contain', zIndex: 1 },
-    emoji: { position: 'absolute', width: 15, height: 15, resizeMode: 'contain', zIndex: 6 },
-    diaryEmoji: { width: 20, height: 20 },
+    backgroundContainer: { flex: 1 },
+    scrollContainer: { flex: 1 },
+    scrollContent: { flexGrow: 1, justifyContent: 'flex-end' },
+    background: { flex: 1, width: '100%' },
+    fixedInfoContainer: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        alignItems: 'flex-end',
+        zIndex: 1,
+    },
+    levelText: { fontSize: 18, fontWeight: 'bold' },
+    treeNameText: { fontSize: 20, fontWeight: 'bold' },
+    cloud: {
+        position: 'absolute',
+        width: '25%',
+        height: '25%',
+    },
+    star: {
+        position: 'absolute',
+        width: 2,
+        height: 2,
+        borderRadius: 3,
+        backgroundColor: '#FFFFFF',
+    },
+    bambooContainer: {
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        position: 'absolute',
+        bottom: '3%',
+        left: '25%',
+    },
+    pandaImage: {
+        position: 'absolute',
+        bottom: '8%',
+        left: '25%',
+    },
+    bambooBody: {
+        alignSelf: 'center',
+    },
+    bambooHead: {
+        alignSelf: 'center',
+    },
+    bamboo: {
+        position: 'absolute',
+        left: '10%',
+    },
 });

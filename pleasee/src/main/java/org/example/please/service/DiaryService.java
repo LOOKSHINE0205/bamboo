@@ -39,8 +39,8 @@ public class DiaryService {
         LocalDateTime startOfYesterday = startOfDay.minusDays(1);
 
         // 전날과 오늘의 일기를 가져오기
-        List<Diary> yesterdayDiaries = diaryRepository.findByCreatedAtBetween(Timestamp.valueOf(startOfYesterday), Timestamp.valueOf(endOfYesterday));
-        List<Diary> todayDiaries = diaryRepository.findByCreatedAtBetween(Timestamp.valueOf(startOfDay), Timestamp.valueOf(endOfToday));
+        List<Diary> yesterdayDiaries = diaryRepository.findByDiaryDateBetween(Timestamp.valueOf(startOfYesterday), Timestamp.valueOf(endOfYesterday));
+        List<Diary> todayDiaries = diaryRepository.findByDiaryDateBetween(Timestamp.valueOf(startOfDay), Timestamp.valueOf(endOfToday));
 
         // 사용자 이메일이 null이 아닌 경우를 필터링하고 사용자별로 그룹화
         Map<String, List<Diary>> diariesByUser = yesterdayDiaries.stream()
@@ -69,7 +69,7 @@ public class DiaryService {
     public Diary createDiary(Diary diary, MultipartFile photoFile) throws IOException {
         // 작성 시간 자동 설정 (만약 클라이언트에서 제공하지 않았다면)
         if (diary.getCreatedAt() == null) {
-            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
         }
 
         // 사진 파일 처리
@@ -85,7 +85,7 @@ public class DiaryService {
     public Diary createDiary(Diary diary) {
         // 작성 시간 자동 설정 (만약 클라이언트에서 제공하지 않았다면)
         if (diary.getCreatedAt() == null) {
-            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
         }
 
         return diaryRepository.save(diary);
@@ -125,7 +125,7 @@ public class DiaryService {
     // 일기 작성 로직 (URL을 통해 사진 처리)
     public Diary createDiaryFromUrl(Diary diary, String imageUrl) throws IOException {
         if (diary.getCreatedAt() == null) {
-            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            diary.setCreatedAt(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
         }
 
         // URL을 통해 파일 다운로드 및 저장

@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="보고서 거의완">
+    <list default="true" id="687e9c5c-3b70-49d6-bf7d-33fff3638947" name="Changes" comment="보고서기능중양세진">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/report.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/report.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,7 +126,7 @@
       <workItem from="1731301754839" duration="72000" />
       <workItem from="1731302202710" duration="1856000" />
       <workItem from="1731310958672" duration="1162000" />
-      <workItem from="1731312960007" duration="12036000" />
+      <workItem from="1731312960007" duration="11910000" />
     </task>
     <task id="LOCAL-00001" summary="aasd">
       <option name="closed" value="true" />
@@ -222,15 +224,7 @@
       <option name="project" value="LOCAL" />
       <updated>1731323137781</updated>
     </task>
-    <task id="LOCAL-00013" summary="보고서 거의완">
-      <option name="closed" value="true" />
-      <created>1731330025112</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1731330025112</updated>
-    </task>
-    <option name="localTasksCounter" value="14" />
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -258,8 +252,7 @@
     <MESSAGE value="채팅연결" />
     <MESSAGE value="평가 기능 중" />
     <MESSAGE value="보고서기능중양세진" />
-    <MESSAGE value="보고서 거의완" />
-    <option name="LAST_COMMIT_MESSAGE" value="보고서 거의완" />
+    <option name="LAST_COMMIT_MESSAGE" value="보고서기능중양세진" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

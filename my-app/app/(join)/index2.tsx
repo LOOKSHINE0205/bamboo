@@ -189,11 +189,11 @@ const KeywordSelectionScreen = () => {
     if (index === 0) targetScale = 0.1;
     else if (index === 1) targetScale = 0.2;
     else if (index === 2) targetScale = 0.4;
-    else if (index === 3) targetScale = 0.7;
-    else if (index === 4) targetScale = 1.1;
-    else if (index === 5) targetScale = 1.6;
-    else if (index === 6) targetScale = 2.2;
-    else if (index >= 7) targetScale = 2.9;
+    else if (index === 3) targetScale = 0.5;
+    else if (index === 4) targetScale = 0.8;
+    else if (index === 5) targetScale = 1.2;
+    else if (index === 6) targetScale = 1.6;
+    else if (index >= 7) targetScale = 2.0;
 
 
     Animated.timing(cloudScale, {
