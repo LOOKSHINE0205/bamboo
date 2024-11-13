@@ -155,7 +155,36 @@ const styles = StyleSheet.create({
   weatherImage: { width: 30, height: 30, resizeMode: "contain", marginLeft: 10 },
   entryContainer: { padding: 15, backgroundColor: "#f9f9f9", borderRadius: 10, marginTop: 10, minHeight: 400 },
   entryText: { fontSize: 16, lineHeight: 24, textAlignVertical: "top" },
-  imageContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
-  image: { width: 150, height: 150, margin: 5, resizeMode: 'contain' },
-  noPhotosText: { textAlign: 'center', fontSize: 16, color: 'gray' },
+
+  // 이미지 컨테이너
+  imageContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between', // 두 개씩 배치
+    paddingVertical: 10,  // 상하 간격 추가
+  },
+
+  // 개별 이미지 스타일
+  image: {
+    width: '48%',  // 한 줄에 두 개씩 배치
+    height: 150,
+    marginBottom: 10, // 아래 여백
+    marginHorizontal: '1%',  // 좌우 여백 추가로 정돈된 배치
+    borderRadius: 15,  // 사진 모서리 둥글게
+    borderWidth: 1, // 테두리 추가
+    borderColor: '#ddd',  // 테두리 색상
+    shadowColor: '#000', // 그림자 색상
+    shadowOffset: { width: 0, height: 2 }, // 그림자 오프셋
+    shadowOpacity: 0.1, // 그림자 투명도
+    shadowRadius: 5, // 그림자 반경
+    elevation: 3, // 안드로이드에서 그림자 효과
+  },
+
+  // 사진이 없을 때 텍스트 스타일
+  noPhotosText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: 'gray',
+    marginTop: 20, // 텍스트와 이미지 간 여백 추가
+  },
 });
