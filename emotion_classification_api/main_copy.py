@@ -16,6 +16,8 @@ from openai_service import llm
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
 from data_fetcher import fetch_user_data, fetch_chat_data_and_generate_wordcloud
 import os
+from config import static_dir  # static_dir 임포트
+
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -29,6 +31,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(script_dir, "static")
+
+# 정적 파일 제공 설정
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+print(f"Static directory path: {static_dir}")
+
 # 입력 데이터 모델 정의
 class EmotionRequest(BaseModel):
     user_email: str
@@ -41,7 +51,6 @@ class EmotionRequest(BaseModel):
 # 워드클라우드 요청 모델 정의
 class WordCloudRequest(BaseModel):
     croom_idx: int
-    session_idx: int
 
 def load_prompt(user_preference):
     prompt_file_path = f"emotion_classification_api/prompts/chat_style_{user_preference}.txt"
@@ -50,13 +59,12 @@ def load_prompt(user_preference):
     with open(prompt_file_path, "r", encoding="utf-8") as file:
         return file.read()
 
-# 워드클라우드 생성 엔드포인트``
+# 워드클라우드 생성 엔드포인트
 @app.post("/generate_wordcloud")
 async def generate_wordcloud(request: Request, request_data: WordCloudRequest):
     try:
         croom_idx = request_data.croom_idx
-        session_idx = request_data.session_idx
-        image_path = fetch_chat_data_and_generate_wordcloud(croom_idx, session_idx)
+        image_path = fetch_chat_data_and_generate_wordcloud(croom_idx)
         image_filename = os.path.basename(image_path)
         base_url = str(request.base_url).rstrip("/")
         image_url = f"{base_url}/static/wordclouds/{image_filename}"
