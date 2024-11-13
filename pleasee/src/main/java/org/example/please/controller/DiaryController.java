@@ -1,5 +1,6 @@
 package org.example.please.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.please.entity.Diary;
 import org.example.please.service.DiaryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -32,18 +35,16 @@ public class DiaryController {
     @PostMapping("/create-with-photo")
     public ResponseEntity<Diary> createDiaryWithPhoto(
             @RequestPart("diary") String diaryData,
-            @RequestPart(value = "photo", required = false) MultipartFile photoFile) throws IOException {
+            @RequestPart(value = "photo", required = false) List<MultipartFile> photoFiles) throws IOException {
 
         ObjectMapper objectMapper = new ObjectMapper();
-        // JSON 문자열로 전달된 diaryData를 Diary 객체로 변환
         Diary diary = objectMapper.readValue(diaryData, Diary.class);
 
-        // 사진이 포함된 일기 저장
-        Diary newDiary = diaryService.createDiary(diary, photoFile);
+        // 다중 파일을 지원하는 메서드 호출
+        Diary newDiary = diaryService.createDiary(diary, photoFiles);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
     }
-
 
     @PostMapping("/upload-from-url")
     public ResponseEntity<Diary> uploadFromUrl(
@@ -59,13 +60,54 @@ public class DiaryController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
     }
-@GetMapping("/user_diaries")
-public ResponseEntity<List<Diary>> getDiariesByUserEmail(@RequestParam String userEmail) {
-    System.out.println("Received request for userEmail: " + userEmail);
-    List<Diary> diaries = diaryService.getDiariesByUserEmail(userEmail);
-    System.out.println("Diaries found: " + diaries.size());
-    return ResponseEntity.ok(diaries);
-}
 
+    @GetMapping("/user_diaries")
+    public ResponseEntity<List<Map<String, Object>>> getDiariesByUserEmail(@RequestParam String userEmail) {
+        System.out.println("Received request for userEmail: " + userEmail);
 
+        List<Diary> diaries = diaryService.getDiariesByUserEmail(userEmail);
+        System.out.println("Diaries found: " + diaries.size());
+
+        // 다이어리 데이터와 URL을 포함하는 Map으로 변환하여 반환
+        List<Map<String, Object>> diaryWithUrls = diaries.stream().map(diary -> {
+            Map<String, Object> diaryMap = new HashMap<>();
+            diaryMap.put("diaryIdx", diary.getDiaryIdx());
+            diaryMap.put("userEmail", diary.getUserEmail());
+            diaryMap.put("diaryDate", diary.getDiaryDate());
+            diaryMap.put("emotionTag", diary.getEmotionTag());
+            diaryMap.put("diaryWeather", diary.getDiaryWeather());
+            diaryMap.put("diaryContent", diary.getDiaryContent());
+            diaryMap.put("createdAt", diary.getCreatedAt());
+            // 이미지 URL 생성 및 추가
+            try {
+                diaryMap.put("diaryPhoto", diaryService.createImageUrls(diary.getDiaryPhoto()));
+            } catch (IOException e) {
+                e.printStackTrace(); // 로그 출력
+                diaryMap.put("diaryPhoto", "Error parsing image URLs");
+            }
+            return diaryMap;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(diaryWithUrls);
+    }
+
+    // diaryPhoto URL 생성 메서드
+    private String createImageUrl(String diaryPhoto) {
+        try {
+            // 서버의 기본 URL을 선언합니다.
+            String serverBaseUrl = "http://192.168.20.76:8082"; // 실제 서버 주소를 사용하세요.
+
+            // diaryPhoto가 JSON 배열 형식일 경우 처리
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<String> photoList = objectMapper.readValue(diaryPhoto, new TypeReference<List<String>>() {});
+
+            return photoList.stream()
+                    .map(photo -> serverBaseUrl + "/uploads/images/db/" + photo) // URL을 결합하여 완전한 경로 생성
+                    .collect(Collectors.joining(","));
+        } catch (IOException e) {
+            // JSON 파싱 오류 처리
+            e.printStackTrace();
+            return "";
+        }
+    }
 }
