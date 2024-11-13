@@ -25,7 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
-                .cors(cors -> cors.disable()) // CORS 비활성화, 필요에 따라 커스터마이즈 가능
+//                .cors(cors -> cors.disable()) // CORS 비활성화, 필요에 따라 커스터마이즈 가능
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/**").permitAll() // 모든 경로에 대한 접근 허용
                 );
@@ -40,8 +40,9 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("*") // 모든 도메인 허용, 필요 시 특정 도메인만 허용 가능
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+                        .allowedOrigins("*") // 모든 도메인 허용
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowCredentials(false); // 쿠키 포함 요청을 허용하지 않음
             }
         };
     }

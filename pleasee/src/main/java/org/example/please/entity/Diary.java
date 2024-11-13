@@ -40,8 +40,8 @@ public class Diary {
     @Column(name = "diary_weather")
     private String diaryWeather; // 날씨
 
-    @Column(name = "diary_photo")
-    private String diaryPhoto; // 사진 경로
+    @Column(name = "diary_photo", columnDefinition = "JSON")
+    private String diaryPhoto; // 여러 이미지 경로를 저장하는 JSON 배열 형식
 
     @Column(name = "diary_date")
     private Date diaryDate; // 일기 날짜

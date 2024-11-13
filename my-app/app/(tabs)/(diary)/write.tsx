@@ -46,6 +46,11 @@ export default function DiaryEntryScreen() {
   const { formattedDate, dayOfWeek } = formatDate(date);
 
   const pickImage = async () => {
+    if (selectedImages.length >= 4) {
+      Alert.alert("알림", "최대 4장까지 사진을 추가할 수 있습니다.");
+      return;
+    }
+
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       Alert.alert("알림", "카메라 롤 접근 권한이 필요합니다.");
@@ -59,43 +64,56 @@ export default function DiaryEntryScreen() {
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
+
+         // 현재 선택된 이미지 갯수와 새로 선택된 이미지 갯수를 합쳤을 때, 4장 이하일 경우에만 선택 처리
+            const totalImages = selectedImages.length + result.assets.length;
+            if (totalImages > 4) {
+              Alert.alert("알림", "최대 4장까지만 선택할 수 있습니다.");
+              return;
+            }
+
+
       const imageUris = result.assets.map(asset => asset.uri);
       setSelectedImages(prevImages => [...prevImages, ...imageUris]);
     }
   };
 
+  const removeImage = (imageUri) => {
+    setSelectedImages(prevImages => prevImages.filter(uri => uri !== imageUri));
+  };
+
   const handleSaveEntry = async () => {
     try {
-        const storedUserInfo = await AsyncStorage.getItem('userInfo');
-                const userData = storedUserInfo ? JSON.parse(storedUserInfo) : null;
+      const storedUserInfo = await AsyncStorage.getItem('userInfo');
+      const userData = storedUserInfo ? JSON.parse(storedUserInfo) : null;
 
-        const formData = new FormData();
+      const formData = new FormData();
 
-        // diary 데이터를 JSON 문자열로 추가
-        const diaryData = JSON.stringify({
-          userEmail: userData?.userEmail,
-          diaryDate: date,
-          emotionTag: mood,
-          diaryWeather: weather,
-          diaryContent: entryText,
+      // diary 데이터를 JSON 문자열로 추가
+      const diaryData = JSON.stringify({
+        userEmail: userData?.userEmail,
+        diaryDate: date,
+        emotionTag: mood,
+        diaryWeather: weather,
+        diaryContent: entryText,
+      });
+
+      formData.append("diary", diaryData);
+
+      // 이미지가 있을 경우 FormData에 추가
+      selectedImages.forEach((imageUri, index) => {
+        formData.append("photo", {
+          uri: imageUri,
+          type: "image/jpeg", // 이미지 타입을 지정
+          name: `photo_${index}.jpg`, // 이미지 파일 이름 지정
         });
+      });
 
-        formData.append("diary", diaryData);
-
-        // 이미지가 있을 경우 FormData에 추가
-        selectedImages.forEach((imageUri, index) => {
-          formData.append("photo", {
-            uri: imageUri,
-            type: "image/jpeg", // 이미지 타입을 지정
-            name: `photo_${index}.jpg`, // 이미지 파일 이름 지정
-          });
-        });
-
-        await axios.post(`${serverAddress}/api/diaries/create-with-photo`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+      await axios.post(`${serverAddress}/api/diaries/create-with-photo`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       alert("일기가 저장되었습니다!");
       router.push("/(diary)"); // 원하는 경로로 변경
@@ -141,6 +159,11 @@ export default function DiaryEntryScreen() {
               {selectedImages.map((imageUri, index) => (
                 <View key={index} style={styles.imageWrapper}>
                   <Image source={{ uri: imageUri }} style={styles.photo} />
+                  <TouchableWithoutFeedback onPress={() => removeImage(imageUri)}>
+                    <View style={styles.removeButton}>
+                      <Ionicons name="close-circle" size={24} color="red" />
+                    </View>
+                  </TouchableWithoutFeedback>
                 </View>
               ))}
             </View>
@@ -171,10 +194,6 @@ export default function DiaryEntryScreen() {
               style={styles.commonButton}
             />
           </View>
-
-
-
-
 
         </ScrollView>
       </TouchableWithoutFeedback>
@@ -254,6 +273,14 @@ const styles = StyleSheet.create({
     height: 150,
     margin: 5,
     borderRadius: 20,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 50,
+    padding: 5,
   },
   buttonContainer: {
     flexDirection: 'row',
