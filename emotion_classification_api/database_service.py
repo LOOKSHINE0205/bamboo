@@ -53,3 +53,15 @@ def get_chat_history(croom_idx, session_idx):
     except Exception as e:
         print(f"Error in get_chat_history: {e}")
         return []
+
+# croom_idx만으로 모든 세션의 채팅 내역 가져오기 함수
+def get_chat_history_by_croom(croom_idx):
+    try:
+        with engine.connect() as connection:
+            query = text("SELECT chatter, chat_content FROM chatting_tb WHERE croom_idx = :croom_idx AND chatter = 'user' ORDER BY chat_idx ASC")
+            results = connection.execute(query, {"croom_idx": croom_idx}).mappings().fetchall()
+            chat_history = [(row['chatter'], row['chat_content']) for row in results]
+            return chat_history
+    except Exception as e:
+        print(f"Error in get_chat_history_by_croom: {e}")
+        return []

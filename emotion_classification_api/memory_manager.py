@@ -1,12 +1,10 @@
 # memory_manager.py
 
-# 수정된 코드
-from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
 from langchain.memory import ConversationBufferMemory
 from collections import defaultdict
 
 # 세션별 메모리를 저장할 딕셔너리
-session_memories = defaultdict(lambda: ConversationBufferMemory(chat_memory=ChatMessageHistory(), return_messages=True))
+session_memories = defaultdict(lambda: ConversationBufferMemory(return_messages=True))
 
 def get_session_memory(croom_idx: int, session_idx: int, chat_history: list = None):
     """

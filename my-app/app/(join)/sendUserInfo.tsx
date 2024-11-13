@@ -3,13 +3,13 @@ import { View, Text, Alert, StyleSheet, Image, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
 import BambooHead from "../../assets/images/bamboo_head.png";
-import em_happy from "../../assets/images/기쁨2.png";
-import em_angry from "../../assets/images/화남2.png";
-import em_surprise from "../../assets/images/놀람2.png";
-import em_fear from "../../assets/images/두려움2.png";
-import em_sad from "../../assets/images/슬픔2.png";
-import em_dislike from "../../assets/images/싫음2.png";
-import em_soso from "../../assets/images/쏘쏘2.png";
+import em_happy from "../../assets/images/기쁨.png";
+import em_angry from "../../assets/images/화남.png";
+import em_surprise from "../../assets/images/놀람.png";
+import em_fear from "../../assets/images/두려움.png";
+import em_sad from "../../assets/images/슬픔.png";
+import em_dislike from "../../assets/images/혐오.png";
+import em_soso from "../../assets/images/쏘쏘.png";
 import {serverAddress} from '../../components/Config';
 
 const SendUserInfo = () => {

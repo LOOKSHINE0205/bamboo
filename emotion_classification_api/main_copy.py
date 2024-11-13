@@ -8,22 +8,21 @@ from threading import Thread
 import uvicorn
 from pyngrok import ngrok
 from emotion_model import predict_with_probabilities
-# from openai_service import generate_gpt_response
 from data_fetcher import fetch_user_data
-# from prompt_builder import get_combined_prompt
 from keyword_extractor import extract_emotion_keyword
 from memory_manager import get_session_memory, update_session_memory
 from langchain.prompts import PromptTemplate
 from openai_service import llm
-from langchain.schema import HumanMessage
+from langchain.schema import HumanMessage, AIMessage, SystemMessage
 from data_fetcher import fetch_user_data, fetch_chat_data_and_generate_wordcloud
 import os
+from config import static_dir  # static_dir 임포트
 
 
 # FastAPI 앱 생성
 app = FastAPI()
 
-# CORS 설정 워드클라우드 
+# CORS 설정
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 특정 도메인으로 제한 가능
@@ -32,9 +31,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 정적 파일 제공 설정
-# app.mount("/static", StaticFiles(directory="static"), name="static")
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(script_dir, "static")
+
+# 정적 파일 제공 설정
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+print(f"Static directory path: {static_dir}")
 
 # 입력 데이터 모델 정의
 class EmotionRequest(BaseModel):
@@ -45,26 +48,23 @@ class EmotionRequest(BaseModel):
     previous_message: str
     current_user_message: str
 
-#워드클라우드
+# 워드클라우드 요청 모델 정의
 class WordCloudRequest(BaseModel):
     croom_idx: int
-    session_idx: int
 
 def load_prompt(user_preference):
-    prompt_file_path = f"prompts/chat_style_{user_preference}.txt"
+    prompt_file_path = f"emotion_classification_api/prompts/chat_style_{user_preference}.txt"
     if not os.path.exists(prompt_file_path):
-        prompt_file_path = "C:/Users/qsoqs/Desktop/model_API/bamboo/emotion_classification_api/promts/chat_style_Default preference.txt"
+        prompt_file_path = "emotion_classification_api/prompts/chat_style_Default preference.txt"
     with open(prompt_file_path, "r", encoding="utf-8") as file:
         return file.read()
 
-### 워드클라우드 추가
 # 워드클라우드 생성 엔드포인트
 @app.post("/generate_wordcloud")
 async def generate_wordcloud(request: Request, request_data: WordCloudRequest):
     try:
         croom_idx = request_data.croom_idx
-        session_idx = request_data.session_idx
-        image_path = fetch_chat_data_and_generate_wordcloud(croom_idx, session_idx)
+        image_path = fetch_chat_data_and_generate_wordcloud(croom_idx)
         image_filename = os.path.basename(image_path)
         base_url = str(request.base_url).rstrip("/")
         image_url = f"{base_url}/static/wordclouds/{image_filename}"
@@ -76,7 +76,6 @@ async def generate_wordcloud(request: Request, request_data: WordCloudRequest):
     except Exception as e:
         print(f"Error generating word cloud: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
 
 # API 엔드포인트 정의
 @app.post("/predict")
@@ -97,7 +96,7 @@ async def predict(request: EmotionRequest):
 
         # Step 3: 사용자 선호도 기반 프롬프트 로드
         base_prompt = load_prompt(user_preference)
-        print("Loaded Base Prompt:", base_prompt[:100])
+        print("Loaded Base Prompt:", base_prompt)
 
         # Step 4: 감정 분류
         emotion_ratios = predict_with_probabilities(
@@ -112,36 +111,36 @@ async def predict(request: EmotionRequest):
         print("Emotion Keyword:", emotion_keyword)
 
         # Step 6: 시스템 프롬프트 및 메시지 생성
-        # 메모리에서 대화 기록 가져오기
-        memory_messages = memory.chat_memory.messages.copy()
-        # 현재 사용자 메시지 추가
-        memory_messages.append(HumanMessage(content=request.current_user_message))
-
-        # 최종 프롬프트 생성
-        prompt_template = PromptTemplate.from_template(
-            f"{base_prompt}\nYour name is Bamboo, a 27-year-old assistant.\n"
-            "User preference: {user_preference}. Diary info: {diary_info}. "
-            "Emotion ratios: {emotion_ratios}. Emotion keyword: {emotion_keyword}.\n"
-            "{conversation_history}\n"
+        # 시스템 프롬프트 생성
+        system_prompt = (
+            f"{base_prompt}\n"
+            "Your name is Bamboo, a 27-year-old assistant.\n"
+            f"User preference: {user_preference}. Diary info: {diary_info}. "
+            f"Emotion ratios: {emotion_ratios}. Emotion keyword: {emotion_keyword}.\n"
             "Please respond appropriately."
         )
+        print("System Prompt:")
+        print(system_prompt)
 
-        # 대화 기록을 문자열로 변환
-        conversation_history = ""
-        for msg in memory_messages:
-            role = "User" if msg.type == "human" else "Assistant"
-            conversation_history += f"{role}: {msg.content}\n"
+        # 메시지 리스트 생성
+        messages = []
+        # 시스템 메시지 추가
+        messages.append(SystemMessage(content=system_prompt))
 
-        chain = prompt_template | llm
+        # 이전 대화 내역 메시지 추가
+        for msg in memory.chat_memory.messages:
+            if msg.type == "human":
+                messages.append(HumanMessage(content=msg.content))
+            elif msg.type == "ai":
+                messages.append(AIMessage(content=msg.content))
 
-        bot_response = chain.invoke({
-            "user_preference": user_preference,
-            "diary_info": diary_info,
-            "emotion_ratios": emotion_ratios,
-            "emotion_keyword": emotion_keyword,
-            "conversation_history": conversation_history
-        })
-        print("Bot Response:", bot_response)
+        # 현재 사용자 메시지 추가
+        current_user_message = HumanMessage(content=request.current_user_message)
+        messages.append(current_user_message)
+
+        # LLM 호출
+        bot_response = llm(messages)
+        print("Bot Response:", bot_response.content)
 
         # Step 7: 메모리에 봇 응답 추가
         update_session_memory(request.croom_idx, request.session_idx, "assistant", bot_response.content)
@@ -157,7 +156,6 @@ async def predict(request: EmotionRequest):
     except Exception as e:
         print("Unhandled Error:", e)
         raise HTTPException(status_code=500, detail=f"Error generating bot response: {e}")
-
 
 # 테스트 엔드포인트 추가
 @app.get("/test")
@@ -182,7 +180,7 @@ server_thread.start()
 public_url = ngrok.connect(8001)
 print("FastAPI 서버가 실행 중입니다. 다음 주소로 접근하세요:", public_url)
 
-# 워드클라우드용/ FastAPI 서버 URL을 반환하는 API  React Native가 초기화될 때 이 URL을 요청하여 서버 주소를 동적으로 가져오게 할 수 있습니다.
+# 워드클라우드용 FastAPI 서버 URL을 반환하는 API
 @app.get("/server_url")
 async def get_server_url():
     return {"server_url": public_url}
