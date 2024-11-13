@@ -179,21 +179,19 @@ export default function EmotionReport() {
         );
     };
 
-    const yAxisMaxValue = useMemo(() => {
-        if (selectedEmotions.length === 0) return 1;
+// Y축 최대값 설정을 위한 정규화된 데이터 생성
+    const normalizedEmotionDataByDay = useMemo(() => {
+        const allEmotionValues = Object.values(originalEmotionDataByDay).flat();
+        const maxEmotionValue = Math.max(...allEmotionValues) || 1; // 최대값이 0일 경우를 방지
 
-        // 선택된 감정별로 데이터 추출
-        const dataToUse = chartData.datasets.filter(dataset => selectedEmotions.includes(dataset.label));
+        // 감정 데이터를 0에서 1 사이로 정규화
+        const normalizedData = {};
+        for (const [emotion, values] of Object.entries(originalEmotionDataByDay)) {
+            normalizedData[emotion] = values.map(value => Math.min(value / maxEmotionValue, 1)); // 1을 넘지 않도록 보장
+        }
 
-        // 각 감정의 최대값을 계산하여 그 중 가장 큰 값 찾기
-        const maxEmotionValue = dataToUse.reduce((max, dataset) => {
-            const datasetMax = Math.max(...dataset.data);
-            return Math.max(max, datasetMax);
-        }, 1);
-
-        // 최대값에 여유 공간을 추가하여 Y축 범위 설정
-        return Math.ceil(maxEmotionValue * 1 * 10) / 10;
-    }, [selectedEmotions, chartData]);
+        return normalizedData;
+    }, [originalEmotionDataByDay]);
 
     // 선택된 감정 데이터만 필터링하여 차트에 사용할 데이터를 반환합니다.
     const filteredData = useMemo(() => {
@@ -213,7 +211,7 @@ export default function EmotionReport() {
         { key: "혐오", label: "혐오", icon: em_dislike },
     ];
     const imageData = useServerImage();
-    // console.log(imageData)
+    console.log(imageData)
 
     return (
         <ScrollView style={styles.scrollView}>
@@ -280,7 +278,7 @@ export default function EmotionReport() {
                                 selectedEmotions.includes(dataset.label) && (
                                     <VictoryLine
                                         key={index}
-                                        data={originalEmotionDataByDay[dataset.label].map((y, x) => ({ x: chartData.labels[x], y }))}
+                                        data={normalizedEmotionDataByDay[dataset.label].map((y, x) => ({ x: chartData.labels[x], y }))}
                                         style={{
                                             data: { stroke: dataset.color }
                                         }}

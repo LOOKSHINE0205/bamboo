@@ -10,7 +10,7 @@ const useServerImage = () => {
             const croom_idx = await AsyncStorage.getItem('croomIdx');
             try {
                 const response = await axios.post(
-                    'https://95be-119-67-36-28.ngrok-free.app/generate_wordcloud',
+                    'https://8a5c-119-67-36-28.ngrok-free.app/generate_wordcloud',
                     { croom_idx } // Pass croom_idx directly in the request body
                 );
                 console.log("image data:", response.data);
