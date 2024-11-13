@@ -25,6 +25,8 @@ import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 import {serverAddress} from '../../components/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
+
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
 const SettingsScreen = () => {
@@ -39,48 +41,45 @@ const SettingsScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(null);
 
- useEffect(() => {
-   const fetchUserData = async () => {
-     setIsLoading(true);
-     try {
-       const data = await getUserInfo(); // DB에서 정보 불러오기
-       if (data) {
-         const profileImageUrl = data.profileImage?.startsWith(serverAddress)
-           ? data.profileImage
-           : `${serverAddress}/uploads/profile/images/${data.profileImage}`;
+   useEffect(() => {
+     const fetchUserData = async () => {
+       setIsLoading(true);
+       try {
+         const data = await getUserInfo();
+         if (data) {
+           const profileImageUrl = data.profileImage ? `${serverAddress}/uploads/profile/images/${data.profileImage}` : null;
 
-         // DB에서 가져온 값을 상태에 반영
-         setUserInfo({ ...data, profileImage: profileImageUrl });
-         setProfileImageUri(profileImageUrl);
-         setNotificationsEnabled(data.toggle === 1); // 토글 설정
-         setStartTime(data.quietStartTime || '09:00'); // 시작 시간 설정
-         setEndTime(data.quietEndTime || '18:00'); // 종료 시간 설정
+           setUserInfo({ ...data, profileImage: profileImageUrl });
+           setProfileImageUri(profileImageUrl);
+           setNotificationsEnabled(data.toggle === 1);
+           setStartTime(data.quietStartTime || '09:00');
+           setEndTime(data.quietEndTime || '18:00');
 
-         await AsyncStorage.setItem(
-           'userInfo',
-           JSON.stringify({
-             ...data,
-             profileImage: profileImageUrl,
-             toggle: data.toggle,
-             startTime: data.quietStartTime,
-             endTime: data.quietEndTime,
-           })
-         );
-       } else {
-         setUserInfo(null);
-         setProfileImageUri(null);
-         Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
+           await AsyncStorage.setItem(
+             'userInfo',
+             JSON.stringify({
+               ...data,
+               profileImage: profileImageUrl,
+               toggle: data.toggle,
+               startTime: data.quietStartTime,
+               endTime: data.quietEndTime,
+             })
+           );
+         } else {
+           setUserInfo(null);
+           setProfileImageUri(null);
+           Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
+         }
+       } catch (error) {
+         console.error('사용자 정보 불러오기 중 오류:', error);
+         Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
+       } finally {
+         setIsLoading(false);
        }
-     } catch (error) {
-       console.error('사용자 정보 불러오기 중 오류:', error);
-       Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
-     } finally {
-       setIsLoading(false);
-     }
-   };
+     };
 
-   fetchUserData();
- }, []);
+     fetchUserData();
+   }, []);
 
 
 
@@ -127,22 +126,21 @@ const SettingsScreen = () => {
         });
 
         if (response.status === 200) {
-          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
-          const fullProfileImageUri = `${serverImagePath}?${new Date().getTime()}`;
-          setUserInfo((prev) => ({ ...prev, profileImage: fullProfileImageUri }));
-          setProfileImageUri(fullProfileImageUri);
-          await setUserProfileImage(fullProfileImageUri);
-          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
-        } else {
-          console.warn("이미지 업로드 실패:", response.data);
-        }
-      } catch (error) {
-        console.error("프로필 이미지 업로드 중 오류:", error?.response?.data || error?.message || error);
-        Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
-      }
-    }
-    setModalVisible(false);
-  };
+                  const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
+                  setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
+                  setProfileImageUri(serverImagePath);
+                  await setUserProfileImage(serverImagePath);
+                  Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
+                } else {
+                  console.warn("이미지 업로드 실패:", response.data);
+                }
+              } catch (error) {
+                console.error("프로필 이미지 업로드 중 오류:", error?.response?.data || error?.message || error);
+                Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
+              }
+            }
+            setModalVisible(false);
+          };
 
  const handleResetProfileImage = async () => {
      try {
@@ -150,17 +148,17 @@ const SettingsScreen = () => {
              userEmail: userInfo?.userEmail,
          });
 
-         const defaultImageUrl = `${serverAddress}/path/to/default/profile/image.jpg`; // 기본 이미지 URL 지정
-         await setUserProfileImage(defaultImageUrl); // 기본 이미지로 초기화
-         setUserInfo((prev) => ({ ...prev, profileImage: defaultImageUrl }));
-         setProfileImageUri(defaultImageUrl);
-         Alert.alert("알림", "프로필 이미지가 기본 이미지로 재설정되었습니다.");
-     } catch (error) {
-         console.error("프로필 이미지 재설정 중 오류:", error);
-         Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
-     }
-     setModalVisible(false);
- };
+         // 기본 이미지 URL을 null로 설정하여 아이콘이 표시되도록 함
+               await setUserProfileImage(null);
+               setUserInfo((prev) => ({ ...prev, profileImage: null }));
+               setProfileImageUri(null);
+               Alert.alert("알림", "프로필 이미지가 기본 아이콘으로 재설정되었습니다.");
+             } catch (error) {
+               console.error("프로필 이미지 재설정 중 오류:", error);
+               Alert.alert("오류", "프로필 이미지를 재설정하는 중 문제가 발생했습니다.");
+             }
+             setModalVisible(false);
+           };
 
  const toggleSwitch = () => {
     setNotificationsEnabled((prev) => !prev);
@@ -216,22 +214,22 @@ const SettingsScreen = () => {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View style={styles.profileImageSection}>
-          <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
-            {userInfo?.profileImage ? (
-              <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
-            ) : (
-              <View style={styles.defaultProfileImage}>
-                <Ionicons name="person" size={50} color="#cccccc" />
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+          <View style={styles.profileImageSection}>
+            <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
+              {profileImageUri ? (
+                <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
+              ) : (
+                <View style={styles.defaultProfileImage}>
+                  <Ionicons name="person-outline" size={50} color="#cccccc" />
+                </View>
+              )}
+              <View style={styles.cameraIconContainer}>
+                <Ionicons name="camera" size={20} color="#fff" />
               </View>
-            )}
-            <View style={styles.cameraIconContainer}>
-              <Ionicons name="camera" size={20} color="#fff" />
-            </View>
-          </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+          </View>
         <Text style={styles.label}>닉네임</Text>
         <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />
         <Text style={styles.label}>이메일</Text>

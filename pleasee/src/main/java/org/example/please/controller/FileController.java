@@ -33,18 +33,14 @@ public class FileController {
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
         try {
-            // 파일 경로 생성 및 리소스 로드
             Path filePath = Paths.get(profileImageDir).resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
-            // 리소스가 존재하고 읽을 수 있는지 확인
             if (resource.exists() && resource.isReadable()) {
                 logger.log(Level.INFO, "Serving image file: {0}", fileName);
-
-                // 이미지 파일 제공
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                        .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(filePath)) // 동적으로 MIME 타입 설정
+                        .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(filePath))
                         .body(resource);
             } else {
                 logger.log(Level.WARNING, "File not found or is not readable: {0}", fileName);

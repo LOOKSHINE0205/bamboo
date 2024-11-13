@@ -24,7 +24,7 @@ import java.util.Optional;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    private static final String SERVER_URL = "http://10.0.2.2:8082/uploads/profile/images/";
+    private static final String SERVER_URL = "http://192.168.20.76:8082/uploads/profile/images/";
 
     @Autowired
     private UserService userService;

@@ -52,12 +52,10 @@ useEffect(() => {
             }
             const profileImage = await getUserProfileImage();
             setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
-
         } catch (error) {
             console.error('데이터를 가져오는 데 실패했습니다:', error);
         }
     };
-
     fetchData();
 }, []); // 초기 로딩용 useEffect
 
@@ -70,16 +68,13 @@ useFocusEffect(
                     setUserNick(userData.userNick || '');
                     setChatbotName(userData.chatbotName || '챗봇');
                     setUserEmail(userData.userEmail);
-
                 }
                 const profileImage = await getUserProfileImage();
                 setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);
-
             } catch (error) {
                 console.error('데이터를 가져오는 데 실패했습니다:', error);
             }
         };
-
         fetchData();
     }, [])
 );
@@ -96,7 +91,7 @@ useFocusEffect(
                 const formattedMessages = chatHistory.map((chat: ChatMessage) => ({
                     sender: chat.chatter === 'bot' ? 'bot' : 'user',
                     text: chat.chatContent,
-                    avatar: chat.chatter === 'bot' ? BambooHead : userAvatar,
+                    avatar: chat.chatter === 'bot' ? BambooHead : (userAvatar || BambooPanda),
                     name: chat.chatter === 'bot' ? chatbotName : userNick,
                     timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
                     showTimestamp: true,
@@ -409,8 +404,8 @@ useFocusEffect(
                                 <View style={styles.avatarContainer}>
                                     <Image
                                         source={userAvatar}
-                                        style={styles.userAvatar}
-                                        onError={(error) => console.log('Failed to load user avatar:', error.nativeEvent.error)}
+                                            style={styles.userAvatar}
+                                            onError={() => setUserAvatar(BambooPanda)} // 이미지 로드 실패 시 기본 이미지로 설정
                                     />
                                 </View>
 

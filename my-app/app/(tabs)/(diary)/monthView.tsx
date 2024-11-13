@@ -81,6 +81,26 @@ export default function MonthView() {
     }
   };
 
+
+  // 달 변경 함수 (이전 또는 다음 달로 이동)
+    const changeMonth = (direction: 'prev' | 'next') => {
+      if (direction === 'prev') {
+        if (month === 1) {
+          setYear(year - 1);  // 1월에서 이전 달로 가면 연도를 줄이고 12월로 설정
+          setMonth(12);
+        } else {
+          setMonth(month - 1); // 그 외의 경우 월을 1 감소
+        }
+      } else if (direction === 'next') {
+        if (month === 12) {
+          setYear(year + 1);  // 12월에서 다음 달로 가면 연도를 늘리고 1월로 설정
+          setMonth(1);
+        } else {
+          setMonth(month + 1); // 그 외의 경우 월을 1 증가
+        }
+      }
+    };
+
   // 날짜 포맷팅 함수에서 diaryDate를 사용하도록 업데이트
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "날짜 없음";
