@@ -164,4 +164,8 @@ public class DiaryService {
         }
         return serverAddress.trim() + "/uploads/images/db/" + diaryPhoto.trim();
     }
+
+    public List<Diary> getDiariesByMonth(String userEmail, int year, int month) {
+        return diaryRepository.findByUserEmailAndYearAndMonth(userEmail, year, month);
+    }
 }

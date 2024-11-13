@@ -21,4 +21,6 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
     @Query(value = "SELECT d.* FROM diary_tb d JOIN user_tb u ON d.user_email = u.user_email WHERE u.user_email = :userEmail", nativeQuery = true)
     List<Diary> findDiariesByUserEmail(@Param("userEmail") String userEmail);
 
+    @Query("SELECT d FROM Diary d WHERE d.userEmail = :userEmail AND YEAR(d.createdAt) = :year AND MONTH(d.createdAt) = :month")
+    List<Diary> findByUserEmailAndYearAndMonth(String userEmail, int year, int month);
 }
