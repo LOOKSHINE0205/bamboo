@@ -1,7 +1,18 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, Alert, ImageBackground, Image, ScrollView, useWindowDimensions, Animated, Easing } from 'react-native';
-import { getUserInfo } from '../../storage/storageHelper';
-import { useFocusEffect } from '@react-navigation/native';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    Alert,
+    ImageBackground,
+    Image,
+    ScrollView,
+    useWindowDimensions,
+    Animated,
+    Easing
+} from 'react-native';
+import {getUserInfo} from '../../storage/storageHelper';
+import {useFocusEffect} from '@react-navigation/native';
 
 const backgroundImage = require('../../assets/images/긴배경2.png');
 const pandaImage = require('../../assets/images/판다.png');
@@ -12,7 +23,7 @@ const cloud2 = require('../../assets/images/구름들2.png');
 const bamboo = require('../../assets/images/bamboo.png');
 
 export default function MyPage() {
-    const { width, height } = useWindowDimensions();
+    const {width, height} = useWindowDimensions();
     const scrollViewRef = useRef(null);
     const [chatbotLevel, setChatbotLevel] = useState(null);
     const [chatbotName, setChatbotName] = useState('');
@@ -26,7 +37,7 @@ export default function MyPage() {
     const cloud2Animation = useRef(new Animated.Value(-width * 0.25)).current;
 
     const createStarAnimations = () => {
-        return Array.from({ length: 20 }, () => ({
+        return Array.from({length: 20}, () => ({
             opacity: new Animated.Value(0),
             scale: new Animated.Value(1),
             top: `${1 + Math.random() * 15}%`,
@@ -148,12 +159,12 @@ export default function MyPage() {
     useFocusEffect(
         React.useCallback(() => {
             setTimeout(() => {
-                scrollViewRef.current?.scrollToEnd({ animated: true });
+                scrollViewRef.current?.scrollToEnd({animated: true});
             }, 100);
         }, [])
     );
 
-    const bambooLevel = 5;
+    const bambooLevel = chatbotLevel !== null ? Math.floor(chatbotLevel / 30) : 1;
     const displayLevel = chatbotLevel !== null ? (chatbotLevel - 1) % 30 + 1 : 1;
     const treeLevel = `Lv ${displayLevel}`;
 
@@ -168,7 +179,12 @@ export default function MyPage() {
                 source={bambooHead}
                 style={[
                     styles.bambooHead,
-                    { width: bambooBodyWidth, height: bambooBodyHeight * 1.25, zIndex: displayLevel + 1, marginBottom: -7 },
+                    {
+                        width: bambooBodyWidth,
+                        height: bambooBodyHeight * 1.25,
+                        zIndex: displayLevel + 1,
+                        marginBottom: -7
+                    },
                 ]}
                 resizeMode="contain"
             />
@@ -199,17 +215,17 @@ export default function MyPage() {
     const getBambooStyle = (level) => {
         switch (level) {
             case 1:
-                return { width: width * 0.1, height: height * 0.1, bottom: '11%', left: '52%' };
+                return {width: width * 0.1, height: height * 0.1, bottom: '11%', left: '52%'};
             case 2:
-                return { width: width * 0.2, height: height * 0.13, bottom: '10%', left: '8%' };
+                return {width: width * 0.2, height: height * 0.13, bottom: '10%', left: '8%'};
             case 3:
-                return { width: width * 0.3, height: height * 0.18, bottom: '9%', left: '75%' };
+                return {width: width * 0.3, height: height * 0.18, bottom: '9%', left: '75%'};
             case 4:
-                return { width: width * 0.4, height: height * 0.25, bottom: '7.5%', left: '55%' };
+                return {width: width * 0.4, height: height * 0.25, bottom: '7.5%', left: '55%'};
             case 5:
-                return { width: width * 0.5, height: height * 0.31, bottom: '1%', left: -60 };
+                return {width: width * 0.5, height: height * 0.31, bottom: '1%', left: -60};
             default:
-                return { width: width * 0.5, height: height * 0.1, bottom: '10%' };
+                return {width: width * 0.5, height: height * 0.1, bottom: '10%'};
         }
     };
 
@@ -234,8 +250,8 @@ export default function MyPage() {
     return (
         <View style={styles.backgroundContainer}>
             <View style={styles.fixedInfoContainer}>
-                <Text style={[styles.levelText, { color: textColor }]}>{treeLevel}</Text>
-                <Text style={[styles.treeNameText, { color: textColor }]}>{chatbotName}</Text>
+                <Text style={[styles.levelText, {color: textColor}]}>{treeLevel}</Text>
+                <Text style={[styles.treeNameText, {color: textColor}]}>{chatbotName}</Text>
             </View>
 
             <ScrollView
@@ -249,9 +265,14 @@ export default function MyPage() {
                 }}
                 scrollEventThrottle={32}
             >
-                <ImageBackground source={backgroundImage} style={[styles.background, { height: height * 2.1 }]} resizeMode="cover">
-                    <Animated.Image source={cloud1} style={[styles.cloud, { top: cloud1Top, transform: [{ translateX: cloud1Animation }] }]} resizeMode="contain" />
-                    <Animated.Image source={cloud2} style={[styles.cloud, { top: cloud2Top, transform: [{ translateX: cloud2Animation }] }]} resizeMode="contain" />
+                <ImageBackground source={backgroundImage} style={[styles.background, {height: height * 2.1}]}
+                                 resizeMode="cover">
+                    <Animated.Image source={cloud1}
+                                    style={[styles.cloud, {top: cloud1Top, transform: [{translateX: cloud1Animation}]}]}
+                                    resizeMode="contain"/>
+                    <Animated.Image source={cloud2}
+                                    style={[styles.cloud, {top: cloud2Top, transform: [{translateX: cloud2Animation}]}]}
+                                    resizeMode="contain"/>
 
                     {starAnimations.map((star, index) => (
                         <Animated.View
@@ -262,7 +283,7 @@ export default function MyPage() {
                                     top: star.top,
                                     left: star.left,
                                     opacity: star.opacity,
-                                    transform: [{ scale: star.scale }],
+                                    transform: [{scale: star.scale}],
                                 },
                             ]}
                         />
@@ -271,7 +292,8 @@ export default function MyPage() {
                     <View style={styles.bambooContainer}>
                         {renderBambooStack}
                     </View>
-                    <Image source={pandaImage} style={[styles.pandaImage, { width: width * 0.2, height: height * 0.2 }]} resizeMode="contain" />
+                    <Image source={pandaImage} style={[styles.pandaImage, {width: width * 0.2, height: height * 0.2}]}
+                           resizeMode="contain"/>
                     {renderBambooImages}
                 </ImageBackground>
             </ScrollView>
@@ -280,10 +302,10 @@ export default function MyPage() {
 }
 
 const styles = StyleSheet.create({
-    backgroundContainer: { flex: 1 },
-    scrollContainer: { flex: 1 },
-    scrollContent: { flexGrow: 1, justifyContent: 'flex-end' },
-    background: { flex: 1, width: '100%' },
+    backgroundContainer: {flex: 1},
+    scrollContainer: {flex: 1},
+    scrollContent: {flexGrow: 1, justifyContent: 'flex-end'},
+    background: {flex: 1, width: '100%'},
     fixedInfoContainer: {
         position: 'absolute',
         top: 20,
@@ -291,8 +313,8 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
         zIndex: 1,
     },
-    levelText: { fontSize: 18, fontWeight: 'bold' },
-    treeNameText: { fontSize: 20, fontWeight: 'bold' },
+    levelText: {fontSize: 18, fontWeight: 'bold'},
+    treeNameText: {fontSize: 20, fontWeight: 'bold'},
     cloud: {
         position: 'absolute',
         width: '25%',

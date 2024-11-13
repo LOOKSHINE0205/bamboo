@@ -39,7 +39,7 @@ public class ChattingController {
     public Map<String, Object> sendUserMessage(String userEmail, int croomIdx, int sessionIdx, String chatContent) {
         Map<String, Object> response = new HashMap<>();
 
-        String url = "https://6427-121-147-12-202.ngrok-free.app/predict";
+        String url = "https://8b16-121-147-12-202.ngrok-free.app/predict";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         try {
@@ -111,13 +111,13 @@ public class ChattingController {
 //            chatting.setEmotionTag(userEmotionTag);
 
             String botContent = null;
-            Object botResponseObject = botResponseToUser.get("bot_response");
-            if (botResponseObject instanceof Map) {
-                Map<String, Object> botResponseMap = (Map<String, Object>) botResponseObject;
-                botContent = (String) botResponseMap.get("content");
-            }
+            String botResponseObject = (String) botResponseToUser.get("bot_response");
+//            if (botResponseObject instanceof Map) {
+//                Map<String, Object> botResponseMap = (Map<String, Object>) botResponseObject;
+//                botContent = (String) botResponseMap.get("content");
+//            }
 
-            System.out.println("Bot Content: " + botContent);
+            System.out.println("Bot Content: " + botResponseObject);
             // 사용자 메시지 저장
 
             if ("user".equals(chatting.getChatter())) {
@@ -130,7 +130,7 @@ public class ChattingController {
             // 봇 응답  저장
             String botEmotionTag = mapper.writeValueAsString(botResponseToUser.get("current_emotion_probabilities"));
 
-            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botContent , botEmotionTag);
+            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botResponseObject , botEmotionTag);
             // 응답 데이터 생성
             Map<String, Object> response = new HashMap<>();
             response.put("chatContent", botResponse.getChatContent());
