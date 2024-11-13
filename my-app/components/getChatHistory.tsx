@@ -1,6 +1,6 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {serverAddress} from '../../components/Config';
+import {serverAddress} from './Config';
 
 export interface ChatMessage {
     chatIdx: number;
@@ -39,3 +39,4 @@ export const getChatHistory = async (): Promise<ChatMessage[]> => {
         throw error;
     }
 };
+

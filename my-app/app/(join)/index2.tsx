@@ -26,6 +26,9 @@ const KeywordSelectionScreen = () => {
   const [isFocused, setIsFocused] = useState(false);
 
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+   // 비율 계산 및 cloudTopPosition 설정
+  const aspectRatio = screenWidth / screenHeight;
+  const cloudTopPosition = aspectRatio >= 0.6 ? '40%' : '50%';
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const cloudAnim = useRef(new Animated.Value(1)).current;
@@ -188,15 +191,17 @@ const KeywordSelectionScreen = () => {
 
   const updateCloudScale = (index: number) => {
     let targetScale = 1;
-    if (index === 0) targetScale = 0.1;
-    else if (index === 1) targetScale = 0.2;
-    else if (index === 2) targetScale = 0.4;
-    else if (index === 3) targetScale = 0.5;
-    else if (index === 4) targetScale = 0.9;
-    else if (index === 5) targetScale = 1.4;
-    else if (index === 6) targetScale = 2.0;
-    else if (index >= 7) targetScale = 2.7;
+    const aspectRatio = screenWidth / screenHeight; // 화면 비율 계산
+    console.log(aspectRatio);
+    const scaleLimits = aspectRatio >= 0.6
+      ? [0.1, 0.15, 0.25, 0.35, 0.5, 0.7, 1.0, 1.3] // 비율이 0.6 이상일 때 스케일 값
+      : [0.1, 0.2, 0.4, 0.5, 0.9, 1.4, 2.0, 2.7];  // 비율이 0.6 미만일 때 스케일 값
 
+    if (index < scaleLimits.length) {
+      targetScale = scaleLimits[index];
+    } else {
+      targetScale = scaleLimits[scaleLimits.length - 1];
+    }
 
     Animated.timing(cloudScale, {
       toValue: targetScale,
@@ -204,6 +209,16 @@ const KeywordSelectionScreen = () => {
       useNativeDriver: true,
     }).start();
   };
+
+  // 스타일 정의에서 조건부로 top 조절
+  const dynamicStyles = (aspectRatio) => ({
+    cloudContainer: {
+      position: 'absolute',
+      top: aspectRatio >= 0.6 ? '40%' : '50%', // 비율이 0.6 이상일 때 위치를 위로 올림
+      alignSelf: 'center',
+      zIndex: 1,
+    },
+  });
 
   useEffect(() => {
     if (isLastQuestion) {
@@ -270,7 +285,7 @@ return (
             <Animated.View
               style={[
                 styles.cloudContainer,
-                { transform: [{ scale: cloudScale }], opacity: cloudAnim, width: screenWidth * 0.6, height: screenWidth * 0.3, top: '50%' },
+                { top:cloudTopPosition,transform: [{ scale: cloudScale }], opacity: cloudAnim, width: screenWidth * 0.6, height: screenWidth * 0.3 },
               ]}
             >
               <Image source={require('../../assets/images/구름.png')} style={styles.cloudImage} resizeMode="contain" />
@@ -468,7 +483,6 @@ const styles = StyleSheet.create({
   // 구름 컨테이너 스타일: 애니메이션 효과가 적용된 구름 이미지 컨테이너
   cloudContainer: {
     position: 'absolute',       // 고정된 위치에 배치
-    top: 300,                   // 화면 상단에서 300px 아래에 배치
     alignSelf: 'center',        // 구름을 화면 중앙에 배치
     zIndex: 1                   // 다른 요소 아래에 배치되도록 z-index 설정
   },

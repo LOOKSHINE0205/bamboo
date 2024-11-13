@@ -35,13 +35,13 @@ const getLast7DaysLabels = () => {
 const initialChartData = {
     labels: getLast7DaysLabels(),
     datasets: [
-        { data: [null, null, null, null, null, null, null], color: () => "#758694", label: "공포" },
+        { data: [null, null, null, null, null, null, null], color: () => "#009944", label: "공포" },
         { data: [null, null, null, null, null, null, null], color: () => "#8800FF", label: "놀람" },
-        { data: [null, null, null, null, null, null, null], color: () => "#BF3131", label: "분노" },
-        { data: [null, null, null, null, null, null, null], color: () => "#0174BE", label: "슬픔" },
-        { data: [null, null, null, null, null, null, null], color: () => "#4C4C4C", label: "중립" },
-        { data: [null, null, null, null, null, null, null], color: () => "#FFC436", label: "행복" },
-        { data: [null, null, null, null, null, null, null], color: () => "#FC90ED", label: "혐오" }
+        { data: [null, null, null, null, null, null, null], color: () => "#E50012", label: "분노" },
+        { data: [null, null, null, null, null, null, null], color: () => "#00A0E9", label: "슬픔" },
+        { data: [null, null, null, null, null, null, null], color: () => "#575554", label: "중립" },
+        { data: [null, null, null, null, null, null, null], color: () => "#E4D354", label: "행복" },
+        { data: [null, null, null, null, null, null, null], color: () => "#EF8BB6", label: "혐오" }
     ]
 };
 
@@ -55,7 +55,6 @@ export default function EmotionReport() {
     const [userNick, setUserNick] = useState<string | null>(null);
 
     const aspectRatio = screenWidth / screenHeight;
-    console.log(aspectRatio);
     useEffect(() => {
         // 닉네임 가져오는 비동기 함수 정의
         const fetchUserInfo = async () => {
@@ -68,10 +67,9 @@ export default function EmotionReport() {
         };
 
         fetchUserInfo(); // 비동기 함수 호출
-        loadChatHistory(); // 기존에 있는 채팅 기록 불러오기
-    }, []);
+    }, []); // 여기는 loadChatHistory를 호출하지 않음
     useEffect(() => {
-        loadChatHistory();
+        loadChatHistory(); // 기존에 있는 채팅 기록 불러오기
     }, []);
 
     const loadChatHistory = async () => {
@@ -157,6 +155,7 @@ export default function EmotionReport() {
 
             setOriginalEmotionDataByDay(originalEmotionDataByDayTemp);
             setEmotionDataByDay(emotionDataByDayTemp);
+            console.log("라인 그래프용 평균 데이터:", originalEmotionDataByDayTemp);
         } catch (error) {
             console.error("Failed to load chat history:", error);
         }
@@ -180,6 +179,7 @@ export default function EmotionReport() {
         }
 
         return normalizedData;
+        console.log("라인 그래프용 평균 데이터:", originalEmotionDataByDayTemp);
     }, [originalEmotionDataByDay]);
 
     const filteredData = useMemo(() => {
@@ -246,10 +246,10 @@ export default function EmotionReport() {
                     <Text style={[styles.subtitle, styles.graphSubtitle]}>감정 라인 그래프</Text>
                     <VictoryChart
                         theme={VictoryTheme.material}
-                        domainPadding={{ x: 30, y: 0 }}
+                        domainPadding={{ x: 30, y: 20 }}  // Y축 패딩 추가
                         padding={{ top: 25, bottom: 30, left: 40, right: 30 }}
                         width={screenWidth - 40}
-                        height={screenHeight * 0.2}
+                        height={screenHeight * 0.25}  // 그래프 높이 증가
                     >
                         <VictoryAxis
                             style={{
@@ -300,7 +300,7 @@ export default function EmotionReport() {
                         domainPadding={{ x: 30, y: 10 }}
                         padding={{ top: 15, bottom: 30, left: 40, right: 30 }}
                         width={screenWidth - 40}
-                        height={screenHeight * 0.2}
+                        height={screenHeight * 0.25}
                     >
                         <VictoryAxis
                             tickValues={chartData.labels}
@@ -374,7 +374,7 @@ export default function EmotionReport() {
 // 스타일 정의
 const styles = StyleSheet.create({
     image: {
-        height: 200,
+        height: 250,
         resizeMode: 'contain',
         marginVertical: 8,
         alignSelf: 'center',

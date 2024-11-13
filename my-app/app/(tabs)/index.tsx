@@ -8,7 +8,7 @@ import BambooHead from '../../assets/images/bamboo_head.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { serverAddress } from '../../components/Config';
-import{ ChatMessage,getChatHistory} from "@/app/(tabs)/getChatHistory";
+import{ ChatMessage,getChatHistory} from "../../components/getChatHistory";
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
