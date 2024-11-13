@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Dimensions, Text } from 'react-native';
+import { StyleSheet, View, Text, useWindowDimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
 import axios from 'axios';
 
-const { width, height } = Dimensions.get('window');
-
 export default function BackgroundAnimation() {
+  const { width, height } = useWindowDimensions(); // 화면의 동적 너비와 높이 가져오기
   const [data, setData] = useState({ message: '' });
 
   useEffect(() => {
@@ -20,15 +19,20 @@ export default function BackgroundAnimation() {
     fetchMessage();
   }, []);
 
+  // 화면 크기에 따라 적절한 애니메이션 크기 계산
+  const animationWidth = Math.min(Math.max(width * 0.75, 300), 800); // 최소 300, 최대 800
+  const animationHeight = Math.min(Math.max(height * 0.1, 350), 1000); // 최소 400, 최대 1000
+
   return (
     <View style={styles.container}>
       <LottieView
         source={require('../assets/lottie/bamboo.json')} // Lottie 파일 경로를 지정하세요
         autoPlay
         loop
-        style={styles.backgroundAnimation}
+        style={[styles.backgroundAnimation, { width: animationWidth, height: animationHeight }]}
       />
-
+      {/* 서버에서 받아온 메시지를 표시 */}
+      <Text style={styles.subtitle}>{data.message}</Text>
     </View>
   );
 }
@@ -40,14 +44,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backgroundAnimation: {
-    position: 'absolute',
-    width: width,
-    height: height,
+    position: 'absolute', // 절대 위치로 화면 덮기
   },
   subtitle: {
     fontSize: 18,
     textAlign: 'center',
-    color: 'white', // 배경에 따라 텍스트 색상 조정이 필요할 수 있습니다
+    color: 'white', // 배경에 맞게 텍스트 색상 조정 가능
     zIndex: 1, // 텍스트를 애니메이션 위에 표시
   },
 });
