@@ -153,7 +153,7 @@ export default function MyPage() {
         }, [])
     );
 
-    const bambooLevel = 5;
+    const bambooLevel = chatbotLevel !== null ? Math.floor(chatbotLevel / 30) : 1;
     const displayLevel = chatbotLevel !== null ? (chatbotLevel - 1) % 30 + 1 : 1;
     const treeLevel = `Lv ${displayLevel}`;
 

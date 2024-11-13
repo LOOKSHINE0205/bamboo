@@ -9,6 +9,8 @@ import {
   Image,
   Animated,
   StyleSheet,
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
@@ -190,10 +192,10 @@ const KeywordSelectionScreen = () => {
     else if (index === 1) targetScale = 0.2;
     else if (index === 2) targetScale = 0.4;
     else if (index === 3) targetScale = 0.5;
-    else if (index === 4) targetScale = 0.8;
-    else if (index === 5) targetScale = 1.2;
-    else if (index === 6) targetScale = 1.6;
-    else if (index >= 7) targetScale = 2.0;
+    else if (index === 4) targetScale = 0.9;
+    else if (index === 5) targetScale = 1.4;
+    else if (index === 6) targetScale = 2.0;
+    else if (index >= 7) targetScale = 2.7;
 
 
     Animated.timing(cloudScale, {
@@ -221,21 +223,35 @@ const KeywordSelectionScreen = () => {
       alert('챗봇 이름을 입력해주세요.');
     }
   };
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      scrollViewRef.current?.scrollTo({ y: 200, animated: true });
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    });
 
-  return (
-    <JoinBG>
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+return (
+  <JoinBG>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={[
           styles.container,
-          { paddingVertical: screenHeight * 0.05, paddingBottom: 200 }
+          { paddingVertical: screenHeight * 0.05, paddingBottom: 200 },
         ]}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.chatBubble, { width: screenWidth * 0.9, top: '0%' }]}>
+        <View style={[styles.chatBubble, { width: screenWidth * 0.9, top: -screenHeight * 0.05 }]}>
           <Text style={styles.chatText}>{currentQuestion.question}</Text>
         </View>
 
-        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85, top: 150 }]}>
+        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85, top: screenHeight * 0.07 }]}>
           {!isLastQuestion ? (
             <TouchableOpacity
               style={styles.aiResponseButton}
@@ -249,113 +265,117 @@ const KeywordSelectionScreen = () => {
           )}
         </Animated.View>
 
-        {!isLastQuestion && (
-          <Animated.View
-            style={[
-              styles.cloudContainer,
-              { transform: [{ scale: cloudScale }], opacity: cloudAnim, width: screenWidth * 0.6, height: screenWidth * 0.3 }
-            ]}
-          >
-            <Image source={require('../../assets/images/구름.png')} style={styles.cloudImage} resizeMode="contain" />
-          </Animated.View>
-        )}
-
-        {isLastQuestion ? (
-          <View style={styles.chatbotContainer}>
-            <Animated.Image
-              source={require('../../assets/images/bamboo_head.png')}
-              style={[styles.chatbotImage, { width: screenWidth * 0.4, height: screenWidth * 0.4, top: 110, transform: [{ scale: chatbotScale }] }]}
-              resizeMode="contain"
-            />
-            <TextInput
+        {!isLastQuestion ? (
+          <>
+            <Animated.View
               style={[
-                styles.nameInput,
-                { width: screenWidth * 0.8, top: 140, borderColor: chatbotName ? '#4a9960' : '#999', backgroundColor: isFocused ? '#eef6ee' : '#FFF' }
+                styles.cloudContainer,
+                { transform: [{ scale: cloudScale }], opacity: cloudAnim, width: screenWidth * 0.6, height: screenWidth * 0.3, top: '50%' },
               ]}
-              value={chatbotName}
-              onChangeText={setChatbotName}
-              placeholder="밤부의 이름을 입력하세요"
-              placeholderTextColor="#999"
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-            />
-            <Text style={styles.warningText}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
+            >
+              <Image source={require('../../assets/images/구름.png')} style={styles.cloudImage} resizeMode="contain" />
+            </Animated.View>
 
-            <View style={[styles.navigationButtons, { top: 120, flexDirection: 'row', justifyContent: 'center' }]}>
-              {currentQuestionIndex > 0 && (
+            <View style={styles.responseContainer}>
+              <View style={styles.progressContainer}>
+                {questions.slice(0, -1).map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.dot,
+                      currentQuestionIndex === index && styles.activeDot,
+                    ]}
+                  />
+                ))}
+              </View>
+
+              {currentQuestion.responses.map((response, index) => (
+                <Animated.View
+                  key={index}
+                  style={[
+                    styles.responseButton,
+                    { opacity: fadeAnim, height: screenHeight * 0.06, width: screenWidth * 0.85, borderColor: index === 0 ? '#4a9960' : '#ccc' },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={styles.responseButtonTouchable}
+                    onPress={() => !isProcessing && handleResponsePress(index)}
+                    disabled={isProcessing}
+                  >
+                    <Text style={styles.responseText}>{response}</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
+
+              <View style={styles.navigationButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.navButton,
+                    currentQuestionIndex > 0 ? {} : { opacity: 0 },
+                  ]}
+                  onPress={currentQuestionIndex > 0 ? handlePrevious : null}
+                  disabled={isProcessing || currentQuestionIndex === 0}
+                >
+                  <Text style={styles.navButtonText}>이전</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        ) : (
+          <View style={styles.lastQuestionContainer}>
+            <View style={[styles.chatbotContainer, { top: '20%' }]}>
+              <Animated.Image
+                source={require('../../assets/images/bamboo_head.png')}
+                style={[styles.chatbotImage, { width: screenWidth * 0.4, height: screenWidth * 0.4, transform: [{ scale: chatbotScale }] }]}
+                resizeMode="contain"
+              />
+              <TextInput
+                style={[
+                  styles.nameInput,
+                  { width: screenWidth * 0.8, top: screenHeight*0.05,borderColor: chatbotName ? '#4a9960' : '#999', backgroundColor: isFocused ? '#eef6ee' : '#FFF' },
+                ]}
+                value={chatbotName}
+                onChangeText={setChatbotName}
+                placeholder="밤부의 이름을 입력하세요"
+                placeholderTextColor="#999"
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+              />
+              <Text style={[styles.warningText,{top:-screenHeight*0.05}]}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
+
+              <View style={[styles.navigationButtons, { top: '5%', flexDirection: 'row', justifyContent: 'center' }]}>
+                {currentQuestionIndex > 0 && (
+                  <SmoothCurvedButton
+                    title="이전"
+                    onPress={handlePrevious}
+                    disabled={isProcessing}
+                    style={{
+                      width: screenWidth * 0.4,
+                      height: 50,
+                      marginHorizontal: 10,
+                    }}
+                  />
+                )}
                 <SmoothCurvedButton
-                  title="이전"
-                  onPress={handlePrevious}
-                  disabled={isProcessing}
+                  title="확인"
+                  onPress={handleConfirm}
+                  disabled={!chatbotName.trim() || isProcessing}
                   style={{
+                    opacity: chatbotName.trim() ? 1 : 0.6,
                     width: screenWidth * 0.4,
                     height: 50,
                     marginHorizontal: 10,
                   }}
                 />
-              )}
-              <SmoothCurvedButton
-                title="확인"
-                onPress={handleConfirm}
-                disabled={!chatbotName.trim() || isProcessing}
-                style={{
-                  opacity: chatbotName.trim() ? 1 : 0.6,
-                  width: screenWidth * 0.4,
-                  height: 50,
-                  marginHorizontal: 10,
-                }}
-              />
-            </View>
-          </View>
-        ) : (
-          <View style={styles.responseContainer}>
-            <View style={styles.progressContainer}>
-              {questions.slice(0, -1).map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.dot,
-                    currentQuestionIndex === index && styles.activeDot,
-                  ]}
-                />
-              ))}
-            </View>
-
-            {currentQuestion.responses.map((response, index) => (
-              <Animated.View
-                key={index}
-                style={[
-                  styles.responseButton,
-                  { opacity: fadeAnim, height: screenHeight * 0.06, width: screenWidth * 0.85, borderColor: index === 0 ? '#4a9960' : '#ccc' },
-                ]}
-              >
-                <TouchableOpacity
-                  style={styles.responseButtonTouchable}
-                  onPress={() => !isProcessing && handleResponsePress(index)}
-                  disabled={isProcessing}
-                >
-                  <Text style={styles.responseText}>{response}</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            ))}
-
-            <View style={styles.navigationButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.navButton,
-                  currentQuestionIndex > 0 ? {} : { opacity: 0 },
-                ]}
-                onPress={currentQuestionIndex > 0 ? handlePrevious : null}
-                disabled={isProcessing || currentQuestionIndex === 0}
-              >
-                <Text style={styles.navButtonText}>이전</Text>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}
       </ScrollView>
-    </JoinBG>
-  );
+    </KeyboardAvoidingView>
+  </JoinBG>
+);
+
 };
 
 // 스타일 정의
@@ -366,7 +386,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',        // 텍스트를 중앙에 정렬
     marginTop: 10,              // 상단에 10px 여백을 추가하여 다른 요소와 간격을 줌
     fontSize: 14,               // 텍스트 크기를 14px로 설정
-    top: '15%'                  // 화면 상단에서 15% 아래에 위치
   },
 
   // 화면 전체 컨테이너 스타일: 스크롤 시 화면에 꽉 차도록 설정하고, 자식 요소를 중앙에 정렬
@@ -392,12 +411,11 @@ const styles = StyleSheet.create({
   // 챗봇 컨테이너 스타일: 챗봇 이미지와 관련 요소들을 수직으로 중앙 정렬하고 여백 추가
   chatbotContainer: {
     alignItems: 'center',       // 자식 요소를 수평 중앙으로 정렬
-    marginVertical: '5%'        // 상하 여백을 5% 추가하여 다른 요소와의 간격 확보
   },
 
   // 챗봇 이미지 스타일: 챗봇 이미지를 화면에 표시하기 위한 스타일
   chatbotImage: {
-    marginBottom: 20            // 이미지 하단에 20px 여백 추가하여 텍스트와의 간격 확보
+    marginBottom: 30            // 이미지 하단에 20px 여백 추가하여 텍스트와의 간격 확보
   },
 
   // 이름 입력 필드 스타일: 사용자가 챗봇 이름을 입력할 수 있는 텍스트 입력 필드
