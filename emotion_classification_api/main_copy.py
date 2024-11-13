@@ -11,10 +11,12 @@ from emotion_model import predict_with_probabilities
 from data_fetcher import fetch_user_data
 from keyword_extractor import extract_emotion_keyword
 from memory_manager import get_session_memory, update_session_memory
+from langchain.schema import messages_from_dict, messages_to_dict
 from langchain.prompts import PromptTemplate
 from openai_service import llm
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
 from data_fetcher import fetch_user_data, fetch_chat_data_and_generate_wordcloud
+
 import os
 from config import static_dir  # static_dir 임포트
 
@@ -53,11 +55,18 @@ class WordCloudRequest(BaseModel):
     croom_idx: int
 
 def load_prompt(user_preference):
-    prompt_file_path = f"emotion_classification_api/prompts/chat_style_{user_preference}.txt"
-    if not os.path.exists(prompt_file_path):
-        prompt_file_path = "emotion_classification_api/prompts/chat_style_Default preference.txt"
-    with open(prompt_file_path, "r", encoding="utf-8") as file:
-        return file.read()
+    base_prompt_path = "emotion_classification_api/prompts/base_prompt.txt"
+    with open(base_prompt_path, "r", encoding="utf-8") as file:
+        base_prompt = file.read()
+
+    additional_prompt = ""
+    additional_prompt_path = f"emotion_classification_api/prompts/chat_style_{user_preference}.txt"
+    if os.path.exists(additional_prompt_path):
+        with open(additional_prompt_path, "r", encoding="utf-8") as file:
+            additional_prompt = file.read()
+
+    combined_prompt = f"{base_prompt}\n{additional_prompt}"
+    return combined_prompt
 
 # 워드클라우드 생성 엔드포인트
 @app.post("/generate_wordcloud")
@@ -77,7 +86,7 @@ async def generate_wordcloud(request: Request, request_data: WordCloudRequest):
         print(f"Error generating word cloud: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-# API 엔드포인트 정의
+# 모델 예측 API 엔드포인트 정의
 @app.post("/predict")
 async def predict(request: EmotionRequest):
     try:
@@ -117,15 +126,20 @@ async def predict(request: EmotionRequest):
             "Your name is Bamboo, a 27-year-old assistant.\n"
             f"User preference: {user_preference}. Diary info: {diary_info}. "
             f"Emotion ratios: {emotion_ratios}. Emotion keyword: {emotion_keyword}.\n"
+            "Conversation Summary: {summary}\n"
             "Please respond appropriately."
         )
+
+        # 메모리에서 요약 가져오기
+        conversation_summary = memory.load_memory_variables({})["history"]
+
         print("System Prompt:")
         print(system_prompt)
 
         # 메시지 리스트 생성
         messages = []
         # 시스템 메시지 추가
-        messages.append(SystemMessage(content=system_prompt))
+        messages.append(SystemMessage(content=system_prompt.format(summary=conversation_summary)))
 
         # 이전 대화 내역 메시지 추가
         for msg in memory.chat_memory.messages:
