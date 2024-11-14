@@ -120,26 +120,27 @@ async def predict(request: EmotionRequest):
         print("Emotion Keyword:", emotion_keyword)
 
         # Step 6: 시스템 프롬프트 및 메시지 생성
+        # 메모리에서 요약 가져오기
+        conversation_summary = memory.load_memory_variables({})["history"]
+
         # 시스템 프롬프트 생성
         system_prompt = (
             f"{base_prompt}\n"
             "Your name is Bamboo, a 27-year-old assistant.\n"
             f"User preference: {user_preference}. Diary info: {diary_info}. "
             f"Emotion ratios: {emotion_ratios}. Emotion keyword: {emotion_keyword}.\n"
-            "Conversation Summary: {summary}\n"
+            f"Conversation Summary: {conversation_summary}\n"
             "Please respond appropriately."
         )
-
-        # 메모리에서 요약 가져오기
-        conversation_summary = memory.load_memory_variables({})["history"]
 
         print("System Prompt:")
         print(system_prompt)
 
+
         # 메시지 리스트 생성
         messages = []
         # 시스템 메시지 추가
-        messages.append(SystemMessage(content=system_prompt.format(summary=conversation_summary)))
+        messages.append(SystemMessage(content=system_prompt))
 
         # 이전 대화 내역 메시지 추가
         for msg in memory.chat_memory.messages:

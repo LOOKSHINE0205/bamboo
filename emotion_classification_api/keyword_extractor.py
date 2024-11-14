@@ -86,6 +86,7 @@ def extract_emotion_keyword(emotion_ratios: Dict[str, float]) -> str:
 
     return most_similar_emotion
 
+"""
 # 예시로 감정 비율을 테스트
 emotion_ratios = {"공포": 0.3, "슬픔": 0.2, "행복": 0.5}  # 예시 감정 비율
 try:
@@ -93,3 +94,4 @@ try:
     print(f"가장 유사한 감정 단어: {most_similar_emotion}")
 except Exception as e:
     print(f"An error occurred: {e}")
+"""
