@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, useWindowDimensions, } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { getChatHistory } from '../../components/getChatHistory';
 import useServerImage from '../../components/getWordCloud';
 import { getUserInfo } from '../../storage/storageHelper';
@@ -19,7 +19,6 @@ import em_soso from "../../assets/images/쏘쏘.png";
 export interface EmotionTag {
     emotionTag: string;
 }
-
 
 // 최근 7일의 날짜 라벨 생성 함수
 const getLast7DaysLabels = () => {
@@ -48,7 +47,7 @@ const initialChartData = {
     ]
 };
 
-const EmotionReport = () => {
+const Report = () => {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
   const [chartData, setChartData] = useState(initialChartData); // 기본값으로 설정
@@ -257,7 +256,7 @@ const EmotionReport = () => {
   );
 };
 
-export default EmotionReport;
+export default Report; // 중복된 export default를 제거하고 이 부분에서만 EmotionReport를 export합니다.
 
 const styles = StyleSheet.create({
   scrollView: {

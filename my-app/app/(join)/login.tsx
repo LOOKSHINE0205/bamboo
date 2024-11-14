@@ -3,14 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { saveUserInfo } from '../../storage/storageHelper';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { serverAddress } from '../../components/Config';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const navigation = useNavigation();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -52,7 +50,7 @@ export default function LoginScreen() {
                     ...user,
                     profileImage: user.profileImage ? `${serverAddress}/uploads/profile/images/${user.profileImage}` : null,
                 });
-                navigation.navigate('(tabs)');
+                router.push('/(tabs)'); // router.push로 경로 이동
             } else {
                 setError('로그인 실패: 서버 응답 확인 필요');
             }
@@ -111,7 +109,6 @@ export default function LoginScreen() {
             setIsLoading(false);
         }
     };
-
 
     return (
         <View style={styles.container}>
@@ -176,7 +173,7 @@ export default function LoginScreen() {
                 {!isFindingPassword && (
                     <TouchableOpacity
                         style={styles.passButton}
-                        onPress={() => router.push('/(tabs)/report')}
+                        onPress={() => router.push('/(tabs)/report')} // router.push 사용
                     >
                         <Text style={styles.passButtonText}>패스</Text>
                     </TouchableOpacity>

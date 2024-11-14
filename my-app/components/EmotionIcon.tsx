@@ -20,10 +20,10 @@ const EmotionIcon: React.FC<EmotionIconProps> = ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: aspectRatio >= 0.6 ? 20 : 0.5, // 화면 비율에 따라 아이콘 간격 조정
+    gap: aspectRatio >= 0.6 ? 20 : 0.2, // 화면 비율에 따라 아이콘 간격 조정
   };
 
-  const iconSize = aspectRatio >= 0.6 ? 40 : 25; // 화면 비율에 따라 아이콘 크기 조정
+  const iconSize = aspectRatio >= 0.6 ? 40 : 20; // 화면 비율에 따라 아이콘 크기 조정
 
   return (
     <View style={[styles.iconContainer, iconContainerStyle]}>
@@ -36,7 +36,7 @@ const EmotionIcon: React.FC<EmotionIconProps> = ({
             { opacity: selectedEmotions.includes(emotion.label) ? 1 : 0.4 },
           ]}
         >
-          <Image source={emotion.icon} style={{ width: iconSize, height: iconSize }} />
+          <Image source={emotion.icon} style={{ width: iconSize+2, height: iconSize }} />
           <Text style={styles.iconLabel}>{emotion.label}</Text>
         </TouchableOpacity>
       ))}

@@ -15,11 +15,7 @@ const EmotionChart: React.FC<EmotionChartProps> = React.memo(
   ({ selectedEmotions, chartData, normalizedEmotionDataByDay }) => {
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     useEffect(() => {
-          // Log the data when the component mounts or data changes
-          console.log('Selected Emotions:', selectedEmotions);
-          console.log('Chart Data Labels:', chartData.labels);
-          console.log('Chart Data Datasets:', chartData.datasets);
-          console.log('Normalized Emotion Data By Day:', normalizedEmotionDataByDay);
+
         }, [selectedEmotions, chartData, normalizedEmotionDataByDay]);
     return (
       <View style={styles.chartContainer}>

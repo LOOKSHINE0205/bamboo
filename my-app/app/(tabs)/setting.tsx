@@ -261,18 +261,23 @@ const SettingsScreen = () => {
         )}
       </ScrollView>
       <View style={styles.buttonContainer}>
-        <SmoothCurvedButton
-          title="설정 저장"
-          onPress={handleSave}
-          svgWidth={120}
-          svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-        />
-        <SmoothCurvedButton
-          title="로그아웃"
-          onPress={handleLogout}
-          svgWidth={120}
-          svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-        />
+        <View style={styles.buttonCon}>
+          <SmoothCurvedButton
+            title="설정 저장"
+            onPress={handleSave}
+            svgWidth={120}
+            svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+            style={styles.buttonSpacing} // 스타일 추가
+          />
+          <SmoothCurvedButton
+            title="로그아웃"
+            onPress={handleLogout}
+            svgWidth={120}
+            svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+            style={styles.buttonSpacing} // 스타일 추가
+          />
+        </View>
+
       </View>
       <Modal visible={modalVisible} transparent={true} animationType="fade">
         <View style={styles.modalContainer}>
@@ -313,6 +318,14 @@ const SettingsScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  buttonCon: {
+  flexDirection: 'row',
+  justifyContent: 'center', // 버튼을 가운데 정렬
+  padding: 10,
+   },
+buttonSpacing: {
+  marginHorizontal: -20, // 두 버튼 간의 간격 조정
+},
   container: {
     flex: 1,
     backgroundColor: '#fff'
@@ -423,7 +436,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#eee',
