@@ -261,215 +261,215 @@ const SettingsScreen = () => {
         )}
       </ScrollView>
       <View style={styles.buttonContainer}>
-        <View style={styles.buttonCon}>
-          <SmoothCurvedButton
-            title="설정 저장"
-            onPress={handleSave}
-            svgWidth={120}
-            svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-            style={styles.buttonSpacing} // 스타일 추가
-          />
-          <SmoothCurvedButton
-            title="로그아웃"
-            onPress={handleLogout}
-            svgWidth={120}
-            svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-            style={styles.buttonSpacing} // 스타일 추가
-          />
-        </View>
+                    <View style={styles.buttonCon}>
+                      <SmoothCurvedButton
+                        title="설정 저장"
+                        onPress={handleSave}
+                        svgWidth={120}
+                        svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+                        style={styles.buttonSpacing} // 스타일 추가
+                      />
+                      <SmoothCurvedButton
+                        title="로그아웃"
+                        onPress={handleLogout}
+                        svgWidth={120}
+                        svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
+                        style={styles.buttonSpacing} // 스타일 추가
+                      />
+                    </View>
 
-      </View>
-      <Modal visible={modalVisible} transparent={true} animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
-            <SmoothCurvedButton
-              title="기본 이미지로 재설정"
-              onPress={handleResetProfileImage}
-              svgWidth={220}  // 버튼 전체 크기 확대
-              svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
-              style={styles.modalButton}
-            />
-            <SmoothCurvedButton
-              title="갤러리에서 이미지 선택"
-              onPress={handleImageSelect}
-              svgWidth={220}  // 버튼 전체 크기 확대
-              svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
-              style={styles.modalButton}
-            />
-            <SmoothCurvedButton
-              title="취소"
-              onPress={() => setModalVisible(false)}
-              svgWidth={220}  // 버튼 전체 크기 확대
-              svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
-              style={[styles.modalButton, styles.cancelButton]}
-              color="#cccccc"
-            />
-
-
+                  </View>
+                  <Modal visible={modalVisible} transparent={true} animationType="fade">
+                    <View style={styles.modalContainer}>
+                      <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
+                        <SmoothCurvedButton
+                          title="기본 이미지로 재설정"
+                          onPress={handleResetProfileImage}
+                          svgWidth={220}  // 버튼 전체 크기 확대
+                          svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
+                          style={styles.modalButton}
+                        />
+                        <SmoothCurvedButton
+                          title="갤러리에서 이미지 선택"
+                          onPress={handleImageSelect}
+                          svgWidth={220}  // 버튼 전체 크기 확대
+                          svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
+                          style={styles.modalButton}
+                        />
+                        <SmoothCurvedButton
+                          title="취소"
+                          onPress={() => setModalVisible(false)}
+                          svgWidth={220}  // 버튼 전체 크기 확대
+                          svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
+                          style={[styles.modalButton, styles.cancelButton]}
+                          color="#cccccc"
+                        />
 
 
-          </View>
-        </View>
-      </Modal>
 
-    </KeyboardAvoidingView>
-  );
-};
 
-const styles = StyleSheet.create({
-  buttonCon: {
-  flexDirection: 'row',
-  justifyContent: 'center', // 버튼을 가운데 정렬
-  padding: 10,
-   },
-buttonSpacing: {
-  marginHorizontal: -20, // 두 버튼 간의 간격 조정
-},
-  container: {
-    flex: 1,
-    backgroundColor: '#fff'
-  },
-  contentContainer: {
-    flexGrow: 1,
-    padding: 20
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  profileImageSection: {
-    alignItems: 'center',
-    marginVertical: 20
-  },
-  profileImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative'
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50
-  },
-  defaultProfileImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#eee'
-  },
-  cameraIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#4a9960',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fff'
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 16, // 곡률을 더 부드럽게 변경
-    marginBottom: 20,
-    paddingLeft: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    backgroundColor: '#fff',
-    elevation: 2
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15
-  },
-  timeInputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20
-  },
-  timeInput: {
-    width: '45%'
-  },
-  timeLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-    color: '#555'
-  },
-  timeInputField: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    textAlign: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    backgroundColor: '#fff',
-    elevation: 1
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    padding: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
+                      </View>
+                    </View>
+                  </Modal>
 
-  actionButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)'
-  },
-  modalContent: {
-    width: 300,
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    alignItems: 'center'
-  },
-  modalButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 5,      // 버튼 간 간격을 줄입니다
-    paddingVertical: 4,     // 버튼의 세로 여백을 키웁니다
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
+                </KeyboardAvoidingView>
+              );
+            };
 
-export default SettingsScreen;
+            const styles = StyleSheet.create({
+              buttonCon: {
+              flexDirection: 'row',
+              justifyContent: 'center', // 버튼을 가운데 정렬
+              padding: 10,
+               },
+            buttonSpacing: {
+              marginHorizontal: -20, // 두 버튼 간의 간격 조정
+            },
+              container: {
+                flex: 1,
+                backgroundColor: '#fff'
+              },
+              contentContainer: {
+                flexGrow: 1,
+                padding: 20
+              },
+              loadingContainer: {
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center'
+              },
+              profileImageSection: {
+                alignItems: 'center',
+                marginVertical: 20
+              },
+              profileImageContainer: {
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                backgroundColor: '#f5f5f5',
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'relative'
+              },
+              profileImage: {
+                width: '100%',
+                height: '100%',
+                borderRadius: 50
+              },
+              defaultProfileImage: {
+                width: '100%',
+                height: '100%',
+                borderRadius: 50,
+                backgroundColor: '#f5f5f5',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: '#eee'
+              },
+              cameraIconContainer: {
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                backgroundColor: '#4a9960',
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 2,
+                borderColor: '#fff'
+              },
+              label: {
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginBottom: 10
+              },
+              input: {
+                height: 40,
+                borderColor: 'gray',
+                borderWidth: 1,
+                borderRadius: 16, // 곡률을 더 부드럽게 변경
+                marginBottom: 20,
+                paddingLeft: 10,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 6,
+                backgroundColor: '#fff',
+                elevation: 2
+              },
+              toggleContainer: {
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 15
+              },
+              timeInputContainer: {
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 20
+              },
+              timeInput: {
+                width: '45%'
+              },
+              timeLabel: {
+                fontSize: 16,
+                fontWeight: '500',
+                marginBottom: 8,
+                color: '#555'
+              },
+              timeInputField: {
+                height: 40,
+                borderColor: '#ccc',
+                borderWidth: 1,
+                borderRadius: 16,
+                paddingHorizontal: 12,
+                fontSize: 16,
+                textAlign: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 16,
+                backgroundColor: '#fff',
+                elevation: 1
+              },
+              buttonContainer: {
+                flexDirection: 'row',
+                justifyContent: 'center',
+                padding: 10,
+                borderTopWidth: 1,
+                borderTopColor: '#eee',
+              },
+
+              actionButtonText: {
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: 16,
+              },
+              modalContainer: {
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0,0,0,0.5)'
+              },
+              modalContent: {
+                width: 300,
+                padding: 20,
+                backgroundColor: 'white',
+                borderRadius: 20,
+                alignItems: 'center'
+              },
+              modalButton: {
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginVertical: 5,      // 버튼 간 간격을 줄입니다
+                paddingVertical: 4,     // 버튼의 세로 여백을 키웁니다
+              },
+              modalTitle: {
+                fontSize: 18,
+                fontWeight: 'bold',
+              },
+            });
+
+            export default SettingsScreen;

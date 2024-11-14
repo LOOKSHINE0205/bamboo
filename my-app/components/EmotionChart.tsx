@@ -1,7 +1,14 @@
+import { LogBox } from 'react-native';
 import React,{useEffect} from 'react';
 import { View, StyleSheet } from 'react-native';
 import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme } from 'victory-native';
 import { useWindowDimensions } from 'react-native';
+
+/// 특정 경고 무시
+ LogBox.ignoreLogs([
+   'VictoryAxis: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.',
+ ]);
+
 
 interface EmotionChartProps {
   selectedEmotions: string[];
@@ -26,6 +33,7 @@ const EmotionChart: React.FC<EmotionChartProps> = React.memo(
           width={screenWidth - 40}
           height={screenHeight * 0.25}
         >
+        // eslint-disable-next-line react/no-deprecated
           <VictoryAxis
             style={{
               axis: { stroke: 'transparent' },
@@ -39,6 +47,7 @@ const EmotionChart: React.FC<EmotionChartProps> = React.memo(
             }}
             tickFormat={chartData.labels}
           />
+          // eslint-disable-next-line react/no-deprecated
           <VictoryAxis
             dependentAxis
             domain={[0, 1]}

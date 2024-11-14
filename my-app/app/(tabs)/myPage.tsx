@@ -32,7 +32,7 @@ export default function MyPage() {
     const [cloud2Top, setCloud2Top] = useState(`${45 + Math.random() * 8}%`);
     const gapBetweenBodies = -7;
     const scrollThreshold = 600;
-
+    const aspectRatio = width / height;
     const cloud1Animation = useRef(new Animated.Value(-width * 0.25)).current;
     const cloud2Animation = useRef(new Animated.Value(-width * 0.25)).current;
 
@@ -170,8 +170,8 @@ export default function MyPage() {
 
     const renderBambooStack = useMemo<JSX.Element[]>(() => {
         const bambooElements = [];
-        const bambooBodyWidth = width * 0.5;
-        const bambooBodyHeight = height * 0.07;
+        const bambooBodyWidth = aspectRatio > 0.6 ? width * 0.5 : width * 0.5;
+        const bambooBodyHeight = aspectRatio > 0.6 ? height * 0.07 : height * 0.07;
 
         bambooElements.push(
             <Image
@@ -213,21 +213,52 @@ export default function MyPage() {
     }, [displayLevel, width, height]);
 
     const getBambooStyle = (level) => {
+        const isWideAspect = aspectRatio > 0.6;
         switch (level) {
             case 1:
-                return {width: width * 0.1, height: height * 0.1, bottom: '11%', left: '52%'};
+                return {
+                    width: width * 0.1,
+                    height: height * 0.1,
+                    bottom: isWideAspect ? '9%' : '11%',
+                    left: '52%'
+                };
             case 2:
-                return {width: width * 0.2, height: height * 0.13, bottom: '10%', left: '8%'};
+                return {
+                    width: width * 0.2,
+                    height: height * 0.13,
+                    bottom: isWideAspect ? '8%' : '10%',
+                    left: '8%'
+                };
             case 3:
-                return {width: width * 0.3, height: height * 0.18, bottom: '9%', left: '75%'};
+                return {
+                    width: width * 0.3,
+                    height: height * 0.18,
+                    bottom: isWideAspect ? '7%' : '9%',
+                    left: '75%'
+                };
             case 4:
-                return {width: width * 0.4, height: height * 0.25, bottom: '7.5%', left: '55%'};
+                return {
+                    width: width * 0.4,
+                    height: height * 0.25,
+                    bottom: isWideAspect ? '5.5%' : '7.5%',
+                    left: '55%'
+                };
             case 5:
-                return {width: width * 0.5, height: height * 0.31, bottom: '1%', left: -60};
+                return {
+                    width: width * 0.5,
+                    height: height * 0.31,
+                    bottom: isWideAspect ? '1%' : '1%',
+                    left: -60
+                };
             default:
-                return {width: width * 0.5, height: height * 0.1, bottom: '10%'};
+                return {
+                    width: width * 0.5,
+                    height: height * 0.1,
+                    bottom: isWideAspect ? '8%' : '10%'
+                };
         }
     };
+
 
     const renderBambooImages = useMemo<JSX.Element[]>(() => {
         const bambooElements = [];
@@ -265,7 +296,7 @@ export default function MyPage() {
                 }}
                 scrollEventThrottle={32}
             >
-                <ImageBackground source={backgroundImage} style={[styles.background, {height: height * 2.1}]}
+                <ImageBackground source={backgroundImage} style={[styles.background, {height: aspectRatio>0.6?height * 3 :height * 2.2 }]}
                                  resizeMode="cover">
                     <Animated.Image source={cloud1}
                                     style={[styles.cloud, {top: cloud1Top, transform: [{translateX: cloud1Animation}]}]}
@@ -292,7 +323,12 @@ export default function MyPage() {
                     <View style={styles.bambooContainer}>
                         {renderBambooStack}
                     </View>
-                    <Image source={pandaImage} style={[styles.pandaImage, {width: width * 0.2, height: height * 0.2}]}
+                    <Image source={pandaImage}
+                           style={
+                             [styles.pandaImage,
+
+                               { width : aspectRatio > 0.6 ? width*0.2 : width*0.2,
+                                 height: aspectRatio > 0.6 ? height * 0.2: height*0.2}]}
                            resizeMode="contain"/>
                     {renderBambooImages}
                 </ImageBackground>
