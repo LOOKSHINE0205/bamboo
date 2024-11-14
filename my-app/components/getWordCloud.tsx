@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {WCAddr} from './Config';
 
 const useServerImage = () => {
     const [imageData, setImageData] = useState(null);
@@ -10,7 +11,7 @@ const useServerImage = () => {
             const croom_idx = await AsyncStorage.getItem('croomIdx');
             try {
                 const response = await axios.post(
-                    'https://8a5c-119-67-36-28.ngrok-free.app/generate_wordcloud',
+                    WCAddr,
                     { croom_idx } // Pass croom_idx directly in the request body
                 );
                 console.log("image data:", response.data);
