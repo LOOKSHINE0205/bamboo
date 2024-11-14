@@ -1,13 +1,23 @@
 import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    ScrollView,
+    StyleSheet,
+    Image,
+    KeyboardAvoidingView,
+    Platform
+} from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
-import { useFocusEffect } from '@react-navigation/native';
+import {getUserInfo, getUserProfileImage} from '../../storage/storageHelper';
+import {useFocusEffect} from '@react-navigation/native';
 import BambooHead from '../../assets/images/bamboo_head.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { serverAddress } from '../../components/Config';
+import {serverAddress} from '../../components/Config';
 import{ ChatMessage,getChatHistory} from "../../components/getChatHistory";
 
 // 메시지 구조를 정의하는 인터페이스
@@ -56,23 +66,25 @@ export default function ChatbotPage() {
     }, []); // 초기 로드 시에만 실행
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const userData = await getUserInfo();
-                if (userData) {
-                    setUserNick(userData.userNick || '');
-                    setChatbotName(userData.chatbotName || '챗봇');
-                }
-                const profileImage = await getUserProfileImage();
-                setUserAvatar(profileImage ? {uri: `${profileImage}?${new Date().getTime()}`} : BambooPanda);
-
-            } catch (error) {
+      const fetchData = async () => {
+        try {
+          const userData = await getUserInfo();
+          if (userData) {
+            setUserNick(userData.userNick || '');
+            setChatbotName(userData.chatbotName || '챗봇');
+            setUserEmail(userData.userEmail);
+          }
+          const profileImage = await getUserProfileImage();
+                setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);  // 기본 아이콘 설정
+              } catch (error) {
                 console.error('데이터를 가져오는 데 실패했습니다:', error);
-            }
-        };
+                setUserAvatar(BambooPanda);  // 오류 발생 시 기본 아이콘 설정
+              }
+      };
 
-        fetchData();
-    }, []); // 초기 로딩용 useEffect
+      fetchData();
+    }, []);
+ // 초기 로딩용 useEffect
     useEffect(() => {
         // isTyping이 true일 때 점 애니메이션 시작
         if (isTyping) {
@@ -122,7 +134,7 @@ export default function ChatbotPage() {
                 const formattedMessages = chatHistory.map((chat: ChatMessage) => ({
                     sender: chat.chatter === 'bot' ? 'bot' : 'user',
                     text: chat.chatContent,
-                    avatar: chat.chatter === 'bot' ? BambooHead : (userAvatar || BambooPanda),
+                    avatar: chat.chatter === 'bot' ? BambooHead : userAvatar,
                     name: chat.chatter === 'bot' ? chatbotName : userNick,
                     timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
                     createdAt: new Date(chat.createdAt).toLocaleDateString('ko-KR'),
@@ -428,11 +440,14 @@ export default function ChatbotPage() {
 
                         {msg.sender === 'user' && (
                             <View style={styles.avatarContainer}>
-                                <Image
-                                    source={userAvatar}
-                                    style={styles.userAvatar}
-                                    onError={() => setUserAvatar(BambooPanda)} // 이미지 로드 실패 시 기본 이미지로 설정
-                                />
+                              <Image
+                                source={userAvatar}
+                                style={styles.userAvatar}
+                                onError={() => {
+
+                                  setUserAvatar(BambooPanda);  // 이미지 로드 오류 시 기본 이미지로 설정
+                                }}
+                              />
                             </View>
                         )}
                     </View>

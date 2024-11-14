@@ -47,7 +47,8 @@ const SettingsScreen = () => {
        try {
          const data = await getUserInfo();
          if (data) {
-           const profileImageUrl = data.profileImage ? `${serverAddress}/uploads/profile/images/${data.profileImage}` : null;
+                 // 서버에서 반환된 profileImage를 그대로 사용
+                 const profileImageUrl = data.profileImage || null;
 
            setUserInfo({ ...data, profileImage: profileImageUrl });
            setProfileImageUri(profileImageUrl);

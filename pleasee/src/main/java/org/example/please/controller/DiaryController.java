@@ -95,7 +95,7 @@ public class DiaryController {
     private String createImageUrl(String diaryPhoto) {
         try {
             // 서버의 기본 URL을 선언합니다.
-            String serverBaseUrl = "http://10.0.2.2:8082"; // 실제 서버 주소를 사용하세요.
+            String serverBaseUrl = "http://192.168.20.76:8082"; // 실제 서버 주소를 사용하세요.
 
             // diaryPhoto가 JSON 배열 형식일 경우 처리
             ObjectMapper objectMapper = new ObjectMapper();
