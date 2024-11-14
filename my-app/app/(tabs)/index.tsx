@@ -249,6 +249,7 @@ export default function ChatbotPage() {
                 }
 
                 // 새 메시지를 상태에 추가
+                // @ts-ignore
                 setMessages((prevMessages) => [
                     ...prevMessages,
                     {
@@ -264,6 +265,8 @@ export default function ChatbotPage() {
                 ]);
 
                 messagesToSendRef.current = []; // 초기화
+                setIsCountdownStarted(false); // 카운트다운을 다시 비활성화
+                stopCountdown();
             } catch (error) {
                 console.error('Error sending bot response:', error);
                 setIsTyping(false); // 오류가 발생해도 전송 중 상태 종료
@@ -282,12 +285,11 @@ export default function ChatbotPage() {
     const handleInputChange = (text: string) => {
         setInput(text);
         setIsTyping(false); // 입력 시 typing 상태 초기화
-        if (text.trim() === '') {
-            setIsTyping(false); // 입력이 비어있을 때는 ... 애니메이션 비활성화
-
+        if (text.trim() === '' && isCountdownStarted) {
+            // setIsTyping(false); // 입력이 비어있을 때는 ... 애니메이션 비활성화
             startCountdown(); // 입력이 비어있으면 카운트다운 시작
         } else {
-            setIsTyping(false); // 입력이 비어있을 때는 ... 애니메이션 비활성화
+            // setIsTyping(false); // 입력이 비어있을 때는 ... 애니메이션 비활성화
             stopCountdown(); // 입력 중에는 카운트다운 중지
         }
     };

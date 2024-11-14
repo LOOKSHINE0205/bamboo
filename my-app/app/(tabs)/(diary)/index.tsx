@@ -1,84 +1,84 @@
-import React, {useState, useEffect, useCallback} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from "react-native";
 import { Ionicons, Foundation } from "@expo/vector-icons";
 import { router } from "expo-router";
 import DateModal from "../(diary)/dateModal";
-// @ts-ignore
 import DiaryScreen, { Diary } from "@/app/(tabs)/(diary)/diariesInfo";
-import {useFocusEffect} from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 
-
-interface DiaryEntry{
-  diaryIdx:number;
-  diaryDate: string; // createdAt -> diaryDate로 변경
-  emotionTag:string;
+interface DiaryEntry {
+  diaryIdx: number;
+  diaryDate: string;
+  emotionTag: string;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// 개별 날짜를 렌더링하는 컴포넌트
 const Day = React.memo(
-  ({ date, today, currentMonth, currentYear, handleDayPress, emotion }) => {
-    const isToday =
-      date.day === today.getDate() &&
-      currentMonth === today.getMonth() &&
-      currentYear === today.getFullYear();
+    ({ date, today, currentMonth, currentYear, handleDayPress, emotion }) => {
+      const isToday =
+          date.day === today.getDate() &&
+          currentMonth === today.getMonth() &&
+          currentYear === today.getFullYear();
 
-    const moodImageMap = {
-      happy: require("../../../assets/images/diary_happy.png"),
-      sad: require("../../../assets/images/diary_sad.png"),
-      neutral: require("../../../assets/images/diary_neutral.png"),
-      angry: require("../../../assets/images/diary_angry.png"),
-      surprise: require("../../../assets/images/diary_surprise.png"),
-      fear: require("../../../assets/images/diary_fear.png"),
-      dislike: require("../../../assets/images/diary_dislike.png"),
-    };
-    const emotionImage = emotion ? moodImageMap[emotion] : null;
-    return (
-        <TouchableOpacity
-            style={[
-              styles.dateContainer,
-              date.outsideMonth && styles.outsideMonth,
-            ]}
-            onPress={() => handleDayPress(date.day)}
-        >
-          <View style={[styles.circle, isToday && styles.todayCircle]}>
-            {emotionImage ? (
-                <Image source={emotionImage} style={styles.emotionImage} />
-            ) : (
-                <Text style={[styles.dateText, isToday && styles.todayText]}>
-                </Text>
-            )}
-          </View>
-          {/* 날짜 텍스트는 이미지가 없는 경우에만 표시 */}
-              <Text style={[styles.dateText, isToday && styles.todayText]}>
-                {date.day}
-              </Text>
-        </TouchableOpacity>
-
-    );
-  }
+      const moodImageMap = {
+        happy: require("../../../assets/images/diary_happy.png"),
+        sad: require("../../../assets/images/diary_sad.png"),
+        neutral: require("../../../assets/images/diary_neutral.png"),
+        angry: require("../../../assets/images/diary_angry.png"),
+        surprise: require("../../../assets/images/diary_surprise.png"),
+        fear: require("../../../assets/images/diary_fear.png"),
+        dislike: require("../../../assets/images/diary_dislike.png"),
+      };
+      const emotionImage = emotion ? moodImageMap[emotion] : null;
+      return (
+          <TouchableOpacity
+              style={[
+                styles.dateContainer,
+                date.outsideMonth && styles.outsideMonth,
+              ]}
+              onPress={() => handleDayPress(date.day)}
+          >
+            <View style={[styles.circle, isToday && styles.todayCircle]}>
+              {emotionImage ? (
+                  <Image source={emotionImage} style={styles.emotionImage} />
+              ) : (
+                  <Text style={[styles.dateText, isToday && styles.todayText]}>
+                  </Text>
+              )}
+            </View>
+            <Text style={[styles.dateText, isToday && styles.todayText]}>
+              {date.day}
+            </Text>
+          </TouchableOpacity>
+      );
+    }
 );
 
 export default function CustomDiaryScreen() {
   const [diaryEntries, setDiaryEntries] = useState<Diary[]>([]);
   const [selectedDates, setSelectedDates] = useState<Record<string, string>>({});
-  // DiaryScreen의 onEntriesLoaded에서 호출될 함수
-const handleEntriesLoaded = (entries: Diary[]) => {
-  setDiaryEntries(entries);
 
-  // entries를 날짜별로 매핑하여 selectedDates 상태를 업데이트
-  const datesMap: Record<string, string> = {};
-  entries.forEach((entry) => {
-    // diaryDate의 날짜를 YYYY-MM-DD 형식으로 변환
-    const date = new Date(entry.diaryDate);
-    const dateKey = date.toISOString().split("T")[0]; // 'YYYY-MM-DD' 형식
-    datesMap[dateKey] = entry.emotionTag; // 감정 태그 저장
-  });
+  const handleEntriesLoaded = (entries: Diary[]) => {
+    setDiaryEntries(entries);
 
-  setSelectedDates(datesMap);
-  console.log("Selected Dates with Emotions:", datesMap); // 매핑된 날짜와 감정 태그 출력
-}; // 함수가 닫히지 않았던 부분을 닫음
+    const datesMap: Record<string, string> = {};
+    entries.forEach((entry) => {
+      const date = new Date(entry.diaryDate);
+      const dateKey = date.toISOString().split("T")[0];
+      datesMap[dateKey] = entry.emotionTag;
+    });
+
+    setSelectedDates(datesMap);
+    console.log("Selected Dates with Emotions:", datesMap);
+  };
+
+  useFocusEffect(
+      useCallback(() => {
+        // 화면이 포커스될 때 DiaryScreen의 데이터를 로드
+        <DiaryScreen onEntriesLoaded={handleEntriesLoaded} />;
+      }, [])
+  );
 
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -89,8 +89,6 @@ const handleEntriesLoaded = (entries: Diary[]) => {
 
   const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
 
-
-  // 월의 날짜 배열 생성 함수
   const getDaysInMonth = (year, month) => {
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0).getDate();
@@ -99,12 +97,10 @@ const handleEntriesLoaded = (entries: Diary[]) => {
 
     const days = [];
 
-    // 이전 달의 남은 날짜 추가
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       days.push({ day: prevMonthLastDay - i, outsideMonth: true });
     }
 
-    // 이번 달 날짜 추가
     for (let day = 1; day <= lastDay; day++) {
       days.push({ day, outsideMonth: false });
     }
@@ -112,13 +108,12 @@ const handleEntriesLoaded = (entries: Diary[]) => {
     return days;
   };
 
-  // 날짜 클릭 핸들러 함수
   const handleDayPress = (day) => {
     const selectedDate = new Date(currentYear, currentMonth, day);
-    // 날짜 형식을 YYYY-MM-DD로 일관되게 맞추기
-    const dateKey = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    const dateKey = `${currentYear}-${(currentMonth + 1)
+        .toString()
+        .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
-    // 선택한 날짜가 미래 날짜인 경우
     if (selectedDate > today) {
       setAlertMessage("앗, 미래 날짜는 아직 기록할 수 없어요!");
       alertTimeout = setTimeout(() => setAlertMessage(""), 3000);
@@ -128,15 +123,12 @@ const handleEntriesLoaded = (entries: Diary[]) => {
     clearTimeout(alertTimeout);
     setAlertMessage("");
 
-    // 날짜에 감정 태그가 매핑되어 있는지 확인
     if (selectedDates[dateKey]) {
-      // 감정 태그가 매핑되어 있으면 /diary 페이지로 이동
       router.push({
         pathname: "/(diary)/diaryView",
         params: { date: dateKey },
       });
     } else {
-      // 감정 태그가 없으면 /mood 페이지로 이동
       router.push({
         pathname: "/(diary)/mood",
         params: { date: dateKey },
@@ -146,95 +138,88 @@ const handleEntriesLoaded = (entries: Diary[]) => {
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
 
-
-
   return (
+      <View style={styles.container}>
+        <DiaryScreen onEntriesLoaded={handleEntriesLoaded} />
 
-    <View style={styles.container}>
-      <DiaryScreen onEntriesLoaded={handleEntriesLoaded} />
-      {/* 상단 아이콘 (검색, 목록) */}
-      <View style={styles.headerIcons}>
-        <TouchableOpacity onPress={() => console.log("Search clicked",diaryEntries)} style={styles.icon}>
-          <Ionicons name="search-outline" size={24} color="#4a9960" />
-        </TouchableOpacity>
-        <TouchableOpacity
-            onPress={() => router.push({
-              pathname: "/(diary)/monthView",
-              params: {
-                year: currentYear,
-                month: currentMonth + 1  // JavaScript는 월이 0부터 시작하므로 1을 더해줍니다
-              }
-            })}
-            style={styles.icon}
+        <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={() => console.log("Search clicked",diaryEntries)} style={styles.icon}>
+            <Ionicons name="search-outline" size={24} color="#4a9960" />
+          </TouchableOpacity>
+          <TouchableOpacity
+              onPress={() => router.push({
+                pathname: "/(diary)/monthView",
+                params: {
+                  year: currentYear,
+                  month: currentMonth + 1
+                }
+              })}
+              style={styles.icon}
           >
-          <Foundation name="list" size={24} color="#4a9960" />
-        </TouchableOpacity>
-      </View>
-
-      {/* 연/월 표시 */}
-      <View style={styles.yearMonthContainer}>
-        <Text style={styles.headerText}>
-          {`${currentYear}. ${currentMonth + 1}`}
-        </Text>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Ionicons name="chevron-down-outline" size={20} color="#4a9960" />
-        </TouchableOpacity>
-      </View>
-
-      {/* 요일 헤더 */}
-      <View style={styles.daysOfWeekContainer}>
-        {daysOfWeek.map((day, index) => (
-          <Text key={index} style={styles.dayOfWeekText}>
-            {day}
-          </Text>
-        ))}
-      </View>
-
-      {/* 달력 날짜들 */}
-      <View style={styles.calendar}>
-        {daysInMonth.map((date, index) => {
-          const dateKey = `${currentYear}-${(currentMonth + 1)
-            .toString()
-            .padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
-          const emotion = selectedDates[dateKey];
-
-          return (
-            <Day
-              key={index}
-              date={date}
-              today={today}
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              handleDayPress={handleDayPress}
-              emotion={emotion}
-            />
-          );
-        })}
-      </View>
-
-      {/* 경고 메시지 */}
-      {alertMessage && (
-        <View style={styles.alertContainer}>
-          <Image
-            source={require("../../../assets/images/놀람2.png")}
-            style={styles.alertIcon}
-          />
-          <Text style={styles.alertText}>{alertMessage}</Text>
+            <Foundation name="list" size={24} color="#4a9960" />
+          </TouchableOpacity>
         </View>
-      )}
 
-      {/* 날짜 선택 모달 */}
-      <DateModal
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        onDateChange={(year, month) => {
-          setCurrentYear(year);
-          setCurrentMonth(month - 1);
-        }}
-      />
-    </View>
+        <View style={styles.yearMonthContainer}>
+          <Text style={styles.headerText}>
+            {`${currentYear}. ${currentMonth + 1}`}
+          </Text>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Ionicons name="chevron-down-outline" size={20} color="#4a9960" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.daysOfWeekContainer}>
+          {daysOfWeek.map((day, index) => (
+              <Text key={index} style={styles.dayOfWeekText}>
+                {day}
+              </Text>
+          ))}
+        </View>
+
+        <View style={styles.calendar}>
+          {daysInMonth.map((date, index) => {
+            const dateKey = `${currentYear}-${(currentMonth + 1)
+                .toString()
+                .padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
+            const emotion = selectedDates[dateKey];
+
+            return (
+                <Day
+                    key={index}
+                    date={date}
+                    today={today}
+                    currentMonth={currentMonth}
+                    currentYear={currentYear}
+                    handleDayPress={handleDayPress}
+                    emotion={emotion}
+                />
+            );
+          })}
+        </View>
+
+        {alertMessage && (
+            <View style={styles.alertContainer}>
+              <Image
+                  source={require("../../../assets/images/놀람2.png")}
+                  style={styles.alertIcon}
+              />
+              <Text style={styles.alertText}>{alertMessage}</Text>
+            </View>
+        )}
+
+        <DateModal
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            onDateChange={(year, month) => {
+              setCurrentYear(year);
+              setCurrentMonth(month - 1);
+            }}
+        />
+      </View>
   );
 }
+
 
 // 스타일 정의
 const styles = StyleSheet.create({

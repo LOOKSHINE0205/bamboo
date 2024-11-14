@@ -39,7 +39,7 @@ public class ChattingController {
     public Map<String, Object> sendUserMessage(String userEmail, int croomIdx, int sessionIdx, String chatContent) {
         Map<String, Object> response = new HashMap<>();
 
-        String url = "https://3bfb-121-147-12-202.ngrok-free.app/predict";
+        String url = "https://9668-121-147-12-202.ngrok-free.app/predict";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         try {
