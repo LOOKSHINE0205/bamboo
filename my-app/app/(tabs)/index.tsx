@@ -643,8 +643,7 @@ const styles = StyleSheet.create({
         height: '100%',
         top: 2,
         resizeMode: 'cover', // 사용자가 설정한 프로필 사진에 맞춰서 조정
-        borderRadius: 18, // 원형으로 조정
-        borderWidth: 1,
+        borderRadius: 15, // 원형으로 조정
     },
 
     // 챗봇 아바타 이미지 스타일
@@ -653,8 +652,7 @@ const styles = StyleSheet.create({
         height: '100%',
         top: 2,
         resizeMode: 'contain', // 기본 이미지에 맞춰 조정
-        borderRadius: 10, // 사각형에 더 가까운 스타일
-        borderWidth: 1,
+        borderRadius: 15, // 사각형에 더 가까운 스타일
     },
 
     // 메시지 컨텐츠 스타일
