@@ -50,7 +50,7 @@ export default function LoginScreen() {
                     ...user,
                     profileImage: user.profileImage ? `${serverAddress}/uploads/profile/images/${user.profileImage}` : null,
                 });
-                router.push('.//(tabs))'); // router.push로 경로 이동
+                router.push('/(tabs)'); // router.push로 경로 이동
             } else {
                 setError('로그인 실패: 서버 응답 확인 필요');
             }

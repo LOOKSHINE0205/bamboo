@@ -214,23 +214,25 @@ export default function ChatbotPage() {
 
     // 챗봇 응답 전송 함수
     const sendBotResponse = async () => {
-        setIsTyping(true); // 전송 중 상태 표시 시작
+
+
         if (messagesToSendRef.current.length > 0) {
+            setIsTyping(true); // 전송 중 상태 표시 시작
             const combinedMessages = messagesToSendRef.current.join(' ');
             const croomIdx = await AsyncStorage.getItem('croomIdx');
-
+            console.log(userEmail,croomIdx,combinedMessages)
             if (!croomIdx) {
                 console.error("croomIdx not found in AsyncStorage");
                 return;
             }
             // console.log("croomIdx found in AsyncStorage", croomIdx);
-
             const payload = {
                 userEmail: userEmail,
                 croomIdx: parseInt(croomIdx),
                 chatter: "user",
                 chatContent: combinedMessages,
             };
+
 
             try {
                 const response = await axios.post(serverUrl, payload, {

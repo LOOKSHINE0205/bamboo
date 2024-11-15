@@ -1,4 +1,6 @@
 import { Stack } from 'expo-router';
+import LoginScreen from './login'; // 로그인 화면
+import Tabs from '../(tabs)'; // 탭 네비게이터 (MainScreen 포함)
 
 export default function Layout() {
     return (
@@ -19,11 +21,12 @@ export default function Layout() {
                 }}
             />
 
-            {/* Tabs 네비게이터 참조 */}
+            {/* MainScreen 또는 Tabs 네비게이터 추가 */}
             <Stack.Screen
-                name="(tabs)"
+                name= '(tabs)' // MainScreen 또는 Tabs로 설정
                 options={{
-                    headerShown: false,
+                    title: "메인 화면",
+                    headerShown: false, // 탭 네비게이터의 헤더를 숨기려면 false
                 }}
             />
 
