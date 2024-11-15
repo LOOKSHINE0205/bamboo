@@ -1,9 +1,8 @@
 import { LogBox } from 'react-native';
-import React,{useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme } from 'victory-native';
 import { useWindowDimensions } from 'react-native';
-
 
 interface EmotionChartProps {
   selectedEmotions: string[];
@@ -13,12 +12,18 @@ interface EmotionChartProps {
   };
   normalizedEmotionDataByDay: { [key: string]: number[] };
 }
-const EmotionChart: React.FC<EmotionChartProps> = React.memo(
+
+const EmotionChartLine: React.FC<EmotionChartProps> = React.memo(
   ({ selectedEmotions, chartData, normalizedEmotionDataByDay }) => {
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-    useEffect(() => {
 
-        }, [selectedEmotions, chartData, normalizedEmotionDataByDay]);
+    // 낮은 값에 추가할 오프셋 설정
+    const offset = 0.1;
+
+    useEffect(() => {
+      // 필요한 로직 추가
+    }, [selectedEmotions, chartData, normalizedEmotionDataByDay]);
+
     return (
       <View style={styles.chartContainer}>
         <VictoryChart
@@ -32,39 +37,31 @@ const EmotionChart: React.FC<EmotionChartProps> = React.memo(
             style={{
               axis: { stroke: 'transparent' },
               ticks: { stroke: 'transparent' },
-              tickLabels: {
-                fill: '#000',
-                fontSize: 12,
-                padding: 20, // 아래로 이동
-              },
-              grid: { stroke: 'transparent' }, // 점선 제거
+              tickLabels: { fill: 'transparent' }, // 레이블 숨김
+              grid: { stroke: 'transparent' },
             }}
             tickFormat={chartData.labels}
           />
           <VictoryAxis
             dependentAxis
-            domain={[0, 1]}
+            domain={[0, 1.2]}
             tickValues={[0.2, 0.4, 0.6, 0.8, 1]}
             tickFormat={(t) => (t === 0 ? '0' : t.toFixed(1))}
             style={{
               axis: { stroke: 'transparent' },
               ticks: { stroke: 'transparent' },
-              tickLabels: {
-                fill: '#000',
-                fontSize: 12,
-                dy: 10,
-              },
+              tickLabels: { fill: 'transparent' },
               grid: { stroke: 'transparent' },
             }}
           />
-          {/* {chartData.datasets.map(
+          {chartData.datasets.map(
             (dataset, index) =>
               selectedEmotions.includes(dataset.label) && (
                 <VictoryLine
                   key={index}
                   data={normalizedEmotionDataByDay[dataset.label].map((y, x) => ({
                     x: chartData.labels[x],
-                    y,
+                    y: y + offset, // 낮은 값에 오프셋 추가
                   }))}
                   style={{
                     data: {
@@ -79,7 +76,7 @@ const EmotionChart: React.FC<EmotionChartProps> = React.memo(
                   }}
                 />
               )
-          )} */}
+          )}
         </VictoryChart>
       </View>
     );
@@ -87,8 +84,7 @@ const EmotionChart: React.FC<EmotionChartProps> = React.memo(
 );
 
 const styles = StyleSheet.create({
-  chartContainer: {
-  },
+  chartContainer: {},
 });
 
-export default EmotionChart;
+export default EmotionChartLine;

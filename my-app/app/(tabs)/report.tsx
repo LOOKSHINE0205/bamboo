@@ -5,6 +5,7 @@ import useServerImage from '../../components/getWordCloud';
 import { getUserInfo } from '../../storage/storageHelper';
 import EmotionIcon from '../../components/EmotionIcon';
 import EmotionChart from '../../components/EmotionChart';
+import EmotionChartLine from '../../components/EmotionChartLine';
 import EmotionStackChart from '../../components/EmotionStackChart';
 import WordCloud from '../../components/WordCloud';
 
@@ -225,16 +226,25 @@ const Report = () => {
           />
         </View>
 
-        {isDataLoaded && normalizedEmotionDataByDay && (
+        {isDataLoaded && normalizedEmotionDataByDay && Object.keys(normalizedEmotionDataByDay).length > 0 && (
           <>
-            <View style={styles.sectionContainer}>
+            <View style={[styles.sectionContainer,{height:300}]}>
               <Text style={styles.subtitle}>감정 라인 그래프</Text>
               <EmotionChart
                 selectedEmotions={selectedEmotions}
                 chartData={chartData}
                 normalizedEmotionDataByDay={normalizedEmotionDataByDay}
               />
+              <View style={styles.sectioninner}>
+                <EmotionChartLine
+                  selectedEmotions={selectedEmotions}
+                  chartData={chartData}
+                  normalizedEmotionDataByDay={normalizedEmotionDataByDay}
+                />
+              </View>
+
             </View>
+
 
             <View style={styles.sectionContainer}>
               <Text style={styles.subtitle}>감정 스택 그래프</Text>
@@ -293,5 +303,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     marginBottom: 10,
+  },
+  sectioninner: {
+    bottom:247,
   },
 });
