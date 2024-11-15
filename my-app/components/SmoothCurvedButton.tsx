@@ -4,7 +4,7 @@ import { TouchableOpacity, Text, StyleSheet, useWindowDimensions, View } from 'r
 
 const SmoothCurvedButton = ({ onPress, title, icon, disabled, color = '#4a9960', customWidth }) => {
   const { width } = useWindowDimensions();
-  const buttonWidth = customWidth || width*0.9;
+  const buttonWidth = customWidth || width*0.95;
   const buttonHeight = 60;
   const [isPressed, setIsPressed] = useState(false);
   const fontSize = Math.min(buttonWidth, buttonHeight) * 0.3;
