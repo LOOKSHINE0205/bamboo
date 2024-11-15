@@ -45,7 +45,7 @@ export default function InitialScreen() {
 
 const dynamicStyles = (height) => StyleSheet.create({
     buttonsContainer: {
-        bottom: height < 970 ? 100 : height * 0.19,
+        bottom: height < 970 ? 100 : height * 0.15,
         width: '100%',
         alignItems: 'center',
     },

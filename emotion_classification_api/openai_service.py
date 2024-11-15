@@ -11,5 +11,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 llm = ChatOpenAI(
     model_name="gpt-4o-mini-2024-07-18",
     temperature=0.7,
-    openai_api_key=OPENAI_API_KEY
+    openai_api_key=OPENAI_API_KEY,
+    max_tokens=50
 )

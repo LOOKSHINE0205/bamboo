@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, TextInput, StyleSheet, Platform, Alert,
-  KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
+  KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard,useWindowDimensions } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
@@ -30,9 +30,10 @@ const weatherImageMap = {
 
 export default function DiaryEntryScreen() {
   const { date, mood, weather } = useLocalSearchParams();
+  const {width, height} = useWindowDimensions();
   const [entryText, setEntryText] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
-
+  const aspectRatio = width / height;
   const formatDate = (dateString) => {
     const dateObj = new Date(dateString);
     const year = dateObj.getFullYear();
@@ -178,23 +179,26 @@ export default function DiaryEntryScreen() {
             />
           </View>
 
-          <View style={styles.buttonContainer}>
+          <View style={[styles.buttonContainer]}>
             <SmoothCurvedButton
               title="저장"
               onPress={handleSaveEntry}
               svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
               svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
-              style={styles.commonButton}
+              style={[styles.commonButton,{
+                marginHorizontal: aspectRatio>0.6? -100:-10
+                }]}
             />
             <SmoothCurvedButton
               onPress={pickImage}
               icon={<Ionicons name="image" size={16} color="#000" />}
               svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
               svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
-              style={styles.commonButton}
+              style={[styles.commonButton,{
+                 marginHorizontal: aspectRatio>0.6? -100:-10
+                 }]}
             />
           </View>
-
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -284,9 +288,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    alignItems:'center',
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#eee',
   },
+
 });

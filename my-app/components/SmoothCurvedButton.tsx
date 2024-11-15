@@ -7,6 +7,8 @@ const SmoothCurvedButton = ({ onPress, title, icon, style, disabled, svgWidth = 
   const buttonWidth = style?.width || width * 0.6 || svgWidth;
   const buttonHeight = style?.height || height * 0.06 || 50;
   const [isPressed, setIsPressed] = useState(false);
+  const aspectRatio = width / height; // 화면 비율 계산
+  const fontSize = Math.min(buttonWidth, buttonHeight) * 0.3; // 버튼 크기에 비례하는 폰트 크기 설정
 
 
   return (
@@ -37,7 +39,7 @@ const SmoothCurvedButton = ({ onPress, title, icon, style, disabled, svgWidth = 
 
       <View style={styles.contentWrapper}>
         {icon && <View style={styles.iconWrapper}>{icon}</View>}
-        {title && <Text style={[styles.buttonText, isPressed && styles.buttonTextPressed]}>{title}</Text>}
+        {title && <Text style={[styles.buttonText, { fontSize }, isPressed && styles.buttonTextPressed]}>{title}</Text>}
       </View>
     </TouchableOpacity>
   );
@@ -60,7 +62,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'black',
-    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
   },
