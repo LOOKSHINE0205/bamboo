@@ -347,7 +347,7 @@ return (
               <TextInput
                 style={[
                   styles.nameInput,
-                  { width: screenWidth * 0.8, top: screenHeight*0.05,borderColor: chatbotName ? '#4a9960' : '#999', backgroundColor: isFocused ? '#eef6ee' : '#FFF' },
+                  { width: screenWidth * 0.9, top: screenHeight*0.05,borderColor: chatbotName ? '#4a9960' : '#999', backgroundColor: isFocused ? '#eef6ee' : '#FFF' },
                 ]}
                 value={chatbotName}
                 onChangeText={setChatbotName}
@@ -358,15 +358,13 @@ return (
               />
               <Text style={[styles.warningText,{top:-screenHeight*0.05}]}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
 
-              <View style={[styles.navigationButtons, { top: '5%', flexDirection: 'row', justifyContent: 'center' }]}>
+              <View style={[styles.navigationButtons, { top: '5%', justifyContent: 'center', gap:20 }]}>
                 {currentQuestionIndex > 0 && (
                   <SmoothCurvedButton
                     title="이전"
                     onPress={handlePrevious}
                     disabled={isProcessing}
                     style={{
-                      width: screenWidth * 0.4,
-                      height: 50,
                       marginHorizontal: 10,
                     }}
                   />
@@ -377,8 +375,6 @@ return (
                   disabled={!chatbotName.trim() || isProcessing}
                   style={{
                     opacity: chatbotName.trim() ? 1 : 0.6,
-                    width: screenWidth * 0.4,
-                    height: 50,
                     marginHorizontal: 10,
                   }}
                 />
@@ -437,7 +433,7 @@ const styles = StyleSheet.create({
   nameInput: {
     borderWidth: 1,             // 입력 필드 테두리 두께를 1px로 설정
     borderColor: '#999',        // 테두리 색상을 회색으로 설정
-    borderRadius: 12,           // 모서리를 둥글게 처리하여 깔끔한 외형 제공
+    borderRadius: 20,           // 모서리를 둥글게 처리하여 깔끔한 외형 제공
     padding: 10,                // 입력 필드 내부 여백 설정
     fontSize: 16,               // 입력 텍스트 크기를 16px로 설정
     textAlign: 'center',        // 텍스트를 중앙 정렬하여 보기 좋게 표시
@@ -524,19 +520,22 @@ const styles = StyleSheet.create({
 
   // 내비게이션 버튼 컨테이너 스타일: '이전' 및 '확인' 버튼들을 담고 있는 컨테이너
   navigationButtons: {
-    justifyContent: 'center',   // 버튼을 중앙에 정렬
-    marginTop: '5%',            // 상단에 5% 마진 추가
-    marginBottom: 20            // 하단에 20px 마진 추가하여 다른 요소와 간격 확보
+    justifyContent: 'center',    // 버튼을 중앙에 정렬
+    alignItems: 'center',        // 버튼을 중앙에 정렬
+    flexDirection: 'column',     // 버튼을 세로로 배치
+    marginTop: '5%',             // 상단에 5% 마진 추가
+    marginBottom: 20,            // 하단에 20px 마진 추가
   },
 
   // 내비게이션 버튼 스타일: '이전' 및 '확인' 버튼의 외형 스타일
   navButton: {
-    paddingVertical: 12,          // 버튼의 상하 패딩을 추가하여 터치 영역 확대
-    paddingHorizontal: 30,        // 좌우 패딩을 추가하여 터치 영역 확대
-    marginHorizontal: '2%',       // 버튼 간격을 위해 좌우에 2% 마진 추가
-    minWidth: 80,                 // 버튼의 최소 너비 설정
-    alignItems: 'center',         // 텍스트를 중앙에 정렬
+    paddingVertical: 12,         // 버튼의 상하 패딩을 추가하여 터치 영역 확대
+    paddingHorizontal: 30,       // 좌우 패딩을 추가하여 터치 영역 확대
+    marginVertical: 15,          // 위아래 간격을 위해 15px 마진 추가
+    minWidth: 80,                // 버튼의 최소 너비 설정
+    alignItems: 'center',        // 텍스트를 중앙에 정렬
   },
+
 
   // 내비게이션 버튼 텍스트 스타일: '이전' 및 '확인' 버튼 텍스트 스타일
   navButtonText: {

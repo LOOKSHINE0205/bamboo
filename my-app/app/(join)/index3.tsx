@@ -97,8 +97,8 @@ const UserGuide = () => {
           style={[
             styles.buttonGroup,
             {
-              flexDirection: 'row',
-              justifyContent: pageIndex > 0 && pageIndex < pages.length - 1 ? 'space-between' : 'center',
+              flexDirection: 'column', // 버튼을 항상 세로 방향으로 배치
+              alignItems: 'center', // 모든 버튼을 가운데 정렬
               width: '80%',
             },
           ]}
@@ -107,11 +107,11 @@ const UserGuide = () => {
             <SmoothCurvedButton
               title="이전"
               onPress={handlePrevious}
-              disabled={isAnimating} // 애니메이션 중일 때 비활성화
+              disabled={isAnimating}
               style={{
-                width: '45%',
-                marginHorizontal: 5,
-                opacity: isAnimating ? 0.5 : 1, // 애니메이션 중일 때 스타일 변경
+                width: '100%',
+                marginBottom: 10, // '이전' 버튼과 아래 버튼 간격을 일정하게 설정
+                opacity: isAnimating ? 0.5 : 1,
               }}
             />
           )}
@@ -119,26 +119,28 @@ const UserGuide = () => {
             <SmoothCurvedButton
               title="다음"
               onPress={handleNext}
-              disabled={isAnimating} // 애니메이션 중일 때 비활성화
+              disabled={isAnimating}
               style={{
-                width: '45%',
-                marginHorizontal: 5,
-                opacity: isAnimating ? 0.5 : 1, // 애니메이션 중일 때 스타일 변경
+                width: '100%',
+                opacity: isAnimating ? 0.5 : 1,
+                alignSelf: 'center', // 버튼을 가운데 정렬
               }}
             />
           ) : (
             <SmoothCurvedButton
               title="완료"
               onPress={() => router.push('../../(init)')}
-              disabled={isAnimating} // 애니메이션 중일 때 비활성화
+              disabled={isAnimating}
               style={{
-                width: '45%',
-                marginHorizontal: 5,
-                opacity: isAnimating ? 0.5 : 1, // 애니메이션 중일 때 스타일 변경
+                width: '100%',
+                opacity: isAnimating ? 0.5 : 1,
+                alignSelf: 'center', // '완료' 버튼도 가운데 정렬
               }}
             />
           )}
         </View>
+
+
       </View>
     </JoinBG>
   );

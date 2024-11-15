@@ -193,19 +193,6 @@ const SettingsScreen = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await clearUserData(); // 사용자 데이터 제거
-      console.log("로그아웃 성공: 사용자 데이터가 삭제되었습니다.");
-      Alert.alert('알림', '로그아웃 되었습니다.');
-      router.replace('../(init)'); // 초기 화면으로 이동
-    } catch (error) {
-      console.error("로그아웃 중 오류 발생:", error);
-      Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.");
-    }
-  };
-
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -264,55 +251,39 @@ const SettingsScreen = () => {
       <View style={styles.buttonContainer}>
                     <View style={styles.buttonCon}>
                       <SmoothCurvedButton
-                        title="설정 저장"
-                        onPress={handleSave}
-                        svgWidth={120}
-                        svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-                        style={styles.buttonSpacing} // 스타일 추가
+                          title="설정 저장"
+                          onPress={handleSave}
+                          style={[styles.buttonSpacing, styles.defaultButton]}  // 추가 스타일 적용
                       />
-                      <SmoothCurvedButton
-                        title="로그아웃"
-                        onPress={handleLogout}
-                        svgWidth={120}
-                        svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z"
-                        style={styles.buttonSpacing} // 스타일 추가
-                      />
+
                     </View>
 
                   </View>
                   <Modal visible={modalVisible} transparent={true} animationType="fade">
                     <View style={styles.modalContainer}>
-                      <View style={styles.modalContent}>
+                      <View style={[styles.modalContent,{gap:19}]}>
                         <Text style={styles.modalTitle}>프로필 이미지 변경</Text>
                         <SmoothCurvedButton
                           title="기본 이미지로 재설정"
                           onPress={handleResetProfileImage}
-                          svgWidth={220}  // 버튼 전체 크기 확대
-                          svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
-                          style={styles.modalButton}
+                          customWidth={265} // 원하는 너비 전달
                         />
                         <SmoothCurvedButton
                           title="갤러리에서 이미지 선택"
                           onPress={handleImageSelect}
-                          svgWidth={220}  // 버튼 전체 크기 확대
-                          svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
-                          style={styles.modalButton}
+                          customWidth={265} // 원하는 너비 전달
                         />
                         <SmoothCurvedButton
                           title="취소"
                           onPress={() => setModalVisible(false)}
-                          svgWidth={220}  // 버튼 전체 크기 확대
-                          svgPath="M20,0 C5,0 0,5 0,25 L0,25 C0,40 5,45 20,45 L200,45 C215,45 220,40 220,25 L220,25 C220,5 215,0 200,0 Z"  // 높이를 더 늘린 svgPath
-                          style={[styles.modalButton, styles.cancelButton]}
+                          customWidth={265} // 원하는 너비 전달
                           color="#cccccc"
                         />
-
-
-
-
                       </View>
                     </View>
                   </Modal>
+
+
 
                 </KeyboardAvoidingView>
               );
@@ -439,14 +410,16 @@ const SettingsScreen = () => {
                 flexDirection: 'row',
                 justifyContent: 'center',
                 padding: 10,
-                borderTopWidth: 1,
-                borderTopColor: '#eee',
               },
-
+              buttonText:{
+                fontSize: 15,
+                                textDecorationLine: 'underline', // 밑줄 추가
+                },
               actionButtonText: {
                 color: '#fff',
                 fontWeight: 'bold',
-                fontSize: 16,
+                fontSize: 20,
+                textDecorationLine: 'underline', // 밑줄 추가
               },
               modalContainer: {
                 flex: 1,

@@ -147,7 +147,7 @@ export default function LoginScreen() {
                 placeholderTextColor="#707070"
             />
 
-            <View style={styles.buttonWrapper}>
+            <View style={[styles.buttonWrapper,{gap:20}]}>
                 {isFindingPassword ? (
                     <SmoothCurvedButton
                         title={isLoading ? '비밀번호 찾는 중...' : '비밀번호 찾기'}
