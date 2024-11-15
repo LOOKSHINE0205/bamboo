@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
+import React, {useState, useEffect, useRef, useLayoutEffect, } from 'react';
 import {
     View,
     Text,
@@ -8,7 +8,8 @@ import {
     StyleSheet,
     Image,
     KeyboardAvoidingView,
-    Platform
+    Platform,
+    Keyboard
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -47,12 +48,62 @@ export default function ChatbotPage() {
     const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
     const [typingDots, setTypingDots] = useState(''); // 점 애니메이션을 위한 상태
     const [isCountdownStarted, setIsCountdownStarted] = useState(false);
+    const [currentDate, setCurrentDate] = useState<string>(''); // 현재 날짜를 저장할 상태
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
     const countdownDuration = 3; // 5초 카운트다운
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    useEffect(() => {
+            // 키보드가 나타날 때 스크롤을 마지막으로 이동
+            const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+                if (scrollViewRef.current) {
+                    scrollViewRef.current.scrollToEnd({ animated: true });
+                }
+            });
+
+            // 키보드가 사라질 때 스크롤을 마지막으로 이동
+            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+                if (scrollViewRef.current) {
+                    scrollViewRef.current.scrollToEnd({ animated: true });
+                }
+            });
+
+            // 컴포넌트 언마운트 시 리스너 제거
+            return () => {
+                keyboardDidShowListener.remove();
+                keyboardDidHideListener.remove();
+            };
+        }, []); // 한번만 실행되도록 빈 배열 전달
+
+    // 현재 날짜를 가져오는 함수
+    const getCurrentDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    // 하루가 지나면 날짜 갱신
+    useEffect(() => {
+        const updateDate = () => {
+            setCurrentDate(getCurrentDate());
+        };
+
+        // 처음 렌더링 시 날짜 설정
+        updateDate();
+
+        // 매일 00시에 날짜를 갱신하도록 설정
+        const timer = setInterval(() => {
+            const currentTime = new Date();
+            if (currentTime.getHours() === 0 && currentTime.getMinutes() === 0) {
+                updateDate(); // 날짜 갱신
+            }
+        }, 60000); // 1분마다 확인
+
+        return () => clearInterval(timer); // 타이머 정리
+    }, []);
     useEffect(() => {
         if (scrollViewRef.current) {
             scrollViewRef.current.scrollToEnd({animated: true});
@@ -110,7 +161,6 @@ export default function ChatbotPage() {
                         setUserNick(userData.userNick || '');
                         setChatbotName(userData.chatbotName || '챗봇');
                         setUserEmail(userData.userEmail);
-
                     }
                     const profileImage = await getUserProfileImage();
                     setUserAvatar(profileImage ? {uri: `${profileImage}?${new Date().getTime()}`} : BambooPanda);
@@ -121,7 +171,12 @@ export default function ChatbotPage() {
             };
 
             fetchData();
-        }, [])
+
+            // 페이지가 포커스될 때마다 스크롤을 맨 아래로 이동
+            if (scrollViewRef.current) {
+                scrollViewRef.current.scrollToEnd({ animated: true });
+            }
+        }, [messages]) // messages가 변경될 때마다 실행되도록 설정
     );
 
     // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
@@ -223,7 +278,6 @@ export default function ChatbotPage() {
                 console.error("croomIdx not found in AsyncStorage");
                 return;
             }
-            // console.log("croomIdx found in AsyncStorage", croomIdx);
 
             const payload = {
                 userEmail: userEmail,
@@ -233,23 +287,20 @@ export default function ChatbotPage() {
             };
 
             try {
+                console.log('Payload before sending to server:', payload); // 서버에 보내는 페이로드 로그
+
                 const response = await axios.post(serverUrl, payload, {
                     headers: {'Content-Type': 'application/json'},
                 });
-                setIsTyping(false); // 응답이 도착하면 전송 중 상태 종료
-                console.log(response.data)
-                console.log(payload)
-                // 구조화된 응답 데이터가 있는지 확인
-                const botMessageContent = response.data.chatContent;
-                const chatIdx = response.data.chatIdx || null;
-                const evaluation = response.data.evaluation || null;
 
+                console.log('Bot response:', response.data); // 서버 응답 로그
+
+                // 응답 처리
+                const botMessageContent = response.data.chatContent;
                 if (typeof botMessageContent !== 'string') {
                     throw new Error('Invalid bot response format');
                 }
 
-                // 새 메시지를 상태에 추가
-                // @ts-ignore
                 setMessages((prevMessages) => [
                     ...prevMessages,
                     {
@@ -259,28 +310,21 @@ export default function ChatbotPage() {
                         name: chatbotName,
                         timestamp: getCurrentTime(),
                         showTimestamp: true,
-                        evaluation,
-                        chatIdx,
-                    },
+                        chatIdx: response.data.chatIdx
+                    }
                 ]);
 
                 messagesToSendRef.current = []; // 초기화
                 setIsCountdownStarted(false); // 카운트다운을 다시 비활성화
                 stopCountdown();
+
             } catch (error) {
                 console.error('Error sending bot response:', error);
                 setIsTyping(false); // 오류가 발생해도 전송 중 상태 종료
-                if (error.response) {
-                    console.error("Server responded with an error:", error.response.data);
-                    console.error("Status code:", error.response.status);
-                } else if (error.request) {
-                    console.error("Request was made but no response received", error.request);
-                } else {
-                    console.error("Error setting up the request:", error.message);
-                }
             }
         }
     };
+
 
     const handleInputChange = (text: string) => {
         setInput(text);
@@ -295,7 +339,7 @@ export default function ChatbotPage() {
     };
 
     // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
-    const sendMessage = () => {
+    const sendMessage = async () => {
         if (input.trim()) {
             const userMessage: Message = {
                 sender: 'user',
@@ -307,15 +351,69 @@ export default function ChatbotPage() {
                 showTimestamp: true
             };
 
+            console.log('User message being sent:', userMessage); // 사용자 메시지 로그 추가
             setMessages(prevMessages => [...prevMessages, userMessage]);
             setInput('');
             setIsTyping(false);
+
             if (!isCountdownStarted) {
                 startCountdown();
                 setIsCountdownStarted(true);
             }
+
+            // Bot response에 메시지 보내기 전에 서버로 보내는 로그
+            console.log("Sending message to server:", {
+                userEmail: userEmail,
+                croomIdx: await AsyncStorage.getItem('croomIdx'),
+                chatContent: input.trim()
+            });
+
+            const payload = {
+                userEmail: userEmail,
+                croomIdx: await AsyncStorage.getItem('croomIdx'),
+                chatter: "user",
+                chatContent: input.trim(),
+            };
+
+            try {
+                console.log("Payload before sending:", payload); // 서버로 전송하는 페이로드 로그
+                const response = await axios.post(serverUrl, payload, {
+                    headers: {'Content-Type': 'application/json'},
+                });
+                console.log('Response from server:', response.data); // 서버 응답 로그
+
+                setIsTyping(false); // 응답이 도착하면 전송 중 상태 종료
+
+                // 응답 데이터 검증
+                const botMessageContent = response.data.chatContent;
+
+                // 응답이 객체라면, 해당 내용을 텍스트로 추출
+                if (typeof botMessageContent === 'object') {
+                    console.error("Invalid bot response format:", botMessageContent);
+                    return;
+                }
+
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                        sender: 'bot',
+                        text: botMessageContent,
+                        avatar: BambooHead,
+                        name: chatbotName,
+                        timestamp: getCurrentTime(),
+                        showTimestamp: true,
+                        chatIdx: response.data.chatIdx
+                    }
+                ]);
+
+            } catch (error) {
+                console.error('Error sending bot response:', error);
+                setIsTyping(false); // 오류가 발생해도 전송 중 상태 종료
+            }
         }
     };
+
+
 
     const getCurrentTime = (): string => {
         const now = new Date();
@@ -374,89 +472,87 @@ export default function ChatbotPage() {
             </View>
         );
     };
-    const renderDateHeaders = () => {
-        let lastDate = '';
+const renderDateHeaders = () => {
+    let lastDate = ''; // 이전에 표시된 날짜를 추적합니다.
 
-        return messages.map((msg, index) => {
-            const showDateHeader = msg.createdAt !== lastDate;
-            lastDate = msg.createdAt;
+    return messages.map((msg, index) => {
+        const showDateHeader = msg.createdAt !== lastDate && msg.createdAt === currentDate;
+        lastDate = msg.createdAt;
 
-            return (
-                <React.Fragment key={index}>
-                    {showDateHeader && (
-                        <View style={styles.dateHeaderContainer}>
-                            <Text style={styles.dateHeader}>{msg.createdAt}</Text>
+        return (
+            <React.Fragment key={index}>
+                {showDateHeader && (
+                    <View style={styles.dateHeaderContainer}>
+                        <Text style={styles.dateHeader}>{msg.createdAt}</Text>
+                    </View>
+                )}
 
+                <View
+                    key={index}
+                    style={[
+                        styles.messageContainer,
+                        msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer
+                    ]}
+                >
+                    {msg.sender === 'bot' && (
+                        <View style={styles.avatarContainer}>
+                            <Image source={msg.avatar} style={styles.botAvatar} />
                         </View>
                     )}
 
-                    <View
-                        key={index}
-                        style={[
-                            styles.messageContainer,
-                            msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer
-                        ]}
-                    >
-                        {msg.sender === 'bot' && (
-                            <View style={styles.avatarContainer}>
-                                <Image source={msg.avatar} style={styles.botAvatar}/>
-                            </View>
-                        )}
-
-                        <View style={[
-                            styles.messageContent,
-                            msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
+                    <View style={[
+                        styles.messageContent,
+                        msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
+                    ]}>
+                        <Text style={[
+                            styles.senderName,
+                            msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
                         ]}>
-                            <Text style={[
-                                styles.senderName,
-                                msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
+                            {msg.name}
+                        </Text>
+
+                        <View style={styles.messageTimeContainer}>
+                            {msg.sender === 'user' && msg.showTimestamp && (
+                                <Text style={styles.timeText}>{msg.timestamp}</Text>
+                            )}
+
+                            <View style={[
+                                styles.message,
+                                msg.sender === 'user' ? styles.userMessage : styles.botMessage
                             ]}>
-                                {msg.name}
-                            </Text>
-
-                            <View style={styles.messageTimeContainer}>
-                                {msg.sender === 'user' && msg.showTimestamp && (
-                                    <Text style={styles.timeText}>{msg.timestamp}</Text>
-                                )}
-
-                                <View style={[
-                                    styles.message,
-                                    msg.sender === 'user' ? styles.userMessage : styles.botMessage
+                                <Text style={[
+                                    styles.messageText,
+                                    msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
                                 ]}>
-                                    <Text style={[
-                                        styles.messageText,
-                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
-                                    ]}>
-                                        {msg.text}
-                                    </Text>
-                                </View>
-
-                                {msg.sender === 'bot' && msg.showTimestamp && (
-                                    <View style={styles.timeContainer}>
-                                        <EvaluationButtons message={msg} index={index}/>
-                                        <Text style={styles.timeText}>{msg.timestamp}</Text>
-                                    </View>
-                                )}
+                                    {msg.text}
+                                </Text>
                             </View>
-                        </View>
 
-                        {msg.sender === 'user' && (
-                            <View style={styles.avatarContainer}>
-                              <Image
+                            {msg.sender === 'bot' && msg.showTimestamp && (
+                                <View style={styles.timeContainer}>
+                                    <EvaluationButtons message={msg} index={index} />
+                                    <Text style={styles.timeText}>{msg.timestamp}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+
+                    {msg.sender === 'user' && (
+                        <View style={styles.avatarContainer}>
+                            <Image
                                 source={userAvatar}
                                 style={styles.userAvatar}
                                 onError={() => {
-
-                                  setUserAvatar(BambooPanda);  // 이미지 로드 오류 시 기본 이미지로 설정
+                                    setUserAvatar(BambooPanda); // 이미지 로드 오류 시 기본 이미지로 설정
                                 }}
-                              />
-                            </View>
-                        )}
-                    </View>
-                </React.Fragment>
-            );
-        });
-    };
+                            />
+                        </View>
+                    )}
+                </View>
+            </React.Fragment>
+        );
+    });
+};
 
     return (
         <KeyboardAvoidingView
