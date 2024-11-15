@@ -79,6 +79,7 @@ public class UserController {
         User authenticatedUser = userService.login(user);
 
         if (authenticatedUser != null) {
+            userService.updateChatbotLevelAfterDiaryCreation(authenticatedUser.getUserEmail());
             Chatbot croomIdx = chattingService.findByUserEmail(authenticatedUser.getUserEmail());
             String profileImageUrl = authenticatedUser.getUserProfile() != null
                     ? SERVER_URL + authenticatedUser.getUserProfile()

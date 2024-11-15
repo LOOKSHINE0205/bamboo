@@ -46,11 +46,18 @@ public class DiaryController {
 
         // 다중 파일을 지원하는 메서드 호출
         Diary newDiary = diaryService.createDiary(diary, photoFiles);
+
         // 일기 저장 후 챗봇 레벨 업데이트
-//        userService.updateChatbotLevelAfterDiaryCreation(diary.getUserEmail());
+        try {
+            userService.updateChatbotLevelAfterDiaryCreation(diary.getUserEmail());
+            System.out.println("챗봇 레벨 업데이트 완료: " + diary.getUserEmail());
+        } catch (Exception e) {
+            System.err.println("챗봇 레벨 업데이트 실패: " + e.getMessage());
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
     }
+
 
     @PostMapping("/upload-from-url")
     public ResponseEntity<Diary> uploadFromUrl(
@@ -125,6 +132,7 @@ public class DiaryController {
             @RequestParam int month) {
         return diaryService.getDiariesByMonth(userEmail, year, month);
     }
+
 
 
 }

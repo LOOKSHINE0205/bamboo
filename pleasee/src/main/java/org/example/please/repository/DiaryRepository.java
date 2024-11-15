@@ -23,4 +23,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
 
     @Query("SELECT d FROM Diary d WHERE d.userEmail = :userEmail AND YEAR(d.createdAt) = :year AND MONTH(d.createdAt) = :month")
     List<Diary> findByUserEmailAndYearAndMonth(String userEmail, int year, int month);
+
+    @Query("SELECT COUNT(d) FROM Diary d WHERE d.userEmail = :userEmail")
+    int countByUserEmail(@Param("userEmail") String userEmail);
 }

@@ -61,24 +61,33 @@ export default function DiaryScreen() {
           // diaryPhoto에서 JSON 배열 부분만 추출하여 파싱
           const diaryPhoto = selectedDateData.diaryPhoto;
           if (diaryPhoto) {
-            let imageUrls = [];
-            if (typeof diaryPhoto === 'string') {
-              // JSON 배열 형태의 문자열을 파싱하여 이미지 URL을 생성
-              const jsonArrayString = diaryPhoto.match(/\[.*\]/)?.[0];
-              if (jsonArrayString) {
-                const parsedArray = JSON.parse(jsonArrayString);
-                imageUrls = parsedArray.map(photoFileName => `${serverAddress}/uploads/images/db/${photoFileName.replace(/"/g, '')}`);
-              }
-            } else if (Array.isArray(diaryPhoto)) {
-              imageUrls = diaryPhoto.map(photoFileName => {
-                // 중복된 서버 주소를 방지하고 경로만 추가
-                if (!photoFileName.startsWith("http")) {
-                  return `${serverAddress}/uploads/images/db/${photoFileName}`;
+            try {
+              let imageUrls = [];
+
+              // diaryPhoto가 JSON 배열 문자열일 경우
+              if (typeof diaryPhoto === 'string') {
+                const parsedArray = JSON.parse(diaryPhoto);
+                if (Array.isArray(parsedArray)) {
+                  imageUrls = parsedArray.map(photoFileName => `${serverAddress}/uploads/images/db/${photoFileName}`);
+                } else {
+                  console.warn("diaryPhoto는 문자열이지만 JSON 배열이 아닙니다:", diaryPhoto);
                 }
-                return photoFileName;
-              });
+              }
+              // diaryPhoto가 이미 배열일 경우
+              else if (Array.isArray(diaryPhoto)) {
+                imageUrls = diaryPhoto.map(photoFileName => {
+                  if (!photoFileName.startsWith("http")) {
+                    return `${serverAddress}/uploads/images/db/${photoFileName}`;
+                  }
+                  return photoFileName;
+                });
+              }
+
+              setDiaryPhotoUrls(imageUrls);
+            } catch (error) {
+              console.error("diaryPhoto 파싱 중 오류 발생:", error);
+              setDiaryPhotoUrls([]);
             }
-            setDiaryPhotoUrls(imageUrls);  // 제대로 된 URL을 set
           } else {
             setDiaryPhotoUrls([]);
           }
