@@ -57,16 +57,10 @@ const SettingsScreen = () => {
            const updatedUserInfo = {
              ...data,
              profileImage: profileImageUrl,
-             toggle: data.toggle || 0, // 알림 활성화 여부 처리
-             startTime: data.quietStartTime || '09:00', // 기본 시작 시간
-             endTime: data.quietEndTime || '18:00', // 기본 종료 시간
            };
 
            setUserInfo(updatedUserInfo); // 상태 업데이트
            setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트
-           setNotificationsEnabled(updatedUserInfo.toggle === 1); // 알림 상태 설정
-           setStartTime(updatedUserInfo.startTime); // 알림 시작 시간 설정
-           setEndTime(updatedUserInfo.endTime); // 알림 종료 시간 설정
 
            // AsyncStorage에 업데이트된 사용자 정보 저장
            await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
@@ -97,75 +91,57 @@ const SettingsScreen = () => {
   };
 
   const handleImageSelect = async () => {
-      try {
-          // 갤러리 접근 권한 요청
-          const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (!permissionResult.granted) {
-              Alert.alert("알림", "갤러리에 접근하기 위해 권한이 필요합니다.");
-              return;
-          }
-
-          // 갤러리에서 이미지 선택
-          const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [1, 1],
-              quality: 1,
-          });
-
-          // 이미지 선택 여부 확인
-          if (!result.canceled && result.assets?.length > 0) {
-              const selectedImageUri = result.assets[0].uri;
-              console.log("Selected Image URI:", selectedImageUri);
-
-              // 동일한 이미지를 업로드하려고 하면 중단
-              if (profileImageUri === selectedImageUri) {
-                  console.log("동일한 이미지를 업로드하려고 합니다. 중단합니다.");
-                  return;
-              }
-
-              // FormData 생성 및 서버에 전송
-              const formData = new FormData();
-              formData.append('photo', {
-                  uri: selectedImageUri,
-                  type: 'image/jpeg',
-                  name: 'profile.jpg',
-              });
-              formData.append('email', userInfo?.userEmail);
-
-              console.log("FormData:", formData);
-
-              const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
-                  headers: { 'Content-Type': 'multipart/form-data' },
-              });
-
-              // 업로드 성공 시 상태 업데이트
-              if (response.status === 200) {
-                  const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
-
-                  const updatedUserInfo = { ...userInfo, profileImage: serverImagePath };
-
-                  // 상태 및 AsyncStorage 업데이트
-                  setUserInfo(updatedUserInfo);
-                  setProfileImageUri(serverImagePath);
-                  await setUserProfileImage(serverImagePath);
-                  await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
-
-                  Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
-              } else {
-                  console.warn("이미지 업로드 실패:", response.data);
-                  Alert.alert("오류", "이미지 업로드에 실패했습니다.");
-              }
-          } else {
-              console.log("이미지 선택이 취소되었습니다.");
-          }
-      } catch (error) {
-          console.error("프로필 이미지 업로드 중 오류:", error?.response?.data || error?.message || error);
-          Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
-      } finally {
-          setModalVisible(false); // 모달 닫기
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("알림", "갤러리에 접근하기 위해 권한이 필요합니다.");
+        return;
       }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'Images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const selectedImageUri = result.assets[0].uri;
+
+        const formData = new FormData();
+        formData.append('photo', {
+          uri: selectedImageUri,
+          type: 'image/jpeg',
+          name: 'profile.jpg',
+        });
+        formData.append('email', userInfo?.userEmail);
+
+        const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        if (response.status === 200) {
+          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
+          const updatedUserInfo = { ...userInfo, profileImage: serverImagePath };
+
+          setUserInfo(updatedUserInfo);
+          setProfileImageUri(serverImagePath);
+
+          // AsyncStorage에 업데이트된 사용자 정보 저장
+          await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
+        } else {
+          Alert.alert("오류", "이미지 업로드에 실패했습니다.");
+        }
+      }
+    } catch (error) {
+      console.error("프로필 이미지 업로드 중 오류:", error);
+      Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
+    } finally {
+      setModalVisible(false);
+    }
   };
+
 
 
  const handleResetProfileImage = async () => {
