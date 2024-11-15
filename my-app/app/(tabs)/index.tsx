@@ -117,24 +117,35 @@ export default function ChatbotPage() {
     }, []); // 초기 로드 시에만 실행
 
     useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const userData = await getUserInfo();
-          if (userData) {
-            setUserNick(userData.userNick || '');
-            setChatbotName(userData.chatbotName || '챗봇');
-            setUserEmail(userData.userEmail);
-          }
-          const profileImage = await getUserProfileImage();
-                setUserAvatar(profileImage ? { uri: `${profileImage}?${new Date().getTime()}` } : BambooPanda);  // 기본 아이콘 설정
-              } catch (error) {
-                console.error('데이터를 가져오는 데 실패했습니다:', error);
-                setUserAvatar(BambooPanda);  // 오류 발생 시 기본 아이콘 설정
-              }
-      };
+        const fetchData = async () => {
+            try {
+                // 사용자 정보를 AsyncStorage에서 가져옵니다.
+                const userData = await getUserInfo();
+                if (userData) {
+                    setUserNick(userData.userNick || '');
+                    setChatbotName(userData.chatbotName || '챗봇');
+                    setUserEmail(userData.userEmail);
 
-      fetchData();
+                    // 프로필 이미지 URI 설정
+                    const profileImageUrl = userData.profileImage
+                        ? `${userData.profileImage}?${new Date().getTime()}` // 캐시 무효화를 위해 타임스탬프 추가
+                        : BambooPanda; // 기본 이미지 설정
+
+                    setUserAvatar(profileImageUrl ? { uri: profileImageUrl } : BambooPanda);
+                } else {
+                    // 사용자 정보가 없을 경우 기본 프로필 설정
+                    setUserAvatar(BambooPanda);
+                }
+            } catch (error) {
+                console.error('프로필 정보 로드 중 오류:', error);
+                setUserAvatar(BambooPanda); // 오류 발생 시 기본 이미지로 설정
+            }
+        };
+
+        fetchData();
     }, []);
+
+
  // 초기 로딩용 useEffect
     useEffect(() => {
         // isTyping이 true일 때 점 애니메이션 시작

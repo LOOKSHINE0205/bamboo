@@ -43,44 +43,45 @@ const SettingsScreen = () => {
 
    useEffect(() => {
      const fetchUserData = async () => {
-       setIsLoading(true);
+       setIsLoading(true); // 로딩 상태 활성화
        try {
+         // 사용자 정보를 가져옴
          const data = await getUserInfo();
          if (data) {
-                 // 서버에서 반환된 profileImage를 그대로 사용
-                 const profileImageUrl = data.profileImage || null;
+           // 프로필 이미지 URL 생성
+           const profileImageUrl = data.profileImage
+             ? `${data.profileImage}?${new Date().getTime()}` // 캐싱 방지용 타임스탬프 추가
+             : null;
 
-           setUserInfo({ ...data, profileImage: profileImageUrl });
-           setProfileImageUri(profileImageUrl);
-           setNotificationsEnabled(data.toggle === 1);
-           setStartTime(data.quietStartTime || '09:00');
-           setEndTime(data.quietEndTime || '18:00');
+           // 모든 정보를 통합하여 상태와 AsyncStorage를 업데이트
+           const updatedUserInfo = {
+             ...data,
+             profileImage: profileImageUrl,
+           };
 
-           await AsyncStorage.setItem(
-             'userInfo',
-             JSON.stringify({
-               ...data,
-               profileImage: profileImageUrl,
-               toggle: data.toggle,
-               startTime: data.quietStartTime,
-               endTime: data.quietEndTime,
-             })
-           );
+           setUserInfo(updatedUserInfo); // 상태 업데이트
+           setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트
+
+           // AsyncStorage에 업데이트된 사용자 정보 저장
+           await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
          } else {
+           // 데이터가 없는 경우
            setUserInfo(null);
            setProfileImageUri(null);
            Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
          }
        } catch (error) {
+         // 오류 처리
          console.error('사용자 정보 불러오기 중 오류:', error);
          Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
        } finally {
-         setIsLoading(false);
+         setIsLoading(false); // 로딩 상태 비활성화
        }
      };
 
-     fetchUserData();
+     fetchUserData(); // 함수 호출
    }, []);
+
 
 
 
@@ -90,29 +91,23 @@ const SettingsScreen = () => {
   };
 
   const handleImageSelect = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("알림", "갤러리에 접근하기 위해 권한이 필요합니다.");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets?.length > 0) {
-      const selectedImageUri = result.assets[0].uri;
-      console.log("Selected Image URI:", selectedImageUri);
-
-      if (profileImageUri === selectedImageUri) {
-        console.log("동일한 이미지를 업로드하려고 합니다. 중단합니다.");
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("알림", "갤러리에 접근하기 위해 권한이 필요합니다.");
         return;
       }
 
-      try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'Images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const selectedImageUri = result.assets[0].uri;
+
         const formData = new FormData();
         formData.append('photo', {
           uri: selectedImageUri,
@@ -120,28 +115,34 @@ const SettingsScreen = () => {
           name: 'profile.jpg',
         });
         formData.append('email', userInfo?.userEmail);
-        console.log("FormData:", formData);
 
         const response = await axios.post(`${serverAddress}/api/users/uploadProfile`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         if (response.status === 200) {
-                  const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
-                  setUserInfo((prev) => ({ ...prev, profileImage: serverImagePath }));
-                  setProfileImageUri(serverImagePath);
-                  await setUserProfileImage(serverImagePath);
-                  Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
-                } else {
-                  console.warn("이미지 업로드 실패:", response.data);
-                }
-              } catch (error) {
-                console.error("프로필 이미지 업로드 중 오류:", error?.response?.data || error?.message || error);
-                Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
-              }
-            }
-            setModalVisible(false);
-          };
+          const serverImagePath = `${profileImageBaseUrl}${response.data.filePath}`;
+          const updatedUserInfo = { ...userInfo, profileImage: serverImagePath };
+
+          setUserInfo(updatedUserInfo);
+          setProfileImageUri(serverImagePath);
+
+          // AsyncStorage에 업데이트된 사용자 정보 저장
+          await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+          Alert.alert("알림", "프로필 이미지가 성공적으로 업로드되었습니다.");
+        } else {
+          Alert.alert("오류", "이미지 업로드에 실패했습니다.");
+        }
+      }
+    } catch (error) {
+      console.error("프로필 이미지 업로드 중 오류:", error);
+      Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
+    } finally {
+      setModalVisible(false);
+    }
+  };
+
+
 
  const handleResetProfileImage = async () => {
      try {

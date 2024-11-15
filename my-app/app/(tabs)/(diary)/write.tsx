@@ -186,7 +186,7 @@ export default function DiaryEntryScreen() {
               svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
               svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
               style={[styles.commonButton,{
-                marginHorizontal: aspectRatio>0.6? -100:-10
+                marginHorizontal: aspectRatio>0.6? -100:-30
                 }]}
             />
             <SmoothCurvedButton
@@ -195,7 +195,7 @@ export default function DiaryEntryScreen() {
               svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
               svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
               style={[styles.commonButton,{
-                 marginHorizontal: aspectRatio>0.6? -100:-10
+                 marginHorizontal: aspectRatio>0.6? -100:-30
                  }]}
             />
           </View>

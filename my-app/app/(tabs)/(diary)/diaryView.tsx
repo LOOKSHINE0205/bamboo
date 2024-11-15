@@ -60,13 +60,14 @@ export default function DiaryScreen() {
 
           // diaryPhoto에서 JSON 배열 부분만 추출하여 파싱
           const diaryPhoto = selectedDateData.diaryPhoto;
+
           if (diaryPhoto) {
             try {
               let imageUrls = [];
 
               // diaryPhoto가 JSON 배열 문자열일 경우
               if (typeof diaryPhoto === 'string') {
-                const parsedArray = JSON.parse(diaryPhoto);
+                const parsedArray = JSON.parse(diaryPhoto); // JSON 문자열을 배열로 파싱
                 if (Array.isArray(parsedArray)) {
                   imageUrls = parsedArray.map(photoFileName => `${serverAddress}/uploads/images/db/${photoFileName}`);
                 } else {
@@ -83,13 +84,14 @@ export default function DiaryScreen() {
                 });
               }
 
-              setDiaryPhotoUrls(imageUrls);
+              setDiaryPhotoUrls(imageUrls); // URL 배열 상태 설정
             } catch (error) {
               console.error("diaryPhoto 파싱 중 오류 발생:", error);
-              setDiaryPhotoUrls([]);
+              setDiaryPhotoUrls([]); // 오류 발생 시 빈 배열 설정
             }
+            setDiaryPhotoUrls(imageUrls);  // 제대로 된 URL을 set
           } else {
-            setDiaryPhotoUrls([]);
+            setDiaryPhotoUrls([]); // diaryPhoto가 없을 경우 빈 배열 설정
           }
         } else {
           setEntryText("");
@@ -137,9 +139,8 @@ export default function DiaryScreen() {
                     key={index}
                     source={{ uri: `${url}?${new Date().getTime()}` }}
                     style={styles.image}
-                    onError={(error) => console.log("이미지 로드 오류:", error.nativeEvent.error)}
+                    onError={() => console.log(`이미지 로드 오류: ${url}`)} // URL 로그 추가
                   />
-
                 ))
               )}
             </View>
@@ -149,6 +150,7 @@ export default function DiaryScreen() {
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
+
 }
 
 const styles = StyleSheet.create({

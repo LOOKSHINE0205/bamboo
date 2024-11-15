@@ -1,12 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback  } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { getChatHistory } from '../../components/getChatHistory';
 import useServerImage from '../../components/getWordCloud';
 import { getUserInfo } from '../../storage/storageHelper';
 import EmotionIcon from '../../components/EmotionIcon';
 import EmotionChart from '../../components/EmotionChart';
+import EmotionChartLine from '../../components/EmotionChartLine';
 import EmotionStackChart from '../../components/EmotionStackChart';
 import WordCloud from '../../components/WordCloud';
+import { useFocusEffect } from '@react-navigation/native';
 
 import em_happy from "../../assets/images/기쁨.png";
 import em_angry from "../../assets/images/화남.png";
@@ -70,18 +72,21 @@ const Report = () => {
 
   const aspectRatio = screenWidth / screenHeight;
 
-  useEffect(() => {
-      loadChatHistory();
-      const fetchUserInfo = async () => {
+    // 페이지가 포커스될 때 데이터를 다시 로드
+    useFocusEffect(
+      useCallback(() => {
+        loadChatHistory();
+        const fetchUserInfo = async () => {
           try {
-              const userInfo = await getUserInfo();
-              setUserNick(userInfo?.userNick || '사용자');
+            const userInfo = await getUserInfo();
+            setUserNick(userInfo?.userNick || '사용자');
           } catch (error) {
-              console.error("Failed to fetch user info:", error);
+            console.error("Failed to fetch user info:", error);
           }
-      };
-      fetchUserInfo();
-  }, []);
+        };
+        fetchUserInfo();
+      }, [])
+    );
 
   const loadChatHistory = async () => {
       try {
@@ -225,16 +230,25 @@ const Report = () => {
           />
         </View>
 
-        {isDataLoaded && normalizedEmotionDataByDay && (
+        {isDataLoaded && normalizedEmotionDataByDay && Object.keys(normalizedEmotionDataByDay).length > 0 && (
           <>
-            <View style={styles.sectionContainer}>
+            <View style={[styles.sectionContainer,{height:300}]}>
               <Text style={styles.subtitle}>감정 라인 그래프</Text>
               <EmotionChart
                 selectedEmotions={selectedEmotions}
                 chartData={chartData}
                 normalizedEmotionDataByDay={normalizedEmotionDataByDay}
               />
+              <View style={styles.sectioninner}>
+                <EmotionChartLine
+                  selectedEmotions={selectedEmotions}
+                  chartData={chartData}
+                  normalizedEmotionDataByDay={normalizedEmotionDataByDay}
+                />
+              </View>
+
             </View>
+
 
             <View style={styles.sectionContainer}>
               <Text style={styles.subtitle}>감정 스택 그래프</Text>
@@ -293,5 +307,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     marginBottom: 10,
+  },
+  sectioninner: {
+    bottom:247,
   },
 });
