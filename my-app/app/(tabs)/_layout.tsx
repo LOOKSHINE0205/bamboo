@@ -37,7 +37,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
     }, [state.index]);
 
     return (
-        <View style={[styles.tabContainer, { paddingBottom: insets.bottom, width, height: tabBarHeight }]}>
+        <View style={[styles.tabContainer, { width, height: tabBarHeight, paddingBottom: 10 }]}>
             {state.routes.map((route, index) => {
                 const { options } = descriptors[route.key];
                 const label = options.title || route.name;

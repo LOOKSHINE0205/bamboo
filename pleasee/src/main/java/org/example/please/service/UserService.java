@@ -1,6 +1,9 @@
 package org.example.please.service;
 
+import jakarta.transaction.Transactional;
 import org.example.please.entity.User;
+import org.example.please.repository.ChattingRepository;
+import org.example.please.repository.DiaryRepository;
 import org.example.please.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +35,10 @@ public class UserService {
     // 프로필 이미지 파일 저장 경로
     @Value("${user.profile.image.dir:C:/uploads/profile/images/}")
     private String profileImageDir;
+    @Autowired
+    private ChattingRepository chattingRepository;
+    @Autowired
+    private DiaryRepository diaryRepository;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -193,5 +200,28 @@ public class UserService {
             throw new RuntimeException("해당 사용자를 찾을 수 없습니다.");
         });
     }
+    private static final int LEVEL_UP_CHAT_COUNT = 10;
+    private static final int LEVEL_UP_DIARY_COUNT = 3;
 
+////    @Transactional
+////    public void updateChatbotLevelAfterDiaryCreation(String userEmail) {
+////        // 사용자의 채팅 수와 일기 수 조회
+////        int botChatCount = chattingRepository.countBotChatsByUserEmail(userEmail);
+////        int diaryCount = diaryRepository.countDiariesByUserEmail(userEmail);
+////
+////        // 새로운 챗봇 레벨 계산
+////        int newLevel = calculateChatbotLevel(botChatCount, diaryCount);
+////        // 기존 레벨과 비교 후 다를 경우에만 업데이트
+////        int currentLevel = userRepository.findChatbotLevelByUserEmail(userEmail);
+////        if (newLevel != currentLevel) {
+////            userRepository.updateChatbotLevel(userEmail, newLevel);
+////        }
+////    }
+//
+//    // 챗봇 레벨 계산
+//    private int calculateChatbotLevel(int chatCount, int diaryCount) {
+//        int chatLevel = chatCount / LEVEL_UP_CHAT_COUNT;
+//        int diaryLevel = diaryCount / LEVEL_UP_DIARY_COUNT;
+//        return 1 + chatLevel + diaryLevel; // 기본 레벨 1부터 시작
+//    }
 }

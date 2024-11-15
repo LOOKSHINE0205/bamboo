@@ -227,11 +227,11 @@ const KeywordSelectionScreen = () => {
       chatbotScale.setValue(0);
     }
   }, [currentQuestionIndex]);
-
+  console.log("2차 보낼 데이터",initialUserData,testResults, chatbotName)
   const handleConfirm = () => {
     if (chatbotName.trim()) {
       router.push({
-        pathname: './sendUserInfo',
+        pathname: '/(join)/sendUserInfo',
         params: { userData: initialUserData, testResults, chatbotName },
       });
     } else {

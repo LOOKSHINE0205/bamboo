@@ -1,5 +1,6 @@
 package org.example.please.controller;
 
+import jakarta.validation.Valid;
 import org.example.please.entity.Chatbot;
 import org.example.please.entity.User;
 import org.example.please.service.ChattingService;
@@ -24,7 +25,7 @@ import java.util.Optional;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    private static final String SERVER_URL = "http://192.168.20.76:8082/uploads/profile/images/";
+    private static final String SERVER_URL = "http://192.168.21.165:8082/uploads/profile/images/";
 
     @Autowired
     private UserService userService;
@@ -54,6 +55,8 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+
 
 
 
@@ -182,5 +185,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알림 설정 업데이트 중 오류 발생");
         }
     }
+
 
 }

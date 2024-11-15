@@ -128,7 +128,7 @@ export default function JoinScreen() {
             userNick,
             userBirthdate: birthdateString
         };
-
+        console.log("1차 보낼 데이터", JSON.stringify(userData));
         try {
             router.push({
                 pathname: '/index2',

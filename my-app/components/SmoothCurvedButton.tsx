@@ -8,19 +8,23 @@ const SmoothCurvedButton = ({ onPress, title, icon, style, disabled, svgWidth = 
   const buttonHeight = style?.height || height * 0.06 || 50;
   const [isPressed, setIsPressed] = useState(false);
 
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      onPressIn={() => setIsPressed(true)}
-      onPressOut={() => setIsPressed(false)}
-      style={[
-        styles.buttonContainer,
-        { width: buttonWidth, height: buttonHeight },
-        isPressed && styles.pressedEffect,
-        style,
-      ]}
-      disabled={disabled}
-    >
+
+      <TouchableOpacity
+          onPress={onPress}
+          onPressIn={() => setIsPressed(true)}
+          onPressOut={() => setIsPressed(false)}
+          style={[
+            styles.buttonContainer,
+            { width: buttonWidth, height: buttonHeight },
+            isPressed && styles.pressedEffect,
+            style,
+          ]}
+          disabled={disabled}
+          pointerEvents="box-none" // 추가
+      >
+
       <Svg height="100%" width="100%" viewBox={`0 0 ${svgWidth} 50`}>
         <Path
           d={

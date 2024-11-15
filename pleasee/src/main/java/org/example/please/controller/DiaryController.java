@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.please.entity.Diary;
 import org.example.please.service.DiaryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.please.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,9 @@ public class DiaryController {
     @Autowired
     private DiaryService diaryService;
 
+    @Autowired
+    private UserService userService;
+
     // 전날과 오늘의 일기 가져오기
     @GetMapping("/yesterday-and-today")
     public ResponseEntity<Map<String, List<Diary>>> getDiariesForYesterdayAndToday() {
@@ -42,6 +46,8 @@ public class DiaryController {
 
         // 다중 파일을 지원하는 메서드 호출
         Diary newDiary = diaryService.createDiary(diary, photoFiles);
+        // 일기 저장 후 챗봇 레벨 업데이트
+//        userService.updateChatbotLevelAfterDiaryCreation(diary.getUserEmail());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
     }

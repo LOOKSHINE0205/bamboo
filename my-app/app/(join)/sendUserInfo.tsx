@@ -20,6 +20,7 @@ const SendUserInfo = () => {
             new Animated.Value(0), new Animated.Value(0), new Animated.Value(0),
             new Animated.Value(0)]
     ).current;
+    console.log("3차",userData,testResults,chatbotName)
 
     useEffect(() => {
         const sendDataToServer = async () => {
