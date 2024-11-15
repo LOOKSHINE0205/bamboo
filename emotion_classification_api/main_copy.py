@@ -120,8 +120,9 @@ async def predict(request: EmotionRequest):
         print("Emotion Keyword:", emotion_keyword)
 
         # Step 6: 시스템 프롬프트 및 메시지 생성
+
         # 메모리에서 요약 가져오기
-        conversation_summary = memory.load_memory_variables({})["history"]
+        conversation_summary = memory.load_memory_variables({"input": ""})["history"]
 
         # 시스템 프롬프트 생성
         system_prompt = (
@@ -135,7 +136,6 @@ async def predict(request: EmotionRequest):
 
         print("System Prompt:")
         print(system_prompt)
-
 
         # 메시지 리스트 생성
         messages = []
