@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback  } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { getChatHistory } from '../../components/getChatHistory';
 import useServerImage from '../../components/getWordCloud';
@@ -8,6 +8,7 @@ import EmotionChart from '../../components/EmotionChart';
 import EmotionChartLine from '../../components/EmotionChartLine';
 import EmotionStackChart from '../../components/EmotionStackChart';
 import WordCloud from '../../components/WordCloud';
+import { useFocusEffect } from '@react-navigation/native';
 
 import em_happy from "../../assets/images/기쁨.png";
 import em_angry from "../../assets/images/화남.png";
@@ -71,18 +72,21 @@ const Report = () => {
 
   const aspectRatio = screenWidth / screenHeight;
 
-  useEffect(() => {
-      loadChatHistory();
-      const fetchUserInfo = async () => {
+    // 페이지가 포커스될 때 데이터를 다시 로드
+    useFocusEffect(
+      useCallback(() => {
+        loadChatHistory();
+        const fetchUserInfo = async () => {
           try {
-              const userInfo = await getUserInfo();
-              setUserNick(userInfo?.userNick || '사용자');
+            const userInfo = await getUserInfo();
+            setUserNick(userInfo?.userNick || '사용자');
           } catch (error) {
-              console.error("Failed to fetch user info:", error);
+            console.error("Failed to fetch user info:", error);
           }
-      };
-      fetchUserInfo();
-  }, []);
+        };
+        fetchUserInfo();
+      }, [])
+    );
 
   const loadChatHistory = async () => {
       try {
