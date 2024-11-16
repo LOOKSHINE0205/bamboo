@@ -22,6 +22,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage, saveUserInfo } from '../../storage/storageHelper';
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import SmoothCurvedInput from '../../components/SmoothCurvedInput';
 import {serverAddress} from '../../components/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -40,50 +41,82 @@ const SettingsScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(null);
+  const [isChanged, setIsChanged] = useState(false); // 변경 여부를 확인하는 상태
 
-   useEffect(() => {
-     const fetchUserData = async () => {
-       setIsLoading(true); // 로딩 상태 활성화
-       try {
-         // 사용자 정보를 가져옴
-         const data = await getUserInfo();
-         if (data) {
-           // 프로필 이미지 URL 생성
-           const profileImageUrl = data.profileImage
-             ? `${data.profileImage}?${new Date().getTime()}` // 캐싱 방지용 타임스탬프 추가
-             : null;
+useEffect(() => {
+  const fetchUserData = async () => {
+    setIsLoading(true); // 로딩 상태 활성화
+    try {
+      // 사용자 정보를 가져옴
+      const data = await getUserInfo();
+      if (data) {
+        // 프로필 이미지 URL 생성
+        const profileImageUrl = data.profileImage
+          ? `${data.profileImage}?${new Date().getTime()}` // 캐싱 방지용 타임스탬프 추가
+          : null;
 
-           // 모든 정보를 통합하여 상태와 AsyncStorage를 업데이트
-           const updatedUserInfo = {
-             ...data,
-             profileImage: profileImageUrl,
-           };
+        // 모든 정보를 통합하여 상태와 AsyncStorage를 업데이트
+        const updatedUserInfo = {
+          ...data,
+          profileImage: profileImageUrl,
+        };
 
-           setUserInfo(updatedUserInfo); // 상태 업데이트
-           setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트
+        setUserInfo(updatedUserInfo); // 상태 업데이트
+        setProfileImageUri(profileImageUrl); // 이미지 상태 업데이트
+        setNotificationsEnabled(data.notificationsEnabled); // 초기 알림 설정 상태 로드
+        await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo)); // AsyncStorage에 업데이트된 사용자 정보 저장
+      } else {
+        // 데이터가 없는 경우
+        setUserInfo(null);
+        setProfileImageUri(null);
+        Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
+      }
+    } catch (error) {
+      // 오류 처리
+      console.error('사용자 정보 불러오기 중 오류:', error);
+      Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
+    } finally {
+      setIsLoading(false); // 로딩 상태 비활성화
+    }
+  };
 
-           // AsyncStorage에 업데이트된 사용자 정보 저장
-           await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
-         } else {
-           // 데이터가 없는 경우
-           setUserInfo(null);
-           setProfileImageUri(null);
-           Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
-         }
-       } catch (error) {
-         // 오류 처리
-         console.error('사용자 정보 불러오기 중 오류:', error);
-         Alert.alert("오류", "사용자 정보를 불러오는 중 문제가 발생했습니다.");
-       } finally {
-         setIsLoading(false); // 로딩 상태 비활성화
-       }
-     };
+  fetchUserData(); // 함수 호출
+}, []);
 
-     fetchUserData(); // 함수 호출
-   }, []);
+useEffect(() => {
+  const loadUserData = async () => {
+    try {
+      const storedUserInfo = await AsyncStorage.getItem('userInfo');
+      if (storedUserInfo) {
+        setUserInfo(JSON.parse(storedUserInfo));
+      }
+    } catch (error) {
+      console.error('Error loading user data from AsyncStorage:', error);
+    }
 
+    try {
+      const storedNotificationSetting = await AsyncStorage.getItem('notificationsEnabled');
+      if (storedNotificationSetting) {
+        setNotificationsEnabled(JSON.parse(storedNotificationSetting)); // 알림 설정 로드
+      }
+    } catch (error) {
+      console.error('Error loading notification setting from AsyncStorage:', error);
+    }
 
+    setIsLoading(false);
+  };
 
+  loadUserData(); // 사용자 데이터 및 알림 설정 불러오기
+}, []);
+
+// 알림 설정 변경을 감지하여 초기 설정과 다른 경우 isChanged를 업데이트하는 useEffect 추가
+useEffect(() => {
+  if (userInfo && notificationsEnabled !== userInfo.notificationsEnabled) {
+    setIsChanged(true);
+  } else {
+    setIsChanged(false);
+  }
+}, [notificationsEnabled, userInfo]);
 
 
   const handleImagePicker = () => {
@@ -165,33 +198,132 @@ const SettingsScreen = () => {
  const toggleSwitch = () => {
     setNotificationsEnabled((prev) => !prev);
   };
-
   const handleSave = async () => {
-      if (notificationsEnabled && startTime >= endTime) {
-          Alert.alert('알림', '종료 시간은 시작 시간보다 이후여야 합니다.');
-          return;
-      }
-      try {
-          // 알림 설정 API 호출
-          await axios.put(`${serverAddress}/api/users/updateNotificationSettings`, null, {
-              params: {
-                  userEmail: userInfo?.userEmail,
-                  toggle: notificationsEnabled, // 알람 활성화 상태 전송
-                  startTime: notificationsEnabled ? startTime : null,
-                  endTime: notificationsEnabled ? endTime : null,
-              }
-          });
+      let isPasswordChanged = false;
 
+      console.log('저장 버튼 클릭됨');
+      console.log('현재 비밀번호 입력값:', password);
+      console.log('새 비밀번호 입력값:', newPassword);
+
+      // 비밀번호 변경 절차
       if (newPassword) {
-        const userData = { userEmail: userInfo?.userEmail, userPw: newPassword };
-        await axios.post(`${serverAddress}/api/users/updatePassword`, userData);
+          if (!password) {
+              Alert.alert('알림', '현재 비밀번호를 입력해 주세요.');
+              console.log('오류: 현재 비밀번호가 입력되지 않음');
+              return;
+          }
+
+          if (!isValidPassword(newPassword)) {
+              Alert.alert('알림', '새 비밀번호는 최소 8자 이상, 대문자와 숫자를 포함해야 합니다.');
+              console.log('오류: 새 비밀번호 유효성 검사 실패');
+              return;
+          }
+
+          try {
+              // 현재 비밀번호가 맞는지 확인
+              console.log('현재 비밀번호 확인 요청 시작');
+              const response = await axios.post(`${serverAddress}/api/users/verifyPassword`, {
+                  userEmail: userInfo?.userEmail,
+                  userPw: password // 현재 비밀번호를 userPw 필드에 포함하여 전달
+              });
+
+              console.log('현재 비밀번호 확인 응답:', response.data);
+
+              const isPasswordValid = response.data.isValid;
+              if (isPasswordValid) {
+                  console.log('현재 비밀번호 일치: 비밀번호 업데이트 요청 시작');
+                  await updatePassword(newPassword);
+                  Alert.alert('알림', '비밀번호가 성공적으로 변경되었습니다.');
+                  setPassword('');
+                  setNewPassword('');
+                  isPasswordChanged = true;
+              } else {
+                  Alert.alert('알림', '현재 비밀번호가 올바르지 않습니다.');
+                  console.log('오류: 현재 비밀번호 불일치');
+                  return;
+              }
+          } catch (error) {
+              console.error('비밀번호 확인 중 오류:', error);
+              Alert.alert('오류', '비밀번호 확인 중 문제가 발생했습니다.');
+              return;
+          }
       }
-      Alert.alert('알림', '설정이 저장되었습니다.');
-    } catch (error) {
-      console.error('설정 저장 중 오류:', error);
-      Alert.alert("오류", "설정 저장 중 문제가 발생했습니다.");
-    }
+
+      // 알림 설정 변경 절차
+      if (isChanged) {
+          try {
+              console.log('알림 설정 업데이트 요청 시작');
+              const notificationResponse = await updateNotificationSettings();
+              console.log('알림 설정 업데이트 응답:', notificationResponse);
+              if (notificationResponse) {
+                  setUserInfo((prev) => ({ ...prev, notificationsEnabled }));
+                  setIsChanged(false);
+                  if (!isPasswordChanged) {
+                      Alert.alert('알림', '설정이 저장되었습니다.');
+                  }
+              }
+          } catch (error) {
+              console.error('알림 설정 저장 중 오류:', error);
+              Alert.alert('오류', '알림 설정 저장 중 문제가 발생했습니다.');
+          }
+      }
+
+      if (!isChanged && !isPasswordChanged) {
+          console.log("변경 사항 없음");
+      }
   };
+
+
+
+// 비밀번호 유효성 검사
+const isValidPassword = (password) => {
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/; // 대문자와 숫자가 포함된 8자 이상의 비밀번호
+    return passwordRegex.test(password);
+};
+
+
+// 비밀번호 업데이트 API 호출
+const updatePassword = async (newPassword) => {
+    const userData = { userEmail: userInfo?.userEmail, userPw: newPassword };
+    const response = await axios.put(`${serverAddress}/api/users/updatePassword`, userData); // PUT 메서드 사용
+
+    if (response.status === 200) {
+        Alert.alert('알림', '비밀번호가 성공적으로 변경되었습니다.');
+    } else {
+        Alert.alert('오류', '비밀번호 변경에 실패했습니다.');
+    }
+};
+
+// 알림 설정 업데이트
+const updateNotificationSettings = async () => {
+    try {
+        const params = {
+            userEmail: userInfo?.userEmail,
+            toggle: notificationsEnabled,
+            startTime: notificationsEnabled ? startTime : null,
+            endTime: notificationsEnabled ? endTime : null,
+        };
+
+        const response = await axios.put(`${serverAddress}/api/users/updateNotificationSettings`, null, { params });
+
+        if (response.status === 200) {
+            // 알림 설정을 로컬 저장소에 저장
+            await AsyncStorage.setItem('notificationsEnabled', JSON.stringify(notificationsEnabled));
+            console.log("알림 설정 저장 성공");
+            return true;
+        } else {
+            console.log("알림 설정 저장 실패");
+            return false;
+        }
+    } catch (error) {
+        console.error('알림 설정 저장 중 오류:', error);
+        return false;
+    }
+};
+
+
+
+
 
   if (isLoading) {
     return (
@@ -220,17 +352,38 @@ const SettingsScreen = () => {
             </TouchableOpacity>
           </View>
         <Text style={styles.label}>닉네임</Text>
-        <TextInput style={styles.input} value={userInfo?.userNick || ''} editable={false} />
-        <Text style={styles.label}>이메일</Text>
-        <TextInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} />
-        <Text style={styles.label}>생일</Text>
-        <TextInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} />
-        <Text style={styles.label}>챗봇 이름</Text>
-        <TextInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} />
-        <Text style={styles.label}>비밀번호 확인</Text>
-        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="기존 비밀번호 입력" placeholderTextColor="#707070" />
-        <Text style={styles.label}>비밀번호 변경</Text>
-        <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="새 비밀번호 입력" placeholderTextColor="#707070"/>
+              <SmoothCurvedInput style={[styles.input,]} value={userInfo?.userNick || ''} editable={false} fillColor="#f9f9f9" />
+
+              <Text style={styles.label}>이메일</Text>
+              <SmoothCurvedInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} fillColor="#f9f9f9"  />
+
+              <Text style={styles.label}>생일</Text>
+              <SmoothCurvedInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} fillColor="#f9f9f9"  />
+
+              <Text style={styles.label}>챗봇 이름</Text>
+              <SmoothCurvedInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} fillColor="#f9f9f9" />
+
+              <Text style={styles.label}>비밀번호 확인</Text>
+              <SmoothCurvedInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                placeholder="기존 비밀번호 입력"
+                placeholderTextColor="#707070"
+                fillColor="#f9f9f9"
+              />
+
+              <Text style={styles.label}>비밀번호 변경</Text>
+              <SmoothCurvedInput
+                style={styles.input}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry
+                placeholder="새 비밀번호 입력"
+                placeholderTextColor="#707070"
+                fillColor="#f9f9f9"
+              />
         <View style={styles.toggleContainer}>
           <Text style={styles.label}>알림 받기</Text>
           <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
@@ -364,10 +517,10 @@ const SettingsScreen = () => {
                 borderRadius: 16, // 곡률을 더 부드럽게 변경
                 marginBottom: 20,
                 paddingLeft: 10,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.15,
-                shadowRadius: 6,
+//                 shadowColor: '#000',
+//                 shadowOffset: { width: 0, height: 4 },
+//                 shadowOpacity: 0.15,
+//                 shadowRadius: 6,
                 backgroundColor: '#fff',
                 elevation: 2
               },

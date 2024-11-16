@@ -1,6 +1,7 @@
 package org.example.please.controller;
 
 import jakarta.validation.Valid;
+import org.example.please.config.SecurityConfig;
 import org.example.please.entity.Chatbot;
 import org.example.please.entity.User;
 import org.example.please.service.ChattingService;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.IOException;
 import java.sql.Time;
@@ -32,6 +34,9 @@ public class UserController {
 
     @Autowired
     private ChattingService chattingService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/checkEmail")
     public ResponseEntity<Map<String, Object>> checkEmail(@RequestBody User user) {
@@ -56,11 +61,43 @@ public class UserController {
         }
     }
 
+    // 비밀번호 확인 메서드 추가
+    @PostMapping("/verifyPassword")
+    public ResponseEntity<Map<String, Object>> verifyPassword(@RequestBody User user) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Optional<User> userFromDb = userService.findByEmail(user.getUserEmail());
+
+            if (userFromDb.isPresent()) {
+                String storedPassword = userFromDb.get().getUserPw();
+                String enteredPassword = user.getUserPw();
+
+                // 비밀번호 null 검증
+                if (enteredPassword == null || enteredPassword.isEmpty()) {
+                    response.put("message", "비밀번호를 입력해 주세요.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                }
+
+                boolean isPasswordMatch = passwordEncoder.matches(enteredPassword, storedPassword);
+                response.put("isValid", isPasswordMatch);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            logger.error("비밀번호 확인 중 오류 발생: ", e);
+            response.put("message", "비밀번호 확인 중 오류 발생: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
 
 
 
-    @PostMapping("/updatePassword")
+
+
+    @PutMapping("/updatePassword")
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -72,6 +109,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
@@ -175,6 +213,9 @@ public class UserController {
                         endTime.substring(0, 2) + ":" + endTime.substring(2) + ":00" : endTime + ":00";
 
                 userService.updateQuietTimes(userEmail, formattedStartTime, formattedEndTime);
+            } else {
+                // 알람 끄기 시 시간 값을 null로 설정
+                userService.updateQuietTimes(userEmail, null, null);
             }
             // 알람 토글 상태 업데이트 (활성화/비활성화)
             userService.updateToggle(userEmail, toggle);

@@ -10,6 +10,7 @@ export default function Layout() {
                 options={{
                     title: "회원 가입",
                     headerShown: true,
+                    headerTitleAlign: "center",
                 }}
             />
 
@@ -18,6 +19,7 @@ export default function Layout() {
                 options={{
                     title: "로그인",
                     headerShown: true,
+                    headerTitleAlign: "center",
                 }}
             />
 
@@ -27,6 +29,7 @@ export default function Layout() {
                 options={{
                     title: "메인 화면",
                     headerShown: false, // 탭 네비게이터의 헤더를 숨기려면 false
+                    headerTitleAlign: "center",
                 }}
             />
 
@@ -35,6 +38,7 @@ export default function Layout() {
                 options={{
                     title: "회원 가입",
                     headerShown: true,
+                    headerTitleAlign: "center",
                 }}
             />
 
@@ -43,6 +47,7 @@ export default function Layout() {
                 options={{
                     title: "회원 가입",
                     headerShown: true,
+                    headerTitleAlign: "center",
                 }}
             />
 
@@ -51,6 +56,7 @@ export default function Layout() {
                 options={{
                     title: "사용 설명서",
                     headerShown: true,
+                    headerTitleAlign: "center",
                 }}
             />
         </Stack>

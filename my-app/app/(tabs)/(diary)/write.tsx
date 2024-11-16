@@ -155,7 +155,7 @@ export default function DiaryEntryScreen() {
             </View>
           </View>
 
-          <View style={styles.entryContainer}>
+          <View style={[styles.entryContainer, { width: width * 0.95, marginLeft: width * 0.025 }]}>
             <View style={styles.imageContainer}>
               {selectedImages.map((imageUri, index) => (
                 <View key={index} style={styles.imageWrapper}>
@@ -179,7 +179,7 @@ export default function DiaryEntryScreen() {
             />
           </View>
 
-          <View style={[styles.buttonContainer,{gap:20}]}>
+          <View style={[styles.buttonContainer,{gap:20,}]}>
             <SmoothCurvedButton
               title="저장"
               onPress={handleSaveEntry}
@@ -201,7 +201,6 @@ export default function DiaryEntryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#ffffff",
   },
   topContainer: {

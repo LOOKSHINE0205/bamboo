@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { saveUserInfo } from '../../storage/storageHelper';
 import axios from 'axios';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import SmoothCurvedInput from '../../components/SmoothCurvedInput';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { serverAddress } from '../../components/Config';
 
@@ -116,15 +117,15 @@ export default function LoginScreen() {
                 <Text style={styles.label}>이메일</Text>
                 {error && <Text style={styles.errorText}>{error}</Text>}
             </View>
-            <TextInput
-                ref={emailInputRef}
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="이메일 주소를 입력하세요"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#707070"
+            <SmoothCurvedInput
+              ref={emailInputRef}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="이메일 주소를 입력하세요"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholderTextColor="#707070"
+              style={styles.input}
             />
 
             {isFindingPassword ? (
@@ -136,16 +137,17 @@ export default function LoginScreen() {
                     <Text style={styles.label}>비밀번호</Text>
                 </View>
             )}
-            <TextInput
-                ref={isFindingPassword ? dateOfBirthInputRef : passwordInputRef}
-                style={styles.input}
-                value={isFindingPassword ? dateOfBirth : password}
-                onChangeText={isFindingPassword ? setDateOfBirth : setPassword}
-                placeholder={isFindingPassword ? "생년월일을 입력하세요 (YYYY-MM-DD)" : "비밀번호를 입력하세요"}
-                secureTextEntry={!isFindingPassword}
-                keyboardType={isFindingPassword ? 'default' : 'default'}
-                placeholderTextColor="#707070"
+
+            <SmoothCurvedInput
+              ref={isFindingPassword ? dateOfBirthInputRef : passwordInputRef}
+              value={isFindingPassword ? dateOfBirth : password}
+              onChangeText={isFindingPassword ? setDateOfBirth : setPassword}
+              placeholder={isFindingPassword ? "생년월일을 입력하세요 (YYYY-MM-DD)" : "비밀번호를 입력하세요"}
+              secureTextEntry={!isFindingPassword}
+              placeholderTextColor="#707070"
+              style={styles.input}
             />
+
 
             <View style={[styles.buttonWrapper,{gap:20}]}>
                 {isFindingPassword ? (
@@ -173,7 +175,7 @@ export default function LoginScreen() {
                 {!isFindingPassword && (
                     <TouchableOpacity
                         style={styles.passButton}
-                        onPress={() => router.push('/(tabs)/report')} // router.push 사용
+                        onPress={() => router.push('/index2')} // router.push 사용
                     >
                         <Text style={styles.passButtonText}>패스</Text>
                     </TouchableOpacity>

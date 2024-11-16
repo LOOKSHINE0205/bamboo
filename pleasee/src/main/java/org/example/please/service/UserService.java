@@ -184,8 +184,16 @@ public class UserService {
 
     public void updateQuietTimes(String userEmail, String startTime, String endTime) {
         userRepository.findByUserEmail(userEmail).ifPresentOrElse(user -> {
-            user.setQuietStartTime(Time.valueOf(startTime));
-            user.setQuietEndTime(Time.valueOf(endTime));
+            // 알림을 켰을 때와 끄는 경우를 구분
+            if (startTime != null && endTime != null) {
+                // 알림을 켤 때: startTime과 endTime을 설정
+                user.setQuietStartTime(Time.valueOf(startTime));
+                user.setQuietEndTime(Time.valueOf(endTime));
+            } else {
+                // 알림을 끌 때: startTime과 endTime을 null로 설정
+                user.setQuietStartTime(null);
+                user.setQuietEndTime(null);
+            }
             userRepository.save(user);
         }, () -> {
             throw new RuntimeException("해당 사용자를 찾을 수 없습니다.");
@@ -202,6 +210,10 @@ public class UserService {
     }
     private static final int LEVEL_UP_CHAT_COUNT = 10;
     private static final int LEVEL_UP_DIARY_COUNT = 3;
+
+    public boolean verifyPassword(User user, String currentPassword) {
+        return passwordEncoder.matches(currentPassword, user.getUserPw());
+    }
 
 ////    @Transactional
 ////    public void updateChatbotLevelAfterDiaryCreation(String userEmail) {
