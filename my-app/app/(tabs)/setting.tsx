@@ -336,7 +336,7 @@ const updateNotificationSettings = async () => {
 
   return (
       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.profileImageSection}>
             <TouchableOpacity style={styles.profileImageContainer} onPress={handleImagePicker}>
               {profileImageUri ? (

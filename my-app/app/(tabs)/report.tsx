@@ -215,7 +215,7 @@ const Report = () => {
   }, [selectedEmotions]);
 
   return (
-    <ScrollView style={styles.scrollView}>
+    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
         <View style={styles.sectionContainer}>
           <Text style={styles.title}>{userNick}의 감정 상태</Text>
