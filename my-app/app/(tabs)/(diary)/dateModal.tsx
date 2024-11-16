@@ -24,16 +24,19 @@ export default function DatePickerModal({ modalVisible, setModalVisible, onDateC
             const yearIndex = years.indexOf(currentYear);
             const monthIndex = currentMonth - 1;
 
-            yearScrollRef.current?.scrollTo({
-                y: yearIndex * ITEM_HEIGHT,
-                animated: false
-            });
-            monthScrollRef.current?.scrollTo({
-                y: monthIndex * ITEM_HEIGHT,
-                animated: false
-            });
+            setTimeout(() => {
+                yearScrollRef.current?.scrollTo({
+                    y: yearIndex * ITEM_HEIGHT,
+                    animated: false,
+                });
+                monthScrollRef.current?.scrollTo({
+                    y: monthIndex * ITEM_HEIGHT,
+                    animated: false,
+                });
+            }, 50); // 50ms의 지연 추가
         }
     }, [modalVisible]);
+
 
     const handleScroll = (event, items, setValue) => {
         const offsetY = event.nativeEvent.contentOffset.y;
