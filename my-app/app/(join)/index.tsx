@@ -93,13 +93,15 @@ export default function JoinScreen() {
       setPasswordMessage('비밀번호는 최소 8자 이상이어야 합니다.');
       return false;
     }
-    if (!/[A-Z]/.test(userPw) || !/[0-9]/.test(userPw)) {
-      setPasswordMessage('비밀번호는 대문자와 숫자를 포함해야 합니다.');
+    // 영어 소문자와 숫자를 포함하는지 검사
+    if (!/[a-z]/.test(userPw) || !/[0-9]/.test(userPw)) {
+      setPasswordMessage('비밀번호는 영어 소문자와 숫자를 포함해야 합니다.');
       return false;
     }
     setPasswordMessage('');
     return true;
   };
+
 
   const handlePasswordConfirmChange = (text) => {
     setPasswordConfirm(text);

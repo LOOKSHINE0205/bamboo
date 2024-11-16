@@ -9,7 +9,8 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
-    Keyboard
+    Keyboard,
+    useWindowDimensions
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -33,12 +34,26 @@ interface Message {
     evaluation?: 'like' | 'dislike' | null;
     chatIdx?: number;
 }
+// 요일 배열
+const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+
+// 현재 날짜와 요일을 가져오는 함수
+const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const dayOfWeek = daysOfWeek[today.getDay()]; // 요일 가져오기
+    return `${year}-${month}-${day} ${dayOfWeek}`;
+};
 
 
 export default function ChatbotPage() {
-
+    const {width, height} = useWindowDimensions();
+    const [currentDate, setCurrentDate] = useState<string>(getCurrentDate());
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
+    const [inputAreaHeight, setInputAreaHeight] = useState(height * 0.05);
     const [userNick, setUserNick] = useState<string>('');
     const [chatbotName, setChatbotName] = useState<string>('');
     const [userAvatar, setUserAvatar] = useState(BambooPanda);
@@ -48,13 +63,16 @@ export default function ChatbotPage() {
     const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
     const [typingDots, setTypingDots] = useState(''); // 점 애니메이션을 위한 상태
     const [isCountdownStarted, setIsCountdownStarted] = useState(false);
-    const [currentDate, setCurrentDate] = useState<string>(''); // 현재 날짜를 저장할 상태
+    // 이전 이미지 URI를 저장하는 useRef 생성
+    const prevImageUriRef = useRef<string | null>(null); // 이전 이미지 URI를 저장하는 useRef
+
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
     const countdownDuration = 3; // 5초 카운트다운
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
     useEffect(() => {
             // 키보드가 나타날 때 스크롤을 마지막으로 이동
             const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -77,33 +95,37 @@ export default function ChatbotPage() {
             };
         }, []); // 한번만 실행되도록 빈 배열 전달
 
-    // 현재 날짜를 가져오는 함수
-    const getCurrentDate = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = (today.getMonth() + 1).toString().padStart(2, '0');
-        const day = today.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-    // 하루가 지나면 날짜 갱신
+
+    // 날짜 업데이트 및 자정에 날짜 메시지 추가
     useEffect(() => {
         const updateDate = () => {
-            setCurrentDate(getCurrentDate());
+            const newDate = getCurrentDate();
+            if (newDate !== currentDate) {
+                // 날짜 변경 시 시스템 메시지 추가
+                setMessages(prevMessages => [
+                    ...prevMessages,
+                    {
+                        createdAt: newDate,
+                        sender: 'system',
+                        text: newDate,
+                        avatar: null,
+                        name: '',
+                        timestamp: '',
+                        showTimestamp: false,
+                    },
+                ]);
+                setCurrentDate(newDate);
+            }
         };
 
-        // 처음 렌더링 시 날짜 설정
+        // 처음 실행 시 업데이트
         updateDate();
 
-        // 매일 00시에 날짜를 갱신하도록 설정
-        const timer = setInterval(() => {
-            const currentTime = new Date();
-            if (currentTime.getHours() === 0 && currentTime.getMinutes() === 0) {
-                updateDate(); // 날짜 갱신
-            }
-        }, 60000); // 1분마다 확인
+        // 1분마다 업데이트 확인
+        const timer = setInterval(updateDate, 60000);
 
-        return () => clearInterval(timer); // 타이머 정리
-    }, []);
+        return () => clearInterval(timer);
+    }, [currentDate]);
     useEffect(() => {
         if (scrollViewRef.current) {
             scrollViewRef.current.scrollToEnd({animated: true});
@@ -119,32 +141,32 @@ export default function ChatbotPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 사용자 정보를 AsyncStorage에서 가져옵니다.
                 const userData = await getUserInfo();
                 if (userData) {
                     setUserNick(userData.userNick || '');
                     setChatbotName(userData.chatbotName || '챗봇');
                     setUserEmail(userData.userEmail);
 
-                    // 프로필 이미지 URI 설정
-                    const profileImageUrl = userData.profileImage
-                        ? `${userData.profileImage}?${new Date().getTime()}` // 캐시 무효화를 위해 타임스탬프 추가
-                        : BambooPanda; // 기본 이미지 설정
+                    // profileImage 설정 부분에서 URI 객체와 기본 이미지를 확실히 구분
+                    const profileImageUrl = userData.profileImage ? { uri: String(userData.profileImage) } : BambooPanda;
 
-                    setUserAvatar(profileImageUrl ? { uri: profileImageUrl } : BambooPanda);
+
+                    // setUserAvatar 부분 수정
+                    if (profileImageUrl !== prevImageUriRef.current) {
+                        setUserAvatar(profileImageUrl ? profileImageUrl : BambooPanda);
+                        prevImageUriRef.current = profileImageUrl.uri || BambooPanda;
+                    }
                 } else {
-                    // 사용자 정보가 없을 경우 기본 프로필 설정
                     setUserAvatar(BambooPanda);
                 }
             } catch (error) {
                 console.error('프로필 정보 로드 중 오류:', error);
-                setUserAvatar(BambooPanda); // 오류 발생 시 기본 이미지로 설정
+                setUserAvatar(BambooPanda);
             }
         };
 
         fetchData();
     }, []);
-
 
  // 초기 로딩용 useEffect
     useEffect(() => {
@@ -163,33 +185,41 @@ export default function ChatbotPage() {
         }
     }, [isTyping]);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            const fetchData = async () => {
-                try {
-                    const userData = await getUserInfo();
-                    if (userData) {
-                        setUserNick(userData.userNick || '');
-                        setChatbotName(userData.chatbotName || '챗봇');
-                        setUserEmail(userData.userEmail);
+   useFocusEffect(
+       React.useCallback(() => {
+           const fetchData = async () => {
+               try {
+                   const userData = await getUserInfo();
+                   if (userData) {
+                       setUserNick(userData.userNick || '');
+                       setChatbotName(userData.chatbotName || '챗봇');
+                       setUserEmail(userData.userEmail);
+                   }
 
-                    }
-                    const profileImage = await getUserProfileImage();
-                    setUserAvatar(profileImage ? {uri: `${profileImage}?${new Date().getTime()}`} : BambooPanda);
+                   const profileImage = await getUserProfileImage();
+                   const profileImageUri = profileImage ? { uri: String(profileImage) } : null;
 
-                } catch (error) {
-                    console.error('데이터를 가져오는 데 실패했습니다:', error);
-                }
-            };
 
-            fetchData();
+                   // 이미지 URI가 변경된 경우에만 업데이트
+                   if (profileImageUri && profileImageUri !== prevImageUriRef.current) {
+                       setUserAvatar({ uri: profileImageUri });
+                       prevImageUriRef.current = profileImageUri; // 현재 URI로 업데이트
+                   }
+               } catch (error) {
+                   console.error('프로필 정보 로드 중 오류:', error);
+                   setUserAvatar(BambooPanda); // 오류 발생 시 기본 이미지로 설정
+               }
+           };
 
-            // 페이지가 포커스될 때마다 스크롤을 맨 아래로 이동
-            if (scrollViewRef.current) {
-                scrollViewRef.current.scrollToEnd({ animated: true });
-            }
-        }, [messages]) // messages가 변경될 때마다 실행되도록 설정
-    );
+           fetchData();
+
+           // 포커스될 때마다 스크롤을 맨 아래로 이동
+           if (scrollViewRef.current) {
+               scrollViewRef.current.scrollToEnd({ animated: true });
+           }
+       }, [messages]) // dependencies
+   );
+
 
     // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
     useEffect(() => {
@@ -464,13 +494,18 @@ export default function ChatbotPage() {
 
 
     const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
-        if (currentMessage.sender === 'bot') return true;
         const nextMessage = allMessages[messageIndex + 1];
+
+        // 다음 메시지가 없으면 현재 메시지에 시간을 표시
         if (!nextMessage) return true;
-        if (nextMessage.sender === 'bot') return true;
-        if (nextMessage.timestamp !== currentMessage.timestamp) return true;
-        return false;
+
+        // 다음 메시지가 동일한 분에 보낸 메시지라면 현재 메시지에서는 시간을 숨김
+        if (nextMessage.timestamp === currentMessage.timestamp) return false;
+
+        // 다른 분에 보낸 메시지라면 시간을 표시
+        return true;
     };
+
 
     // 평가 버튼 컴포넌트
     const EvaluationButtons = ({message, index}: { message: Message; index: number }) => {
@@ -505,8 +540,9 @@ const renderDateHeaders = () => {
     let lastDate = ''; // 이전에 표시된 날짜를 추적합니다.
 
     return messages.map((msg, index) => {
-        const showDateHeader = msg.createdAt !== lastDate && msg.createdAt === currentDate;
-        lastDate = msg.createdAt;
+        // 날짜가 변경될 때마다 날짜 헤더를 표시
+        const showDateHeader = msg.createdAt !== lastDate;
+        lastDate = msg.createdAt; // 마지막 날짜를 업데이트
 
         return (
             <React.Fragment key={index}>
@@ -515,27 +551,28 @@ const renderDateHeaders = () => {
                         <Text style={styles.dateHeader}>{msg.createdAt}</Text>
                     </View>
                 )}
-
                 <View
-                    key={index}
                     style={[
                         styles.messageContainer,
-                        msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer
+                        msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
                     ]}
                 >
                     {msg.sender === 'bot' && (
                         <View style={styles.avatarContainer}>
-                            <Image source={msg.avatar} style={styles.botAvatar} />
+                            <Image
+                                source={typeof msg.avatar === 'string' ? { uri: msg.avatar } : msg.avatar}
+                                style={styles.botAvatar}
+                            />
                         </View>
                     )}
 
                     <View style={[
                         styles.messageContent,
-                        msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent
+                        msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
                     ]}>
                         <Text style={[
                             styles.senderName,
-                            msg.sender === 'user' ? styles.userSenderName : styles.botSenderName
+                            msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
                         ]}>
                             {msg.name}
                         </Text>
@@ -547,11 +584,11 @@ const renderDateHeaders = () => {
 
                             <View style={[
                                 styles.message,
-                                msg.sender === 'user' ? styles.userMessage : styles.botMessage
+                                msg.sender === 'user' ? styles.userMessage : styles.botMessage,
                             ]}>
                                 <Text style={[
                                     styles.messageText,
-                                    msg.sender === 'user' ? styles.userMessageText : styles.botMessageText
+                                    msg.sender === 'user' ? styles.userMessageText : styles.botMessageText,
                                 ]}>
                                     {msg.text}
                                 </Text>
@@ -569,7 +606,7 @@ const renderDateHeaders = () => {
                     {msg.sender === 'user' && (
                         <View style={styles.avatarContainer}>
                             <Image
-                                source={userAvatar}
+                                source={typeof userAvatar === 'string' ? { uri: userAvatar } : userAvatar}
                                 style={styles.userAvatar}
                                 onError={() => {
                                     setUserAvatar(BambooPanda); // 이미지 로드 오류 시 기본 이미지로 설정
@@ -582,6 +619,7 @@ const renderDateHeaders = () => {
         );
     });
 };
+
 
     return (
         <KeyboardAvoidingView
@@ -614,17 +652,22 @@ const renderDateHeaders = () => {
                         </View>
                     )}
                 </ScrollView>
-                <View style={styles.inputArea}>
+                <View style={[styles.inputContainer,{marginTop:-height*0.02}]}>
                     <TextInput
                         style={styles.input}
                         value={input}
                         onChangeText={handleInputChange}
                         placeholder="이야기 입력하기.."
-                        onSubmitEditing={sendMessage}
                         placeholderTextColor="#707070"
+                        multiline={true}
+                        minHeight={height * 0.044}  // 최소 높이
+                        maxHeight={height * 0.2}   // 최대 높이
+                        onContentSizeChange={() => {
+                            scrollViewRef.current?.scrollToEnd({ animated: true });
+                        }}
                     />
-                    <TouchableOpacity onPress={sendMessage} style={styles.iconButton}>
-                        <Ionicons name="volume-high" size={24} color="#fff"/>
+                    <TouchableOpacity style={styles.iconButton} onPress={sendMessage}>
+                        <Ionicons name="arrow-up" size={20} color="#fff" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -636,7 +679,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(128, 128, 128, 0.2)', // 반투명 회색 배경
         marginVertical: 10, // 상하 여백 축소
         paddingVertical: 5, // 상하 패딩
-        paddingHorizontal: 15, // 좌우 패딩 추가
+        paddingHorizontal: 25, // 좌우 패딩 추가
         borderRadius: 15, // 둥근 테두리
         alignSelf: 'center', // 가운데 정렬
     },
@@ -877,31 +920,30 @@ const styles = StyleSheet.create({
     },
 
     // 입력 영역 스타일
-    inputArea: {
-        flexDirection: 'row', // 입력창과 버튼을 가로로 정렬
-        padding: 10, // 내부 여백
-        borderTopWidth: 1, // 위쪽 테두리
-        borderColor: '#ddd', // 테두리 색상
-        backgroundColor: '#fff', // 배경색 흰색
-        width: '100%', // 전체 너비 사용
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'flex-end', // 입력 칸이 위로 확장될 때 하단 정렬 유지
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        backgroundColor: '#fff',
+        width: '100%',
     },
-
-    // 입력창 스타일
     input: {
-        flex: 1, // 남은 공간 모두 사용
-        marginRight: 10, // 오른쪽 여백
-        borderWidth: 1, // 테두리 너비
-        borderColor: '#ccc', // 테두리 색상
-        borderRadius: 20, // 둥근 모서리
-        paddingHorizontal: 10, // 좌우 여백
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        fontSize: 16,
+        textAlignVertical: 'center', // 텍스트 상단 정렬
     },
-
-    // 아이콘 버튼 스타일 (메시지 전송 버튼)
     iconButton: {
-        backgroundColor: '#4a9960', // 버튼 배경색
-        borderRadius: 25, // 둥근 모서리
-        padding: 10, // 내부 여백
-        justifyContent: 'center', // 중앙 정렬
-        alignItems: 'center', // 중앙 정렬
+        backgroundColor: '#4a9960',
+        borderRadius: 25,
+        padding: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 10,
     },
 });

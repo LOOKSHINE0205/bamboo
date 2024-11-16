@@ -214,7 +214,7 @@ useEffect(() => {
           }
 
           if (!isValidPassword(newPassword)) {
-              Alert.alert('알림', '새 비밀번호는 최소 8자 이상, 대문자와 숫자를 포함해야 합니다.');
+              Alert.alert('알림', '새 비밀번호는 최소 8자 이상, 영어와 숫자를 포함해야 합니다.');
               console.log('오류: 새 비밀번호 유효성 검사 실패');
               return;
           }
@@ -275,11 +275,12 @@ useEffect(() => {
 
 
 
-// 비밀번호 유효성 검사
+// 비밀번호 유효성 검사 (대문자 제외, 영어와 숫자 조합 8자리 이상)
 const isValidPassword = (password) => {
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/; // 대문자와 숫자가 포함된 8자 이상의 비밀번호
+    const passwordRegex = /^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/i; // 영어와 숫자가 포함된 8자 이상의 비밀번호
     return passwordRegex.test(password);
 };
+
 
 
 // 비밀번호 업데이트 API 호출
