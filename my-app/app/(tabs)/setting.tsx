@@ -14,7 +14,8 @@ import {
   ScrollView,
   Platform,
   Modal,
-  Pressable
+  Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
@@ -29,6 +30,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
 const SettingsScreen = () => {
+  const {width, height} = useWindowDimensions("");
   const router = useRouter();
   const [userInfo, setUserInfo] = useState(null);
   const [password, setPassword] = useState('');
@@ -350,16 +352,16 @@ const updateNotificationSettings = async () => {
             </TouchableOpacity>
           </View>
         <Text style={styles.label}>닉네임</Text>
-              <SmoothCurvedInput style={[styles.input,]} value={userInfo?.userNick || ''} editable={false} fillColor="#f9f9f9" />
+              <SmoothCurvedInput style={[styles.input,]} value={userInfo?.userNick || ''} editable={false} fillColor="#f9f9f9"  customWidth={width*0.95} />
 
               <Text style={styles.label}>이메일</Text>
-              <SmoothCurvedInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} fillColor="#f9f9f9"  />
+              <SmoothCurvedInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} fillColor="#f9f9f9" customWidth={width*0.95} />
 
               <Text style={styles.label}>생일</Text>
-              <SmoothCurvedInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} fillColor="#f9f9f9"  />
+              <SmoothCurvedInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} fillColor="#f9f9f9" customWidth={width*0.95} />
 
               <Text style={styles.label}>챗봇 이름</Text>
-              <SmoothCurvedInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} fillColor="#f9f9f9" />
+              <SmoothCurvedInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} fillColor="#f9f9f9"customWidth={width*0.95} />
 
               <Text style={styles.label}>비밀번호 확인</Text>
               <SmoothCurvedInput
@@ -370,6 +372,7 @@ const updateNotificationSettings = async () => {
                 placeholder="기존 비밀번호 입력"
                 placeholderTextColor="#707070"
                 fillColor="#f9f9f9"
+                customWidth={width*0.95}
               />
 
               <Text style={styles.label}>비밀번호 변경</Text>
@@ -381,6 +384,7 @@ const updateNotificationSettings = async () => {
                 placeholder="새 비밀번호 입력"
                 placeholderTextColor="#707070"
                 fillColor="#f9f9f9"
+                customWidth={width*0.95}
               />
         <View style={styles.toggleContainer}>
           <Text style={styles.label}>알림 받기</Text>
@@ -509,18 +513,6 @@ const updateNotificationSettings = async () => {
                 marginBottom: 10
               },
               input: {
-                height: 40,
-                borderColor: 'gray',
-                borderWidth: 1,
-                borderRadius: 16, // 곡률을 더 부드럽게 변경
-                marginBottom: 20,
-                paddingLeft: 10,
-//                 shadowColor: '#000',
-//                 shadowOffset: { width: 0, height: 4 },
-//                 shadowOpacity: 0.15,
-//                 shadowRadius: 6,
-                backgroundColor: '#fff',
-                elevation: 2
               },
               toggleContainer: {
                 flexDirection: 'row',
