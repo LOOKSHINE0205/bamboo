@@ -239,7 +239,7 @@ const Report = () => {
                 chartData={chartData}
                 normalizedEmotionDataByDay={normalizedEmotionDataByDay}
               />
-              <View style={styles.sectioninner}>
+              <View style={[styles.sectioninner,{top:-screenHeight*0.25}]}>
                 <EmotionChartLine
                   selectedEmotions={selectedEmotions}
                   chartData={chartData}
