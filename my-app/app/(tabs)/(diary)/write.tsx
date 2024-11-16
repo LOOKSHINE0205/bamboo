@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, TextInput, StyleSheet, Platform, Alert,
-  KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard,useWindowDimensions } from "react-native";
+  KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard,useWindowDimensions, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
@@ -8,7 +8,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SmoothCurvedButton from '../../../components/SmoothCurvedButton';
 import { serverAddress } from '../../../components/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 const moodImageMap = {
   happy: require("../../../assets/images/diary_happy.png"),
@@ -130,8 +129,10 @@ export default function DiaryEntryScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-
-          <View style={styles.topContainer}>
+          <View style={[styles.topContainer,{alignItems:'center', justifyContent:'center'}]}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color="#333" />
+            </TouchableOpacity>
             <View style={styles.moodImageContainer}>
               {mood && (
                 <Image
@@ -283,6 +284,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+    position: 'absolute',
+    left: 16,
+  },
 
 });
