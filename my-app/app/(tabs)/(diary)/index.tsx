@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, Animated } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, Animated, useWindowDimensions } from "react-native";
 import { Ionicons, Foundation } from "@expo/vector-icons";
 import { router } from "expo-router";
 import DateModal from "../(diary)/dateModal";
@@ -12,10 +12,10 @@ interface DiaryEntry {
   emotionTag: string;
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const Day = React.memo(
     ({ date, today, currentMonth, currentYear, handleDayPress, emotion }) => {
+      const { width: screenWidth, height:screenHeight } = useWindowDimensions(); // 화면 너비 가져오기
       const isToday =
           date.day === today.getDate() &&
           currentMonth === today.getMonth() &&
@@ -33,12 +33,14 @@ const Day = React.memo(
       const emotionImage = emotion ? moodImageMap[emotion] : null;
       return (
           <TouchableOpacity
-              style={[
-                styles.dateContainer,
-                date.outsideMonth && styles.outsideMonth,
-              ]}
-              onPress={() => handleDayPress(date.day)}
+            style={[
+              styles.dateContainer,
+              date.outsideMonth && styles.outsideMonth,
+              { width: screenWidth / 8 }, // 화면 너비를 7등분하여 설정
+            ]}
+            onPress={() => handleDayPress(date.day)}
           >
+
             <View style={[styles.circle, isToday && styles.todayCircle]}>
               {emotionImage ? (
                   <Image source={emotionImage} style={styles.emotionImage} />
@@ -59,6 +61,7 @@ export default function CustomDiaryScreen() {
   const [diaryEntries, setDiaryEntries] = useState<Diary[]>([]);
   const [selectedDates, setSelectedDates] = useState<Record<string, string>>({});
   const alertOpacity = useRef(new Animated.Value(0)).current;
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const handleEntriesLoaded = (entries: Diary[]) => {
     setDiaryEntries(entries);
@@ -71,7 +74,6 @@ export default function CustomDiaryScreen() {
     });
 
     setSelectedDates(datesMap);
-    console.log("Selected Dates with Emotions:", datesMap);
   };
 
   useFocusEffect(
@@ -278,14 +280,13 @@ const styles = StyleSheet.create({
   calendar: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start', // 왼쪽부터 시작하되
+    justifyContent: "space-between", // 요소 간의 간격을 조절
   },
 
   dateContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 12,
-    width: `${100/7}%`, // 전체 너비를 7등분하여 각 날짜가 동일한 공간을 차지하도록 설정
   },
   circle: {
     width: 43, // 원형 배경의 너비
