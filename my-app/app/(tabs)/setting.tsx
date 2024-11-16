@@ -26,8 +26,6 @@ import SmoothCurvedInput from '../../components/SmoothCurvedInput';
 import {serverAddress} from '../../components/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-
 const profileImageBaseUrl = `${serverAddress}/uploads/profile/images/`;
 
 const SettingsScreen = () => {
