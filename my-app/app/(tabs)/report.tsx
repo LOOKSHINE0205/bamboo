@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 8,
     marginHorizontal: 5,
-    elevation: 2,
+//     elevation: 2,
 //     shadowColor: '#000',
 //     shadowOffset: { width: 0, height: 1 },
 //     shadowOpacity: 0.2,
