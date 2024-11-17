@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
@@ -7,10 +7,11 @@ import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
 const UserGuide = () => {
   const router = useRouter();
-
+  const {width, height} = useWindowDimensions();
   const [pageIndex, setPageIndex] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(1));
   const [isAnimating, setIsAnimating] = useState(false);
+
 
   const pages = [
     {
@@ -73,10 +74,10 @@ const UserGuide = () => {
   return (
     <JoinBG>
       <View style={styles.container}>
-        <Animated.View style={[styles.iconContainer, { opacity: fadeAnim }]}>
+        <Animated.View style={[styles.iconContainer, { opacity: fadeAnim, }]}>
           <TabBarIcon name={pages[pageIndex].icon} color="#4a9960" size={150} />
         </Animated.View>
-        <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
+        <Animated.Text style={[styles.title, { opacity: fadeAnim, }]}>
           {pages[pageIndex].title}
         </Animated.Text>
         <Animated.Text style={[styles.description, { opacity: fadeAnim }]}>
@@ -100,6 +101,8 @@ const UserGuide = () => {
               flexDirection: 'column', // 버튼을 항상 세로 방향으로 배치
               alignItems: 'center', // 모든 버튼을 가운데 정렬
               width: '80%',
+              position: 'absolute',
+              top:height*0.6
             },
           ]}
         >
