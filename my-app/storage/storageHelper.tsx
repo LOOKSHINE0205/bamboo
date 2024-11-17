@@ -65,11 +65,22 @@ export const updateUserInfo = async (newData: Partial<User>): Promise<void> => {
     }
 };
 
-// 사용자 정보 제거
 export const clearUserData = async () => {
     try {
-        await AsyncStorage.removeItem('userInfo'); // 사용자 정보만 삭제
-        console.log("사용자 데이터 삭제 성공");
+        // 기존 사용자 정보를 불러옴
+        const userInfoString = await AsyncStorage.getItem('userInfo');
+        if (userInfoString) {
+            const userData: User = JSON.parse(userInfoString);
+
+            // 프로필 이미지 URL을 유지하면서 다른 사용자 데이터는 삭제
+            const updatedUserData = { profileImage: userData.profileImage };
+
+            // 업데이트된 사용자 정보만 다시 저장
+            await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserData));
+            console.log("사용자 데이터 삭제 성공 (프로필 이미지는 유지됨)");
+        } else {
+            console.log("사용자 정보가 없습니다. 데이터 삭제를 건너뜁니다.");
+        }
     } catch (error) {
         console.error('사용자 데이터 삭제에 실패했습니다:', error);
     }

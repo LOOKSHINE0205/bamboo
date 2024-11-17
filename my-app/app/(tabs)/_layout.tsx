@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 import { getUserInfo, clearUserData } from '../../storage/storageHelper'; // 사용자 정보 가져오기 함수와 로그아웃 함수 import
 import { useRouter } from 'expo-router';
+import { ProfileProvider } from '../../context/ProfileContext';
 
 function CustomTabBar({ state, descriptors, navigation }) {
     const { width, height } = useWindowDimensions();
@@ -97,26 +98,28 @@ export default function TabLayout() {
     };
 
     return (
-        <Tabs
-            tabBar={(props) => <CustomTabBar {...props} />}
-        >
-            <Tabs.Screen name="index" options={{ title: "대화하기",headerTitleAlign: "center", }} />
-            <Tabs.Screen name="(diary)" options={{ title: "다이어리",headerTitleAlign: "center", }} />
-            <Tabs.Screen name="myPage" options={{ title: "마이 페이지",headerTitleAlign: "center", }} />
-            <Tabs.Screen name="report" options={{ title: "보고서",headerTitleAlign: "center", }} />
-            <Tabs.Screen
-                name="setting"
-                options={{
-                    title: "설정",
-                    headerTitleAlign: "center",
-                    headerRight: () => (
-                        <TouchableOpacity onPress={handleLogout}>
-                            <Text style={{ color: 'black', marginRight: 10 }}>로그아웃</Text>
-                        </TouchableOpacity>
-                    ),
-                }}
-            />
-        </Tabs>
+        <ProfileProvider>
+            <Tabs
+                tabBar={(props) => <CustomTabBar {...props} />}
+            >
+                <Tabs.Screen name="index" options={{ title: "대화하기", headerTitleAlign: "center" }} />
+                <Tabs.Screen name="(diary)" options={{ title: "다이어리", headerTitleAlign: "center" }} />
+                <Tabs.Screen name="myPage" options={{ title: "마이 페이지", headerTitleAlign: "center" }} />
+                <Tabs.Screen name="report" options={{ title: "보고서", headerTitleAlign: "center" }} />
+                <Tabs.Screen
+                    name="setting"
+                    options={{
+                        title: "설정",
+                        headerTitleAlign: "center",
+                        headerRight: () => (
+                            <TouchableOpacity onPress={handleLogout}>
+                                <Text style={{ color: 'black', marginRight: 10 }}>로그아웃</Text>
+                            </TouchableOpacity>
+                        ),
+                    }}
+                />
+            </Tabs>
+        </ProfileProvider>
     );
 }
 

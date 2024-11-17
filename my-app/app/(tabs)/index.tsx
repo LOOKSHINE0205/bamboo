@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -9,20 +9,23 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
-    Keyboard,
+    Alert,
     useWindowDimensions,
-    Alert
+    Keyboard,
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {getUserInfo, getUserProfileImage} from '../../storage/storageHelper';
-import {useFocusEffect} from '@react-navigation/native';
+import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
+import { useFocusEffect } from '@react-navigation/native';
 import BambooHead from '../../assets/images/bamboo_head.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {serverAddress} from '../../components/Config';
-import{ ChatMessage,getChatHistory} from "../../components/getChatHistory";
+import { serverAddress } from '../../components/Config';
+import { ChatMessage, getChatHistory } from "../../components/getChatHistory";
 import * as Clipboard from 'expo-clipboard';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // KeyboardAwareScrollView 임포트
+import { useRoute } from '@react-navigation/native';
+import { useProfile } from '../../context/ProfileContext';
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
@@ -58,7 +61,7 @@ export default function ChatbotPage() {
     const [inputAreaHeight, setInputAreaHeight] = useState(height * 0.05);
     const [userNick, setUserNick] = useState<string>('');
     const [chatbotName, setChatbotName] = useState<string>('');
-    const [userAvatar, setUserAvatar] = useState(BambooPanda);
+    const [userAvatar, setUserAvatar] = useState(profileImageUri || BambooPanda);
     const [userEmail, setUserEmail] = useState<string>('');
     const [isTyping, setIsTyping] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
@@ -68,6 +71,7 @@ export default function ChatbotPage() {
     // 이전 이미지 URI를 저장하는 useRef 생성
     const prevImageUriRef = useRef<string | null>(null); // 이전 이미지 URI를 저장하는 useRef
     const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
+    const { profileImageUri } = useProfile();
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
@@ -189,6 +193,12 @@ export default function ChatbotPage() {
 
 
     useEffect(() => {
+        setUserAvatar(profileImageUri ? { uri: profileImageUri } : BambooPanda);
+        console.log('프로필 이미지 URI가 변경됨:', profileImageUri || '기본 이미지(BambooPanda)');
+    }, [profileImageUri]);
+
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 const userData = await getUserInfo();
@@ -197,15 +207,22 @@ export default function ChatbotPage() {
                     setChatbotName(userData.chatbotName || '챗봇');
                     setUserEmail(userData.userEmail);
 
-                    // profileImage 설정 부분에서 URI 객체와 기본 이미지를 확실히 구분
-                    const profileImageUrl = userData.profileImage ? { uri: String(userData.profileImage) } : BambooPanda;
+                    // 프로필 이미지 URL을 정확히 설정
+                    let profileImageUrl = userData.profileImage;
 
-
-                    // setUserAvatar 부분 수정
-                    if (profileImageUrl !== prevImageUriRef.current) {
-                        setUserAvatar(profileImageUrl ? profileImageUrl : BambooPanda);
-                        prevImageUriRef.current = profileImageUrl.uri || BambooPanda;
+                    if (profileImageUrl) {
+                        // URL이 서버 주소로 시작하지 않으면 서버 주소를 추가
+                        if (!profileImageUrl.startsWith('http')) {
+                            profileImageUrl = `${serverAddress}/uploads/profile/images/${profileImageUrl}`;
+                        }
+                    } else {
+                        profileImageUrl = null;
                     }
+
+                    // 설정된 이미지 URL을 AsyncStorage 및 Context에 저장
+                    await AsyncStorage.setItem('profileImageUri', profileImageUrl || '');
+                    setUserAvatar(profileImageUrl ? { uri: profileImageUrl } : BambooPanda);
+                    console.log('fetchData 내에서 설정된 프로필 이미지 URL:', profileImageUrl);
                 } else {
                     setUserAvatar(BambooPanda);
                 }
@@ -217,6 +234,29 @@ export default function ChatbotPage() {
 
         fetchData();
     }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const fetchProfileImage = async () => {
+                const storedImageUri = await AsyncStorage.getItem('profileImageUri');
+                const imageUri = storedImageUri || profileImageUri || BambooPanda;
+
+                console.log('AsyncStorage에서 불러온 프로필 이미지 URI:', storedImageUri);
+                console.log('Context에서 가져온 profileImageUri:', profileImageUri);
+                console.log('최종 설정된 프로필 이미지 URI:', imageUri || '기본 이미지(BambooPanda)');
+
+                setUserAvatar(imageUri ? { uri: imageUri } : BambooPanda);
+            };
+
+            fetchProfileImage();
+
+            // 포커스될 때마다 스크롤을 맨 아래로 이동
+            if (scrollViewRef.current) {
+                scrollViewRef.current.scrollToEnd({ animated: true });
+            }
+        }, [profileImageUri])
+    );
+
 
  // 초기 로딩용 useEffect
     useEffect(() => {
@@ -235,40 +275,6 @@ export default function ChatbotPage() {
         }
     }, [isTyping]);
 
-   useFocusEffect(
-       React.useCallback(() => {
-           const fetchData = async () => {
-               try {
-                   const userData = await getUserInfo();
-                   if (userData) {
-                       setUserNick(userData.userNick || '');
-                       setChatbotName(userData.chatbotName || '챗봇');
-                       setUserEmail(userData.userEmail);
-                   }
-
-                   const profileImage = await getUserProfileImage();
-                   const profileImageUri = profileImage ? { uri: String(profileImage) } : null;
-
-
-                   // 이미지 URI가 변경된 경우에만 업데이트
-                   if (profileImageUri && profileImageUri !== prevImageUriRef.current) {
-                       setUserAvatar({ uri: profileImageUri });
-                       prevImageUriRef.current = profileImageUri; // 현재 URI로 업데이트
-                   }
-               } catch (error) {
-                   console.error('프로필 정보 로드 중 오류:', error);
-                   setUserAvatar(BambooPanda); // 오류 발생 시 기본 이미지로 설정
-               }
-           };
-
-           fetchData();
-
-           // 포커스될 때마다 스크롤을 맨 아래로 이동
-           if (scrollViewRef.current) {
-               scrollViewRef.current.scrollToEnd({ animated: true });
-           }
-       }, [messages]) // dependencies
-   );
 
 
     // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
@@ -450,15 +456,15 @@ export default function ChatbotPage() {
     // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
     const sendMessage = async () => {
         if (input.trim()) {
-            const userMessage: Message = {
-                sender: 'user',
-                text: input.trim(),
-                avatar: userAvatar,
-                name: userNick,
-                timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-                createdAt: new Date().toLocaleDateString('ko-KR'),
-                showTimestamp: true
-            };
+                const userMessage: Message = {
+                    sender: 'user',
+                    text: input.trim(),
+                    avatar: profileImageUri ? { uri: profileImageUri } : BambooPanda, // 프로필 이미지 업데이트
+                    name: userNick,
+                    timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                    createdAt: new Date().toLocaleDateString('ko-KR'),
+                    showTimestamp: true
+                };
 
             console.log('User message being sent:', userMessage); // 사용자 메시지 로그 추가
             setMessages(prevMessages => [...prevMessages, userMessage]);
@@ -656,14 +662,12 @@ const renderDateHeaders = () => {
                     {msg.sender === 'user' && (
                         <View style={styles.avatarContainer}>
                             <Image
-                                source={typeof userAvatar === 'string' ? { uri: userAvatar } : userAvatar}
+                                source={profileImageUri ? { uri: profileImageUri } : BambooPanda} // ProfileContext의 이미지로 업데이트
                                 style={styles.userAvatar}
-                                onError={() => {
-                                    setUserAvatar(BambooPanda);
-                                }}
                             />
                         </View>
                     )}
+
                 </TouchableOpacity>
             </React.Fragment>
         );
