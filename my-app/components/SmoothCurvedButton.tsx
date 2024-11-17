@@ -33,16 +33,16 @@ const SmoothCurvedButton = ({ onPress, title, icon, disabled, color = '#4a9960',
       style={[
         styles.buttonContainer,
         { width: buttonWidth, height: buttonHeight },
-        isFadeAnimPresent && { opacity: fadeAnim }, // fadeAnim이 있을 경우 opacity만 적용
-        style, // 부모에서 전달받은 애니메이션 스타일을 여기에 적용
+        style,
       ]}
       disabled={disabled}
       activeOpacity={0.7}
     >
       <Animated.View
         style={[
-          { transform: [{ scale }] }, // 눌렀을 때 애니메이션 효과
-          !isFadeAnimPresent && isPressed && styles.pressedEffect, // fadeAnim이 없을 때만 눌림 효과 적용
+          { transform: [{ scale }] },
+          { opacity: fadeAnim || 1 },  // fadeAnim이 전달되면 적용, 아니면 기본 1
+          !isFadeAnimPresent && isPressed && styles.pressedEffect,
         ]}
       >
         <Svg height={buttonHeight} width={buttonWidth} viewBox={`0 0 ${buttonWidth} ${buttonHeight}`}>

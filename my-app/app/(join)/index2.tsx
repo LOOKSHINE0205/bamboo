@@ -297,16 +297,17 @@ return (
                 ))}
               </View>
 
+              // fadeAnim을 각 SmoothCurvedButton에 전달하여 버튼에 페이드 애니메이션 적용
               {currentQuestion.responses.map((response, index) => (
                 <Animated.View
                   key={index}
                   style={[
                     styles.responseButton,
                     {
-                      transform: [{ scale: fadeAnim }],  // opacity 대신 transform을 사용하여 크기나 위치 애니메이션
+                      opacity: fadeAnim,  // fadeAnim 애니메이션 추가
                       width: screenWidth * 0.85,
-                      position: 'relative',  // position을 relative로 설정
-                      zIndex: 2,  // 버튼이 다른 요소 위에 렌더링되도록 설정
+                      position: 'relative',
+                      zIndex: 2,
                     },
                   ]}
                 >
@@ -315,13 +316,14 @@ return (
                     onPress={() => !isProcessing && handleResponsePress(index)}
                     disabled={isProcessing}
                     customWidth={screenWidth * 0.95}
+                    fadeAnim={fadeAnim}  // fadeAnim 전달
                     style={[
                       styles.responseButtonTouchable,
                     ]}
                   />
                 </Animated.View>
-
               ))}
+
 
                 <TouchableOpacity
                   style={[
