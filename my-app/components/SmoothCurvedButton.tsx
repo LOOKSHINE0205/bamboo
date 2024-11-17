@@ -47,10 +47,15 @@ const SmoothCurvedButton = ({ onPress, title, icon, disabled, color = '#4a9960',
       >
         <Svg height={buttonHeight} width={buttonWidth} viewBox={`0 0 ${buttonWidth} ${buttonHeight}`}>
           <Path
-            d={`M30,0 C5,0 0,10 0,30
-              L0,${buttonHeight - 30} C0.5,${buttonHeight - 6} 6,${buttonHeight - 0.5} 30,${buttonHeight}
-              L${buttonWidth - 30},${buttonHeight} C${buttonWidth - 6},${buttonHeight - 0.5} ${buttonWidth - 0.5},${buttonHeight - 10} ${buttonWidth},${buttonHeight - 30}
-              L${buttonWidth},30 C${buttonWidth - 0.5},10 ${buttonWidth - 6},0.5 ${buttonWidth - 30},0 Z`}
+            d={`M0,20
+                Q0,0 20,0
+                L${buttonWidth - 20},0
+                Q${buttonWidth},0 ${buttonWidth},20
+                L${buttonWidth},${buttonHeight - 20}
+                Q${buttonWidth},${buttonHeight} ${buttonWidth - 20},${buttonHeight}
+                L20,${buttonHeight}
+                Q0,${buttonHeight} 0,${buttonHeight - 20}
+                Z`}
             fill={disabled ? '#cccccc' : isPressed ? '#3a7c54' : color}
           />
         </Svg>

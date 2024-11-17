@@ -27,13 +27,18 @@ const SmoothCurvedInput = forwardRef(({
     <View style={[styles.inputContainer, { height: inputHeight }, style]}>
       <Svg height={inputHeight} width={inputWidth} viewBox={`0 0 ${inputWidth} ${inputHeight}`}>
         <Path
-                  d={`M30,0 C5,0 0,10 0,30
-                    L0,${inputHeight - 30} C0.5,${inputHeight - 6} 6,${inputHeight - 0.5} 30,${inputHeight}
-                    L${inputWidth - 30},${inputHeight} C${inputWidth - 6},${inputHeight - 0.5} ${inputWidth - 0.5},${inputHeight - 10} ${inputWidth},${inputHeight - 30}
-                    L${inputWidth},30 C${inputWidth - 0.5},10 ${inputWidth - 6},0.5 ${inputWidth - 30},0 Z`}
-                    fill={disabled ? '#cccccc' : isPressed ? '#e8f5e9' : fillColor}  // fillColor를 전달받은 값으로 설정
+          d={`M0,20
+              Q0,0 20,0
+              L${inputWidth - 20},0
+              Q${inputWidth},0 ${inputWidth},20
+              L${inputWidth},${inputHeight - 20}
+              Q${inputWidth},${inputHeight} ${inputWidth - 20},${inputHeight}
+              L20,${inputHeight}
+              Q0,${inputHeight} 0,${inputHeight - 20}
+              Z`}
+            fill={disabled ? '#cccccc' : isPressed ? '#e8f5e9' : fillColor}  // fillColor를 전달받은 값으로 설정
 
-                />
+        />
       </Svg>
       <TextInput
         ref={ref}  // ref를 전달하여 포커스를 사용할 수 있게 함
