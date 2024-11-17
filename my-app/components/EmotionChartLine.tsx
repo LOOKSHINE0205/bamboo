@@ -18,7 +18,7 @@ const EmotionChartLine: React.FC<EmotionChartProps> = React.memo(
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
     // 낮은 값에 추가할 오프셋 설정
-    const offset = 0.115;
+    const offset = 0.15;
 
     useEffect(() => {
       // 필요한 로직 추가
@@ -28,9 +28,9 @@ const EmotionChartLine: React.FC<EmotionChartProps> = React.memo(
       <View style={styles.chartContainer}>
         <VictoryChart
           theme={VictoryTheme.material}
-          domainPadding={{ x: 25, y: 10 }}
-          padding={{ top: 15, bottom: 50, left: 40, right: 30 }}
-          width={screenWidth - 40}
+          domainPadding={{ x: 20, y: 20 }}
+          padding={{ top: 50, bottom: 50, left: 30, right: 50 }}
+          width={screenWidth }
           height={screenHeight * 0.25}
         >
           <VictoryAxis
