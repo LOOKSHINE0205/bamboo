@@ -92,23 +92,34 @@ export default function CustomDiaryScreen() {
 
   const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
 
+  // getDaysInMonth 함수에서 없는 날짜에 invisible 속성 추가
   const getDaysInMonth = (year, month) => {
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0).getDate();
-    const firstDayOfWeek = firstDayOfMonth.getDay();
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
+      const firstDayOfMonth = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const firstDayOfWeek = firstDayOfMonth.getDay();
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
 
-    const days = [];
+      const days = [];
 
-    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-      days.push({ day: prevMonthLastDay - i, outsideMonth: true });
-    }
+      // 이전 달의 마지막 주에 해당하는 날짜 추가
+      for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+          days.push({ day: prevMonthLastDay - i, outsideMonth: true, invisible: true });
+      }
 
-    for (let day = 1; day <= lastDay; day++) {
-      days.push({ day, outsideMonth: false });
-    }
+      // 현재 달의 날짜 추가
+      for (let day = 1; day <= lastDay; day++) {
+          days.push({ day, outsideMonth: false, invisible: false });
+      }
 
-    return days;
+      // 다음 달의 시작 부분에 해당하는 날짜 추가
+      const remainingDays = 7 - (days.length % 7);
+      if (remainingDays < 7) {
+          for (let i = 1; i <= remainingDays; i++) {
+              days.push({ day: i, outsideMonth: true, invisible: true });
+          }
+      }
+
+      return days;
   };
 
   const showAlertMessage = (message) => {
@@ -196,24 +207,23 @@ export default function CustomDiaryScreen() {
         </View>
 
         <View style={styles.calendar}>
-          {daysInMonth.map((date, index) => {
-            const dateKey = `${currentYear}-${(currentMonth + 1)
-                .toString()
-                .padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
-            const emotion = selectedDates[dateKey];
+            {daysInMonth.map((date, index) => {
+                const dateKey = `${currentYear}-${(currentMonth + 1).toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
+                const emotion = selectedDates[dateKey];
 
-            return (
-                <Day
-                    key={index}
-                    date={date}
-                    today={today}
-                    currentMonth={currentMonth}
-                    currentYear={currentYear}
-                    handleDayPress={handleDayPress}
-                    emotion={emotion}
-                />
-            );
-          })}
+                return (
+                    <Day
+                        key={index}
+                        date={date}
+                        today={today}
+                        currentMonth={currentMonth}
+                        currentYear={currentYear}
+                        handleDayPress={handleDayPress}
+                        emotion={emotion}
+                        isInvisible={date.invisible} // 새로운 속성으로 표시 여부 전달
+                    />
+                );
+            })}
         </View>
 
         {alertMessage && (
@@ -280,13 +290,14 @@ const styles = StyleSheet.create({
   calendar: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: "space-between", // 요소 간의 간격을 조절
+    justifyContent: 'space-around', // 요소 간격을 넓게 조정
   },
 
   dateContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 12,
+    marginVertical: 12, // 위아래 간격
+    marginHorizontal: 0.1, // 좌우 간격 추가
   },
   circle: {
     width: 43, // 원형 배경의 너비
