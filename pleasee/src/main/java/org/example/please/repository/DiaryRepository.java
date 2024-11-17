@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -23,4 +24,10 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
 
     @Query("SELECT d FROM Diary d WHERE d.userEmail = :userEmail AND YEAR(d.createdAt) = :year AND MONTH(d.createdAt) = :month")
     List<Diary> findByUserEmailAndYearAndMonth(String userEmail, int year, int month);
+
+    // 관리자 메서드
+    // 오늘 일기 수 카운트
+    @Query("SELECT COUNT(*) FROM Diary d WHERE d.createdAt >= :startOfDay AND d.createdAt < :endOfDay")
+    long countTodayDiaries(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
+
 }
