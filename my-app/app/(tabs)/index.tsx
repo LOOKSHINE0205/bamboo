@@ -10,7 +10,8 @@ import {
     KeyboardAvoidingView,
     Platform,
     Keyboard,
-    useWindowDimensions
+    useWindowDimensions,
+    Alert
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -21,6 +22,7 @@ import BambooPanda from '../../assets/images/bamboo_panda.png';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {serverAddress} from '../../components/Config';
 import{ ChatMessage,getChatHistory} from "../../components/getChatHistory";
+import * as Clipboard from 'expo-clipboard';
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
@@ -65,7 +67,7 @@ export default function ChatbotPage() {
     const [isCountdownStarted, setIsCountdownStarted] = useState(false);
     // 이전 이미지 URI를 저장하는 useRef 생성
     const prevImageUriRef = useRef<string | null>(null); // 이전 이미지 URI를 저장하는 useRef
-
+    const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
@@ -73,28 +75,86 @@ export default function ChatbotPage() {
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+
+    const handleLongPress = (message, messageIndex) => {
+        Alert.alert(
+            "메시지 옵션",
+            "이 메시지를 어떻게 할까요?",
+            [
+                {
+                    text: "복사",
+                    onPress: async () => {
+                        await Clipboard.setStringAsync(message.text); // 클립보드에 메시지 텍스트 복사
+                        Alert.alert("복사됨", "메시지가 복사되었습니다.");
+                    }
+                },
+                {
+                    text: "삭제",
+                    onPress: () => deleteMessage(message.chatIdx) // 메시지 삭제 함수 호출
+                },
+                {
+                    text: "취소",
+                    style: "cancel"
+                }
+            ],
+            { cancelable: true }
+        );
+    };
+
+
+    const deleteMessage = async (chatIdx) => {
+        try {
+            const response = await axios.delete(`${serverAddress}/api/chat/deleteMessage`, {
+                params: { chatIdx }
+            });
+
+            console.log("Message deleted successfully:", response.data);
+
+            // 삭제된 메시지를 화면에서 바로 제거
+            setMessages(prevMessages => prevMessages.filter(message => message.chatIdx !== chatIdx));
+        } catch (error) {
+            console.error("메시지 삭제 오류:", error);
+        }
+    };
+
+
+    // 클립보드에 텍스트 복사
+    const copyToClipboard = (text: string) => {
+        Clipboard.setString(text);
+    };
+
+    // 클립보드에서 텍스트 읽기
+    const getClipboardContent = async () => {
+        const content = await Clipboard.getStringAsync();
+        console.log(content);
+        return content;
+    };
+    const scrollToBottom = (animated = true) => {
+        if (scrollViewRef.current && isAutoScrollEnabled) {
+            scrollViewRef.current.scrollToEnd({ animated });
+        }
+    };
+
     useEffect(() => {
-            // 키보드가 나타날 때 스크롤을 마지막으로 이동
-            const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-                if (scrollViewRef.current) {
-                    scrollViewRef.current.scrollToEnd({ animated: true });
-                }
-            });
+        // 키보드 표시/숨김에 따른 스크롤 처리
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => scrollToBottom(true));
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => scrollToBottom(true));
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
 
-            // 키보드가 사라질 때 스크롤을 마지막으로 이동
-            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-                if (scrollViewRef.current) {
-                    scrollViewRef.current.scrollToEnd({ animated: true });
-                }
-            });
+    useEffect(() => {
+        // 메시지 추가, 타이핑 상태 변경 시 스크롤 처리
+        scrollToBottom(true);
+    }, [messages, isTyping]);
 
-            // 컴포넌트 언마운트 시 리스너 제거
-            return () => {
-                keyboardDidShowListener.remove();
-                keyboardDidHideListener.remove();
-            };
-        }, []); // 한번만 실행되도록 빈 배열 전달
-
+    const handleScroll = (event) => {
+        const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+        const isBottomReached = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+        setIsAutoScrollEnabled(isBottomReached);
+    };
 
     // 날짜 업데이트 및 자정에 날짜 메시지 추가
     useEffect(() => {
@@ -126,17 +186,7 @@ export default function ChatbotPage() {
 
         return () => clearInterval(timer);
     }, [currentDate]);
-    useEffect(() => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollToEnd({animated: true});
-        }
-    }, [messages, isTyping,typingDots]); // messages와 isTyping 상태가 변경될 때마다 실행
 
-    useLayoutEffect(() => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollToEnd({ animated: false });
-        }
-    }, []); // 초기 로드 시에만 실행
 
     useEffect(() => {
         const fetchData = async () => {
@@ -537,12 +587,11 @@ export default function ChatbotPage() {
         );
     };
 const renderDateHeaders = () => {
-    let lastDate = ''; // 이전에 표시된 날짜를 추적합니다.
+    let lastDate = '';
 
     return messages.map((msg, index) => {
-        // 날짜가 변경될 때마다 날짜 헤더를 표시
         const showDateHeader = msg.createdAt !== lastDate;
-        lastDate = msg.createdAt; // 마지막 날짜를 업데이트
+        lastDate = msg.createdAt;
 
         return (
             <React.Fragment key={index}>
@@ -551,7 +600,8 @@ const renderDateHeaders = () => {
                         <Text style={styles.dateHeader}>{msg.createdAt}</Text>
                     </View>
                 )}
-                <View
+                <TouchableOpacity
+                    onLongPress={() => handleLongPress(msg, index)} // 모든 메시지에 길게 누름 이벤트 추가
                     style={[
                         styles.messageContainer,
                         msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
@@ -609,17 +659,16 @@ const renderDateHeaders = () => {
                                 source={typeof userAvatar === 'string' ? { uri: userAvatar } : userAvatar}
                                 style={styles.userAvatar}
                                 onError={() => {
-                                    setUserAvatar(BambooPanda); // 이미지 로드 오류 시 기본 이미지로 설정
+                                    setUserAvatar(BambooPanda);
                                 }}
                             />
                         </View>
                     )}
-                </View>
+                </TouchableOpacity>
             </React.Fragment>
         );
     });
 };
-
 
     return (
         <KeyboardAvoidingView
@@ -631,10 +680,15 @@ const renderDateHeaders = () => {
                 <ScrollView
                     ref={scrollViewRef}
                     style={styles.chatArea}
-                    contentContainerStyle={styles.chatContent}
-
+                    contentContainerStyle={[styles.chatContent, { paddingBottom: height * 0.02 }]} // 입력창 높이만큼 여유 공간 추가
                     showsVerticalScrollIndicator={false}
-                    onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+                    onContentSizeChange={() => {
+                        if (isAutoScrollEnabled) {
+                            scrollViewRef.current?.scrollToEnd({ animated: true });
+                        }
+                    }}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16} // 스크롤 이벤트 업데이트 빈도를 조절하여 성능 최적화
                 >
                     {renderDateHeaders()}
 

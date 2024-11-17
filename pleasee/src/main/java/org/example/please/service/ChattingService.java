@@ -69,4 +69,12 @@ public class ChattingService {
         return chattingRepository.findLatestMessageInRoom(croomIdx, sessionIdx).orElse(null);
     }
 
+    public boolean deleteChatMessage(Integer chatIdx) {
+        if (chattingRepository.existsById(chatIdx)) {
+            chattingRepository.deleteById(chatIdx);
+            return true;
+        }
+        return false;
+    }
+
 }
