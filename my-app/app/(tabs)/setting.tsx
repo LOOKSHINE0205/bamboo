@@ -365,7 +365,7 @@ const updateNotificationSettings = async () => {
                 fillColor="#f9f9f9"
                 customWidth={width*0.95}
               />
-        <View style={styles.toggleContainer}>
+        <View style={[styles.toggleContainer]}>
           <Text style={styles.label}>알림 받기</Text>
           <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
         </View>

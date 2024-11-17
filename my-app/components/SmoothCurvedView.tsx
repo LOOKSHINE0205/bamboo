@@ -11,7 +11,7 @@ const SmoothCurvedView = forwardRef(({
   children,
   backgroundColor,
   fill = '#FFFFFF',
-  height: customHeight // height를 prop으로 받기
+  height: customHeight, // height를 prop으로 받기
 }, ref) => {
   // customHeight가 주어지면 그 값을, 아니면 화면의 6%로 설정
   const inputHeight = customHeight || height * 0.06; // 기본값 6% 높이

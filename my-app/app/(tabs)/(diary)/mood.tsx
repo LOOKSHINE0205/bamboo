@@ -193,8 +193,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     padding: 10,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#dcdcdc",
     backgroundColor: "#f9f9f9",
   },
   optionButton: {

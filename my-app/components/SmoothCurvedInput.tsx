@@ -15,7 +15,7 @@ const SmoothCurvedInput = forwardRef(({
   disabled,
   secureTextEntry,
   fillColor = '#e8f5e9', // fillColor를 기본값으로 추가
-    editable = true
+  editable = true
 }, ref) => {
   // customWidth가 주어지면 그 값을, 아니면 화면의 95%로 설정
   const inputWidth = customWidth || width * 0.95;
@@ -37,7 +37,6 @@ const SmoothCurvedInput = forwardRef(({
               Q0,${inputHeight} 0,${inputHeight - 20}
               Z`}
             fill={disabled ? '#cccccc' : isPressed ? '#e8f5e9' : fillColor}  // fillColor를 전달받은 값으로 설정
-
         />
       </Svg>
       <TextInput
