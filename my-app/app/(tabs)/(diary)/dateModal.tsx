@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, Modal, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Modal, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
+import SmoothCurvedButton from '../../../components/SmoothCurvedButton'; // SmoothCurvedButton 가져오기
 
 const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 3;
@@ -9,12 +10,13 @@ export default function DatePickerModal({ modalVisible, setModalVisible, onDateC
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth() + 1;
-
+    const {width, height} = useWindowDimensions();
     const years = Array.from({ length: (currentYear + 10) - 2000 + 1 }, (_, i) => 2000 + i);
     const months = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
-
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const modalWidth = width * 0.80;  // 모달 너비의 85% 설정 (필요에 따라 조정 가능)
+    const buttonWidth = modalWidth * 0.5; // 버튼 너비를 모달의 40%로 설정 (필요에 따라 조정 가능)
 
     const yearScrollRef = useRef(null);
     const monthScrollRef = useRef(null);
@@ -67,7 +69,7 @@ export default function DatePickerModal({ modalVisible, setModalVisible, onDateC
     return (
         <Modal visible={modalVisible} transparent={true} animationType="fade">
             <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
+                <View style={[styles.modalContent, { width: modalWidth }]}>
                     <Text style={styles.modalTitle}>언제로 이동할까요?</Text>
 
                     <View style={styles.pickerContainer}>
@@ -103,23 +105,24 @@ export default function DatePickerModal({ modalVisible, setModalVisible, onDateC
                         </View>
                     </View>
 
-                    <View style={styles.modalButtons}>
-                        <TouchableOpacity
-                            style={[styles.buttonStyle, styles.cancelButton]}
-                            onPress={() => setModalVisible(false)}
-                        >
-                            <Text style={styles.buttonText}>취소</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.buttonStyle, styles.confirmButton]}
-                            onPress={() => {
-                                onDateChange(selectedYear, selectedMonth);
-                                setModalVisible(false);
-                            }}
-                        >
-                            <Text style={[styles.buttonText, styles.confirmButtonText]}>확인</Text>
-                        </TouchableOpacity>
-                    </View>
+                     <View style={[styles.modalButtons,{gap:width*0}]}>
+                      <SmoothCurvedButton
+                          title="취소"
+                          onPress={() => setModalVisible(false)}
+                          customWidth={buttonWidth}
+                          color="#F9F9F9" // 배경색을 설정
+                          style={styles.cancelButton} // 스타일 적용
+                      />
+                      <SmoothCurvedButton
+                          title="확인"
+                          onPress={() => {
+                              onDateChange(selectedYear, selectedMonth);
+                              setModalVisible(false);
+                          }}
+                          customWidth={buttonWidth}
+                          style={styles.confirmButton}
+                      />
+                  </View>
                 </View>
             </View>
         </Modal>
@@ -209,12 +212,8 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
     cancelButton: {
-        backgroundColor: '#F5F5F5',
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
     },
     confirmButton: {
-        backgroundColor: '#4CAF50',
     },
     buttonText: {
         fontSize: 14,

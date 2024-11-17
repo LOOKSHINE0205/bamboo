@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
     passButton: {
-        backgroundColor: '#ff9800',
+        backgroundColor: '#ffffff',
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
         top: 50,
     },
     passButtonText: {
-        color: '#ffffff',
+        color: '#3a7c54',
         fontSize: 16,
         fontWeight: 'bold',
     },
