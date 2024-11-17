@@ -20,13 +20,13 @@ const EmotionChart: React.FC<EmotionChartProps> = React.memo(
 
         }, [selectedEmotions, chartData, normalizedEmotionDataByDay]);
     return (
-      <View style={styles.chartContainer}>
+      <View style={[styles.chartContainer]}>
         <VictoryChart
           theme={VictoryTheme.material}
           domainPadding={{ x: 25, y: 10 }}
           padding={{ top: 15, bottom: 50, left: 40, right: 30 }}
           width={screenWidth - 40}
-          height={screenHeight * 0.25}
+          height={screenHeight * 0.26}
         >
           <VictoryAxis
             style={{

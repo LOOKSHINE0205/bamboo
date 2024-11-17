@@ -232,14 +232,14 @@ const Report = () => {
 
         {isDataLoaded && normalizedEmotionDataByDay && Object.keys(normalizedEmotionDataByDay).length > 0 && (
           <>
-            <View style={[styles.sectionContainer,{height:300}]}>
+            <View style={[styles.sectionContainer,{height:screenHeight*0.3}]}>
               <Text style={styles.subtitle}>감정 라인 그래프</Text>
               <EmotionChart
                 selectedEmotions={selectedEmotions}
                 chartData={chartData}
                 normalizedEmotionDataByDay={normalizedEmotionDataByDay}
               />
-              <View style={[styles.sectioninner,{top:-screenHeight*0.25}]}>
+              <View style={[styles.sectioninner,{top:-screenHeight*0.24}]}>
                 <EmotionChartLine
                   selectedEmotions={selectedEmotions}
                   chartData={chartData}
@@ -250,7 +250,7 @@ const Report = () => {
             </View>
 
 
-            <View style={styles.sectionContainer}>
+            <View style={[styles.sectionContainer,{height:screenHeight*0.3}]}>
               <Text style={styles.subtitle}>감정 스택 그래프</Text>
               <EmotionStackChart
                 selectedEmotions={selectedEmotions}

@@ -18,7 +18,7 @@ const EmotionChartLine: React.FC<EmotionChartProps> = React.memo(
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
     // 낮은 값에 추가할 오프셋 설정
-    const offset = 0.1;
+    const offset = 0.115;
 
     useEffect(() => {
       // 필요한 로직 추가
