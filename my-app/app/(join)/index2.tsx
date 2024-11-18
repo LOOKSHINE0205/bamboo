@@ -40,50 +40,80 @@ const KeywordSelectionScreen = () => {
   const scrollViewRef = useRef<ScrollView>(null);
 
   const questions = [
-    //외향/ 내향
+    // 외향/내향 (E/I)
     {
-        "question": "밤부의 성격을 형성하는 단계입니다.\n답변을 선택해주세요.",
-        "aiResponse": "당신이 새로운 사람과 만날 때, 어떻게 느끼시나요?",
-        "responses": ["재미있고 활기찬 시간을 기대한다 ", "약간 부담스럽고 긴장된다 "]
+      question: "밤부의 성격을 형성하는 단계입니다.\n답변을 선택해주세요.",
+      aiResponse: "당신이 새로운 사람과 만날 때, 어떻게 느끼시나요?",
+      responses: [
+        { text: "재미있고 활기찬 시간을 기대한다", value: "0" }, // 외향
+        { text: "약간 부담스럽고 긴장된다", value: "1" },      // 내향
+      ],
     },
     {
-        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
-        "aiResponse": "처음 가본 낯선 곳에서 시간 보낼 때,",
-        "responses": ["이곳저곳 탐험하고 싶다 ", "조용히 내 시간을 보낸다 "]
+      question: "다음 질문입니다.\n어떻게 생각하시나요?",
+      aiResponse: "처음 가본 낯선 곳에서 시간 보낼 때,",
+      responses: [
+        { text: "이곳저곳 탐험하고 싶다", value: "0" },  // 외향
+        { text: "조용히 내 시간을 보낸다", value: "1" }, // 내향
+      ],
     },
     {
-        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
-        "aiResponse": "팀 프로젝트가 주어졌을 때, 나는",
-        "responses": ["사람들과 적극적으로 의견을 나눈다 ", "조용히 맡은 부분을 처리한다 "]
+      question: "다음 질문입니다.\n어떻게 생각하시나요?",
+      aiResponse: "팀 프로젝트가 주어졌을 때, 나는",
+      responses: [
+        { text: "사람들과 적극적으로 의견을 나눈다", value: "0" }, // 외향
+        { text: "조용히 맡은 부분을 처리한다", value: "1" },      // 내향
+      ],
     },
-    // 공감 / 논리
+    // 공감/논리 (F/T)
     {
-        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
-        "aiResponse": "친구가 고민을 이야기할 때, 나는",
-        "responses": ["상대방의 감정을 공감하며 위로한다 ", "상황을 객관적으로 분석하며 조언한다 "]
-    },
-    {
-        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
-        "aiResponse": "무인도에 떨어졌을 때, 나는",
-        "responses": ["함께 살아남을 방법을 고민한다 ", "혼자 생존을 위한 방안을 마련한다 "]
-    },
-    {
-        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
-        "aiResponse": "실수를 했을 때, 나는",
-        "responses": ["상대방의 감정을 헤아리며 사과한다 ", "상황을 분석하고 개선 방안을 제시한다 "]
+      question: "다음 질문입니다.\n어떻게 생각하시나요?",
+      aiResponse: "친구가 고민을 이야기할 때, 나는",
+      responses: [
+        { text: "상대방의 감정을 공감하며 위로한다", value: "0" }, // 공감
+        { text: "상황을 객관적으로 분석하며 조언한다", value: "1" }, // 논리
+      ],
     },
     {
-        "question": "다음 질문입니다.\n어떻게 생각하시나요?",
-        "aiResponse": "누군가가 도움을 요청할 때, 나는",
-        "responses": ["당연히 돕고 싶다 ", "신중하게 판단한 후 돕는다 "]
+      question: "다음 질문입니다.\n어떻게 생각하시나요?",
+      aiResponse: "무인도에 떨어졌을 때, 나는",
+      responses: [
+        { text: "함께 살아남을 방법을 고민한다", value: "0" }, // 공감
+        { text: "혼자 생존을 위한 방안을 마련한다", value: "1" }, // 논리
+      ],
     },
     {
-        "question": "마지막 질문입니다.\n어떻게 생각하시나요?",
-        "aiResponse": "사람들과의 갈등 상황에서, 나는",
-        "responses": ["상대방의 입장을 이해하며 대화한다 ", "상황을 객관적으로 정리하며 논리적으로 해결한다 "]
+      question: "다음 질문입니다.\n어떻게 생각하시나요?",
+      aiResponse: "실수를 했을 때, 나는",
+      responses: [
+        { text: "상대방의 감정을 헤아리며 사과한다", value: "0" }, // 공감
+        { text: "상황을 분석하고 개선 방안을 제시한다", value: "1" }, // 논리
+      ],
     },
-    { question: '밤부의 이름을 지어주세요', aiResponse: '좋은 이름을 기대할게요!', responses: [] },
+    {
+      question: "다음 질문입니다.\n어떻게 생각하시나요?",
+      aiResponse: "누군가가 도움을 요청할 때, 나는",
+      responses: [
+        { text: "당연히 돕고 싶다", value: "0" }, // 공감
+        { text: "신중하게 판단한 후 돕는다", value: "1" }, // 논리
+      ],
+    },
+    {
+      question: "마지막 질문입니다.\n어떻게 생각하시나요?",
+      aiResponse: "사람들과의 갈등 상황에서, 나는",
+      responses: [
+        { text: "상대방의 입장을 이해하며 대화한다", value: "0" }, // 공감
+        { text: "상황을 객관적으로 정리하며 논리적으로 해결한다", value: "1" }, // 논리
+      ],
+    },
+    // 마지막 이름 입력
+    {
+      question: "밤부의 이름을 지어주세요",
+      aiResponse: "좋은 이름을 기대할게요!",
+      responses: [],
+    },
   ];
+
 
   const validIndex = Math.min(Math.max(currentQuestionIndex, 0), questions.length - 1);
   const currentQuestion = questions[validIndex];
@@ -218,12 +248,17 @@ const KeywordSelectionScreen = () => {
     if (chatbotName.trim()) {
       router.push({
         pathname: '/(join)/sendUserInfo',
-        params: { userData: initialUserData, testResults, chatbotName },
+        params: {
+          userData: initialUserData, // 사용자 데이터 (e.g., 이메일)
+          testResults,              // 응답 결과 (e.g., "01010101")
+          chatbotName,              // 챗봇 이름
+        },
       });
     } else {
       alert('챗봇 이름을 입력해주세요.');
     }
   };
+
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
       scrollViewRef.current?.scrollTo({ y: 200, animated: true });
@@ -255,7 +290,7 @@ return (
           <Animated.View
             style={[
               styles.aiResponse,
-              { opacity: fadeAnim, top: -screenHeight * 0.08, opacity: fadeAnim || 0 }, // 초기 opacity 값 설정
+              { opacity: fadeAnim, top: -screenHeight * 0.07, opacity: fadeAnim || 0 }, // 초기 opacity 값 설정
             ]}
           >
             <SmoothCurvedView customWidth={screenWidth * 0.95} disabled={false} fill="#E8E8E8">
@@ -299,29 +334,25 @@ return (
 
               // fadeAnim을 각 SmoothCurvedButton에 전달하여 버튼에 페이드 애니메이션 적용
               {currentQuestion.responses.map((response, index) => (
-                <Animated.View
-                  key={index}
-                  style={[
-                    styles.responseButton,
-                    {
-                      opacity: fadeAnim,  // fadeAnim 애니메이션 추가
-                      width: screenWidth * 0.85,
-                      position: 'relative',
-                      zIndex: 2,
-                    },
-                  ]}
-                >
-                  <SmoothCurvedButton
-                    title={response}
-                    onPress={() => !isProcessing && handleResponsePress(index)}
-                    disabled={isProcessing}
-                    customWidth={screenWidth * 0.95}
-                    fadeAnim={fadeAnim}  // fadeAnim 전달
-                    style={[
-                      styles.responseButtonTouchable,
-                    ]}
-                  />
-                </Animated.View>
+                  <Animated.View
+                      key={index}
+                      style={[
+                          styles.responseButton,
+                          {
+                              opacity: fadeAnim,
+                              width: screenWidth * 0.85,
+                              position: 'relative',
+                              zIndex: 2,
+                          },
+                      ]}
+                  >
+                      <SmoothCurvedButton
+                          title={response.text} // response 객체에서 text를 추출하여 전달
+                          onPress={() => !isProcessing && handleResponsePress(index)}
+                          disabled={isProcessing}
+                          customWidth={screenWidth * 0.95}
+                      />
+                  </Animated.View>
               ))}
 
 

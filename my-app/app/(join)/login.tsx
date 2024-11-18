@@ -177,7 +177,7 @@ export default function LoginScreen() {
                 {!isFindingPassword && (
                     <TouchableOpacity
                         style={styles.passButton}
-                        onPress={() => router.push('/index2')} // router.push 사용
+                        onPress={() => router.push('/index3')} // router.push 사용
                     >
                         <Text style={styles.passButtonText}>패스</Text>
                     </TouchableOpacity>

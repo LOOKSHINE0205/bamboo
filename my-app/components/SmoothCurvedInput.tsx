@@ -41,7 +41,14 @@ const SmoothCurvedInput = forwardRef(({
       </Svg>
       <TextInput
         ref={ref}  // ref를 전달하여 포커스를 사용할 수 있게 함
-        style={[styles.textInput, { height: inputHeight * 0.7, width: inputWidth }]}  // width 추가
+        style={[
+          styles.textInput,
+          {
+            height: inputHeight * 0.9,
+            width: inputWidth * 0.85,  // TextInput 너비를 SVG 너비보다 작게 설정
+            paddingHorizontal: inputWidth * 0.05,
+          }
+        ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}

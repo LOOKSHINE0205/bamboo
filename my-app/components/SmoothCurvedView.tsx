@@ -2,23 +2,18 @@ import React, { forwardRef, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { View, StyleSheet, Dimensions } from 'react-native';
 
-const { width,height } = Dimensions.get('window');  // 화면의 가로 길이
+const { width, height } = Dimensions.get('window');
 
 const SmoothCurvedView = forwardRef(({
   style,
   customWidth,
   disabled,
   children,
-  backgroundColor,
   fill = '#FFFFFF',
-  height: customHeight, // height를 prop으로 받기
+  height: customHeight,
 }, ref) => {
-  // customHeight가 주어지면 그 값을, 아니면 화면의 6%로 설정
-  const inputHeight = customHeight || height * 0.06; // 기본값 6% 높이
-
-  // customWidth가 주어지면 그 값을, 아니면 화면의 95%로 설정
+  const inputHeight = customHeight || height * 0.06;
   const inputWidth = customWidth || width * 0.95;
-
   const [isPressed, setIsPressed] = useState(false);
 
   return (
@@ -34,13 +29,11 @@ const SmoothCurvedView = forwardRef(({
             L20,${inputHeight}
             Q0,${inputHeight} 0,${inputHeight - 20}
             Z`}
-          fill={disabled ? '#cccccc' : isPressed ? '#3a7c54' : fill}  // fill 값이 없으면 기본값을 흰색으로 설정
+          fill={disabled ? '#cccccc' : isPressed ? '#3a7c54' : fill}
         />
       </Svg>
-      <View
-        ref={ref}  // ref를 전달하여 포커스를 사용할 수 있게 함
-        style={[styles.viewContent, { height: inputHeight * 0.7, width: inputWidth }]}>
-        {children}  {/* 자식 요소들을 전달 */}
+      <View style={styles.childrenContainer}>
+        {children}
       </View>
     </View>
   );
@@ -48,19 +41,16 @@ const SmoothCurvedView = forwardRef(({
 
 const styles = StyleSheet.create({
   inputContainer: {
-    alignItems: 'center',  // 가운데 정렬
-    justifyContent: 'center', // 수직 가운데 정렬
-    position: 'relative',  // 자식 요소들을 상대적으로 배치
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  svg: {
+  childrenContainer: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-  viewContent: {
-    position: 'absolute', // 기존 absolute 위치는 그대로 두어야 경계선에 맞게 배치됩니다.
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
 });
 

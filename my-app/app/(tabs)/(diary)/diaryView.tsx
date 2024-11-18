@@ -62,7 +62,6 @@ export default function DiaryScreen() {
 
           // diaryPhoto에서 JSON 배열 부분만 추출하여 파싱
           const diaryPhoto = selectedDateData.diaryPhoto;
-
           if (diaryPhoto) {
             try {
               let imageUrls = [];
