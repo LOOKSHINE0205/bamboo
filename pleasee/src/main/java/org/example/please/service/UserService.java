@@ -311,4 +311,4 @@ public class UserService {
 //        int diaryLevel = diaryCount / LEVEL_UP_DIARY_COUNT;
 //        return 1 + chatLevel + diaryLevel; // 기본 레벨 1부터 시작
 //    }
-}
+
