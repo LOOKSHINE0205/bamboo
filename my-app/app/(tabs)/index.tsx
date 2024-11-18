@@ -262,19 +262,19 @@ export default function ChatbotPage() {
 
 
     // 초기 로딩용 useEffect
+// 입력 중 애니메이션 관리
     useEffect(() => {
-        // isTyping이 true일 때 점 애니메이션 시작
         if (isTyping) {
             const typingInterval = setInterval(() => {
                 setTypingDots((prev) => {
-                    if (prev === '...') return ''; // 세 점 이후 초기화
+                    if (prev === '...') return ''; // 3개의 점이 채워지면 초기화
                     return prev + '.'; // 점 추가
                 });
-            }, 500); // 0.5초마다 업데이트
+            }, 500); // 0.5초 간격으로 점 애니메이션 업데이트
 
-            return () => clearInterval(typingInterval); // 컴포넌트가 언마운트될 때 타이머 정리
+            return () => clearInterval(typingInterval); // 컴포넌트가 언마운트될 때 정리
         } else {
-            setTypingDots(''); // 타이핑이 끝나면 초기화
+            setTypingDots(''); // 애니메이션 초기화
         }
     }, [isTyping]);
 
@@ -300,7 +300,8 @@ export default function ChatbotPage() {
                     evaluation: chat.evaluation,
                     chatIdx: chat.chatIdx
                 }));
-                setMessages(formattedMessages);
+                setMessages(updateTimestamps(formattedMessages));
+s
             } catch (error) {
                 console.error("Failed to load chat history:", error);
             }
@@ -346,7 +347,7 @@ export default function ChatbotPage() {
     const startCountdown = () => {
         stopCountdown(); // 기존 카운트다운 중지
         setIsCountdownStarted(true); // 카운트다운 시작 상태 설정
-
+        setIsTyping(true); // 입력 시 typing 상태 초기화
         let countdown = countdownDuration;
         console.log(`[Countdown] 시작: ${countdown}초 남음`);
 
@@ -365,6 +366,7 @@ export default function ChatbotPage() {
 
 // 카운트다운 중지 함수
     const stopCountdown = () => {
+        setIsTyping(false); // 입력 시 typing 상태 초기화
         if (countdownIntervalRef.current !== null) {
             clearInterval(countdownIntervalRef.current);
             countdownIntervalRef.current = null;
@@ -375,6 +377,7 @@ export default function ChatbotPage() {
 
 
 // 챗봇 응답 전송 함수
+    // 챗봇 응답 전송 함수
     const sendBotResponse = async () => {
         if (messagesToSendRef.current.length === 0) return;
 
@@ -403,12 +406,11 @@ export default function ChatbotPage() {
 
             const botMessages = response.data.chatContent.split("[LB]").map((msg) => msg.trim());
 
+            // 메시지 간 지연 시간 추가
             botMessages.forEach((msg, index) => {
                 setTimeout(() => {
-                    // @ts-ignore
-                    setMessages((prevMessages) => [
-                        ...prevMessages,
-                        {
+                    setMessages((prevMessages) => {
+                        const newMessage = {
                             sender: "bot",
                             text: msg,
                             avatar: BambooHead,
@@ -416,20 +418,27 @@ export default function ChatbotPage() {
                             timestamp: getCurrentTime(),
                             showTimestamp: true,
                             chatIdx: response.data.chatIdx,
-                        },
-                    ]);
-                }, index * 900);
+                        };
+                        return updateTimestamps([...prevMessages, newMessage]);
+                    });
+
+                    // 마지막 메시지가 출력되면 세션 종료
+                    if (index === botMessages.length - 1) {
+                        stopCountdown();
+                        setIsCountdownStarted(false);
+                        setIsActiveSession(false);
+                        console.log("[Session] 챗봇 응답 완료. 세션 비활성화.");
+                    }
+                }, index * 1000); // 메시지 간 지연 시간 (1000ms = 1초)
             });
 
             messagesToSendRef.current = [];
-            stopCountdown();
-            setIsCountdownStarted(false);
-            setIsActiveSession(false);
-            console.log("[Session] 챗봇 응답 완료. 세션 비활성화.");
         } catch (error) {
             console.error("Error sending bot response:", error);
         }
     };
+
+
 
 
 
@@ -482,7 +491,10 @@ export default function ChatbotPage() {
             };
 
             console.log("User message being sent:", userMessage);
-            setMessages((prevMessages) => [...prevMessages, userMessage]);
+            setMessages((prevMessages) =>
+                updateTimestamps([...prevMessages, userMessage])
+            );
+
             // 메시지 배열에 `[LB]` 포함하여 추가
             messagesToSendRef.current.push(input.trim() + " [LB]");
             setInput("");
@@ -506,11 +518,18 @@ export default function ChatbotPage() {
     };
 
     const updateTimestamps = (messages: Message[]): Message[] => {
-        return messages.map((msg, index) => ({
-            ...msg,
-            showTimestamp: shouldShowTimestamp(index, msg, messages)
-        }));
+        return messages.map((msg, index) => {
+            const isLastMessageOfSender =
+                index === messages.length - 1 || // 전체 메시지의 마지막 메시지
+                messages[index + 1]?.sender !== msg.sender; // 다음 메시지가 다른 발신자의 메시지인지 확인
+
+            return {
+                ...msg,
+                showTimestamp: isLastMessageOfSender, // 발신자 그룹의 마지막 메시지에만 시간 표시
+            };
+        });
     };
+
 
 
     const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
@@ -569,17 +588,19 @@ export default function ChatbotPage() {
     };
 
     const renderDateHeaders = () => {
-        let lastDate = '';
+        let lastDate = ''; // 마지막 날짜 초기화
 
         return messages.map((msg, index) => {
-            const showDateHeader = msg.createdAt !== lastDate;
-            lastDate = msg.createdAt;
+            // 날짜가 유효한지 확인
+            const currentDate = msg.createdAt || ''; // createdAt 값이 없는 경우 빈 문자열 처리
+            const showDateHeader = currentDate && currentDate !== lastDate; // 날짜가 변경되었는지 확인
+            lastDate = currentDate || lastDate; // 날짜 업데이트
 
             return (
                 <React.Fragment key={index}>
-                    {showDateHeader && (
+                    {showDateHeader && currentDate && (
                         <View style={styles.dateHeaderContainer}>
-                            <Text style={styles.dateHeader}>{msg.createdAt}</Text>
+                            <Text style={styles.dateHeader}>{currentDate}</Text>
                         </View>
                     )}
                     <TouchableOpacity
@@ -592,20 +613,24 @@ export default function ChatbotPage() {
                         {msg.sender === 'bot' && (
                             <View style={styles.avatarContainer}>
                                 <Image
-                                    source={typeof msg.avatar === 'string' ? {uri: msg.avatar} : msg.avatar}
+                                    source={typeof msg.avatar === 'string' ? { uri: msg.avatar } : msg.avatar}
                                     style={styles.botAvatar}
                                 />
                             </View>
                         )}
 
-                        <View style={[
-                            styles.messageContent,
-                            msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
-                        ]}>
-                            <Text style={[
-                                styles.senderName,
-                                msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
-                            ]}>
+                        <View
+                            style={[
+                                styles.messageContent,
+                                msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.senderName,
+                                    msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
+                                ]}
+                            >
                                 {msg.name}
                             </Text>
 
@@ -614,21 +639,25 @@ export default function ChatbotPage() {
                                     <Text style={styles.timeText}>{msg.timestamp}</Text>
                                 )}
 
-                                <View style={[
-                                    styles.message,
-                                    msg.sender === 'user' ? styles.userMessage : styles.botMessage,
-                                ]}>
-                                    <Text style={[
-                                        styles.messageText,
-                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText,
-                                    ]}>
+                                <View
+                                    style={[
+                                        styles.message,
+                                        msg.sender === 'user' ? styles.userMessage : styles.botMessage,
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.messageText,
+                                            msg.sender === 'user' ? styles.userMessageText : styles.botMessageText,
+                                        ]}
+                                    >
                                         {msg.text}
                                     </Text>
                                 </View>
 
                                 {msg.sender === 'bot' && msg.showTimestamp && (
                                     <View style={styles.timeContainer}>
-                                        <EvaluationButtons message={msg} index={index}/>
+                                        <EvaluationButtons message={msg} index={index} />
                                         <Text style={styles.timeText}>{msg.timestamp}</Text>
                                     </View>
                                 )}
@@ -638,17 +667,17 @@ export default function ChatbotPage() {
                         {msg.sender === 'user' && (
                             <View style={styles.avatarContainer}>
                                 <Image
-                                    source={profileImageUri ? {uri: profileImageUri} : BambooPanda} // ProfileContext의 이미지로 업데이트
+                                    source={profileImageUri ? { uri: profileImageUri } : BambooPanda} // ProfileContext의 이미지로 업데이트
                                     style={styles.userAvatar}
                                 />
                             </View>
                         )}
-
                     </TouchableOpacity>
                 </React.Fragment>
             );
         });
     };
+
 
     return (
         <KeyboardAvoidingView
@@ -675,16 +704,24 @@ export default function ChatbotPage() {
                     {/* 챗봇이 응답을 작성 중일 때 점 애니메이션 표시 */}
                     {isTyping && (
                         <View style={[styles.messageContainer, styles.botMessageContainer]}>
+                            {/* 챗봇 프로필 이미지 */}
                             <View style={styles.avatarContainer}>
-                                <Image source={BambooHead} style={styles.botAvatar}/>
+                                <Image source={BambooHead} style={styles.botAvatar} />
                             </View>
+
+                            {/* 챗봇 타이핑 애니메이션 */}
                             <View style={[styles.messageContent, styles.botMessageContent]}>
-                                <View style={styles.message}>
-                                    <Text style={styles.typingDots}>{typingDots || '.'}</Text>
+                                <View style={styles.typingIndicator}>
+                                    <View style={styles.dotsContainer}>
+                                        <View style={styles.dot}></View>
+                                        <View style={styles.dot}></View>
+                                        <View style={styles.dot}></View>
+                                    </View>
                                 </View>
                             </View>
                         </View>
                     )}
+
                 </ScrollView>
                 <View style={[styles.inputContainer, {marginTop: -height * 0.02}]}>
                     <TextInput
@@ -723,11 +760,27 @@ const styles = StyleSheet.create({
         fontSize: 14, // 텍스트 크기 조정
     },
     // 시간과 평가 버튼을 함께 감싸는 컨테이너
-    typingDots: {
-        padding: 0,
-        fontSize: 30, // 점 크기를 크게 설정
-        color: '#999999', // 점 색상을 회색으로 설정
-        fontWeight: 'bold', // 점을 굵게 설정 (선택 사항)
+    dotsContainer: {
+        flexDirection: 'row', // 가로 정렬
+        justifyContent: 'center', // 가운데 정렬
+        alignItems: 'center', // 세로 정렬
+    },
+    typingIndicator: {
+        backgroundColor: '#ECECEC', // 말풍선과 일치하는 색상
+        borderRadius: 15, // 둥근 모서리
+        paddingHorizontal: 12, // 좌우 여백
+        paddingVertical: 8, // 상하 여백
+        alignSelf: 'flex-start', // 왼쪽 정렬
+        maxWidth: '60%', // 최대 너비 제한
+    },
+    dot: {
+        width: 6, // 점의 너비
+        height: 6, // 점의 높이
+        marginHorizontal: 3, // 점 간격
+        backgroundColor: '#666', // 점 색상
+        borderRadius: 3, // 원형
+        opacity: 0.4, // 기본 투명도
+        animation: 'bounce 1.5s infinite', // 애니메이션 추가
     },
     timeContainer: {
         flexDirection: 'column', // 평가 버튼과 시간을 세로로 정렬
