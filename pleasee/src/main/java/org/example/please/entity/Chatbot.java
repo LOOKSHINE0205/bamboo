@@ -41,6 +41,6 @@ public class Chatbot {
     private Timestamp createdAt;
 
     // 방 상태
-    @Column(name = "croom_status", insertable = false) // 업데이트 불가능
+    @Column(name = "croom_status") // 업데이트 불가능
     private String croomStatus;
 }

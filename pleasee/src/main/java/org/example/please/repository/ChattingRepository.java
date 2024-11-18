@@ -41,4 +41,8 @@ public interface ChattingRepository extends JpaRepository<Chatting, Integer> {
     @Query("SELECT COUNT(c) FROM Chatting c WHERE c.userEmail = :userEmail AND c.croomIdx IN " +
             "(SELECT DISTINCT croomIdx FROM Chatting WHERE userEmail = :userEmail)")
     int countByUserEmailAndCroomIdx(@Param("userEmail") String userEmail);
+
+    @Modifying
+    @Query("UPDATE Chatbot c SET c.croomStatus = :status WHERE c.userEmail = :userEmail")
+    int updateCroomStatusByEmail(@Param("userEmail") String userEmail, @Param("status") String status);
 }

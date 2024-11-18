@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
     View,
     Text,
@@ -15,17 +15,17 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getUserInfo, getUserProfileImage } from '../../storage/storageHelper';
-import { useFocusEffect } from '@react-navigation/native';
+import {getUserInfo, getUserProfileImage} from '../../storage/storageHelper';
+import {useFocusEffect} from '@react-navigation/native';
 import BambooHead from '../../assets/images/bamboo_head.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { serverAddress } from '../../components/Config';
-import { ChatMessage, getChatHistory } from "../../components/getChatHistory";
+import {serverAddress} from '../../components/Config';
+import {ChatMessage, getChatHistory} from "../../components/getChatHistory";
 import * as Clipboard from 'expo-clipboard';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // KeyboardAwareScrollView 임포트
-import { useRoute } from '@react-navigation/native';
-import { useProfile } from '../../context/ProfileContext';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view'; // KeyboardAwareScrollView 임포트
+import {useRoute} from '@react-navigation/native';
+import {useProfile} from '../../context/ProfileContext';
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
@@ -39,6 +39,7 @@ interface Message {
     evaluation?: 'like' | 'dislike' | null;
     chatIdx?: number;
 }
+
 // 요일 배열
 const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -68,10 +69,12 @@ export default function ChatbotPage() {
     const serverUrl = `${serverAddress}/api/chat/getChatResponse`;
     const [typingDots, setTypingDots] = useState(''); // 점 애니메이션을 위한 상태
     const [isCountdownStarted, setIsCountdownStarted] = useState(false);
+    const [isActiveSession, setIsActiveSession] = useState(false); // 현재 세션 활성화 여부
     // 이전 이미지 URI를 저장하는 useRef 생성
     const prevImageUriRef = useRef<string | null>(null); // 이전 이미지 URI를 저장하는 useRef
     const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
-    const { profileImageUri } = useProfile();
+    const {profileImageUri} = useProfile();
+
 
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
@@ -101,7 +104,7 @@ export default function ChatbotPage() {
                     style: "cancel"
                 }
             ],
-            { cancelable: true }
+            {cancelable: true}
         );
     };
 
@@ -109,7 +112,7 @@ export default function ChatbotPage() {
     const deleteMessage = async (chatIdx) => {
         try {
             const response = await axios.delete(`${serverAddress}/api/chat/deleteMessage`, {
-                params: { chatIdx }
+                params: {chatIdx}
             });
 
             console.log("Message deleted successfully:", response.data);
@@ -135,7 +138,7 @@ export default function ChatbotPage() {
     };
     const scrollToBottom = (animated = true) => {
         if (scrollViewRef.current && isAutoScrollEnabled) {
-            scrollViewRef.current.scrollToEnd({ animated });
+            scrollViewRef.current.scrollToEnd({animated});
         }
     };
 
@@ -155,7 +158,7 @@ export default function ChatbotPage() {
     }, [messages, isTyping]);
 
     const handleScroll = (event) => {
-        const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+        const {layoutMeasurement, contentOffset, contentSize} = event.nativeEvent;
         const isBottomReached = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
         setIsAutoScrollEnabled(isBottomReached);
     };
@@ -193,7 +196,7 @@ export default function ChatbotPage() {
 
 
     useEffect(() => {
-        setUserAvatar(profileImageUri ? { uri: profileImageUri } : BambooPanda);
+        setUserAvatar(profileImageUri ? {uri: profileImageUri} : BambooPanda);
         console.log('프로필 이미지 URI가 변경됨:', profileImageUri || '기본 이미지(BambooPanda)');
     }, [profileImageUri]);
 
@@ -221,7 +224,7 @@ export default function ChatbotPage() {
 
                     // 설정된 이미지 URL을 AsyncStorage 및 Context에 저장
                     await AsyncStorage.setItem('profileImageUri', profileImageUrl || '');
-                    setUserAvatar(profileImageUrl ? { uri: profileImageUrl } : BambooPanda);
+                    setUserAvatar(profileImageUrl ? {uri: profileImageUrl} : BambooPanda);
                     console.log('fetchData 내에서 설정된 프로필 이미지 URL:', profileImageUrl);
                 } else {
                     setUserAvatar(BambooPanda);
@@ -245,20 +248,20 @@ export default function ChatbotPage() {
                 console.log('Context에서 가져온 profileImageUri:', profileImageUri);
                 console.log('최종 설정된 프로필 이미지 URI:', imageUri || '기본 이미지(BambooPanda)');
 
-                setUserAvatar(imageUri ? { uri: imageUri } : BambooPanda);
+                setUserAvatar(imageUri ? {uri: imageUri} : BambooPanda);
             };
 
             fetchProfileImage();
 
             // 포커스될 때마다 스크롤을 맨 아래로 이동
             if (scrollViewRef.current) {
-                scrollViewRef.current.scrollToEnd({ animated: true });
+                scrollViewRef.current.scrollToEnd({animated: true});
             }
         }, [profileImageUri])
     );
 
 
- // 초기 로딩용 useEffect
+    // 초기 로딩용 useEffect
     useEffect(() => {
         // isTyping이 true일 때 점 애니메이션 시작
         if (isTyping) {
@@ -276,7 +279,6 @@ export default function ChatbotPage() {
     }, [isTyping]);
 
 
-
     // 새로운 useEffect 추가하여 DB에서 채팅 기록 가져오기
     useEffect(() => {
         if (!userNick || !chatbotName) return;
@@ -289,7 +291,10 @@ export default function ChatbotPage() {
                     text: chat.chatContent,
                     avatar: chat.chatter === 'bot' ? BambooHead : userAvatar,
                     name: chat.chatter === 'bot' ? chatbotName : userNick,
-                    timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }),
                     createdAt: new Date(chat.createdAt).toLocaleDateString('ko-KR'),
                     showTimestamp: true,
                     evaluation: chat.evaluation,
@@ -340,194 +345,155 @@ export default function ChatbotPage() {
     // 카운트다운 시작 함수
     const startCountdown = () => {
         stopCountdown(); // 기존 카운트다운 중지
+        setIsCountdownStarted(true); // 카운트다운 시작 상태 설정
 
         let countdown = countdownDuration;
-        console.log(`카운트다운 시작: ${countdown}초 남음`);
+        console.log(`[Countdown] 시작: ${countdown}초 남음`);
 
         countdownIntervalRef.current = setInterval(() => {
             countdown -= 1;
-            console.log(`${countdown}초 남음`);
+            console.log(`[Countdown] ${countdown}초 남음`);
 
             if (countdown <= 0) {
                 clearInterval(countdownIntervalRef.current!);
                 countdownIntervalRef.current = null;
-                console.log('카운트다운 종료. 메시지 전송.');
-                sendBotResponse(); // 메시지 전송
+                console.log("[Countdown] 종료. 메시지 전송.");
+                sendBotResponse(); // 챗봇에게 메시지 전송
             }
         }, 1000);
     };
 
-    // 카운트다운 중지 함수
+// 카운트다운 중지 함수
     const stopCountdown = () => {
         if (countdownIntervalRef.current !== null) {
             clearInterval(countdownIntervalRef.current);
             countdownIntervalRef.current = null;
+            console.log("[Countdown] 중지");
         }
     };
 
-    // 챗봇 응답 전송 함수
+
+
+// 챗봇 응답 전송 함수
     const sendBotResponse = async () => {
+        if (messagesToSendRef.current.length === 0) return;
 
+        const combinedMessages = messagesToSendRef.current.join(" ");
+        const croomIdx = await AsyncStorage.getItem("croomIdx");
+        if (!croomIdx) {
+            console.error("croomIdx not found in AsyncStorage");
+            return;
+        }
 
-        if (messagesToSendRef.current.length > 0) {
-            setIsTyping(true); // 전송 중 상태 표시 시작
-            const combinedMessages = messagesToSendRef.current.join(' ');
-            const croomIdx = await AsyncStorage.getItem('croomIdx');
-            console.log(userEmail,croomIdx,combinedMessages)
-            if (!croomIdx) {
-                console.error("croomIdx not found in AsyncStorage");
-                return;
-            }
-            // console.log("croomIdx found in AsyncStorage", croomIdx);
+        const payload = {
+            userEmail: userEmail,
+            croomIdx: parseInt(croomIdx),
+            chatter: "user",
+            chatContent: combinedMessages,
+        };
 
-            const payload = {
-                userEmail: userEmail,
-                croomIdx: parseInt(croomIdx),
-                chatter: "user",
-                chatContent: combinedMessages,
-            };
+        try {
+            console.log("Payload before sending to server:", payload);
 
+            const response = await axios.post(serverUrl, payload, {
+                headers: { "Content-Type": "application/json" },
+            });
 
-            try {
-                console.log('Payload before sending to server:', payload); // 서버에 보내는 페이로드 로그
+            console.log("Bot response:", response.data);
 
-                const response = await axios.post(serverUrl, payload, {
-                    headers: {'Content-Type': 'application/json'},
-                });
+            const botMessages = response.data.chatContent.split("[LB]").map((msg) => msg.trim());
 
-                console.log('Bot response:', response.data); // 서버 응답 로그
+            botMessages.forEach((msg, index) => {
+                setTimeout(() => {
+                    // @ts-ignore
+                    setMessages((prevMessages) => [
+                        ...prevMessages,
+                        {
+                            sender: "bot",
+                            text: msg,
+                            avatar: BambooHead,
+                            name: chatbotName,
+                            timestamp: getCurrentTime(),
+                            showTimestamp: true,
+                            chatIdx: response.data.chatIdx,
+                        },
+                    ]);
+                }, index * 900);
+            });
 
-                // 응답 처리
-                const botMessageContent = response.data.chatContent;
-                const chatIdx = response.data.chatIdx || null;
-                const evaluation = response.data.evaluation || null;
-
-                if (typeof botMessageContent !== 'string') {
-                    throw new Error('Invalid bot response format');
-                }
-
-                // 새 메시지를 상태에 추가
-                // @ts-ignore
-                setMessages((prevMessages) => [
-                    ...prevMessages,
-                    {
-                        sender: 'bot',
-                        text: botMessageContent,
-                        avatar: BambooHead,
-                        name: chatbotName,
-                        timestamp: getCurrentTime(),
-                        showTimestamp: true,
-                        chatIdx: response.data.chatIdx
-                    }
-                ]);
-
-                messagesToSendRef.current = []; // 초기화
-                setIsCountdownStarted(false); // 카운트다운을 다시 비활성화
-                stopCountdown();
-
-            } catch (error) {
-                console.error('Error sending bot response:', error);
-                setIsTyping(false); // 오류가 발생해도 전송 중 상태 종료
-                if (error.response) {
-                    console.error("Server responded with an error:", error.response.data);
-                    console.error("Status code:", error.response.status);
-                } else if (error.request) {
-                    console.error("Request was made but no response received", error.request);
-                } else {
-                    console.error("Error setting up the request:", error.message);
-                }
-            }
+            messagesToSendRef.current = [];
+            stopCountdown();
+            setIsCountdownStarted(false);
+            setIsActiveSession(false);
+            console.log("[Session] 챗봇 응답 완료. 세션 비활성화.");
+        } catch (error) {
+            console.error("Error sending bot response:", error);
         }
     };
 
 
+
+
+
+    // 입력 필드 변경 핸들러
     const handleInputChange = (text: string) => {
         setInput(text);
         setIsTyping(false); // 입력 시 typing 상태 초기화
-        if (text.trim() === '' && isCountdownStarted) {
-            // setIsTyping(false); // 입력이 비어있을 때는 ... 애니메이션 비활성화
-            startCountdown(); // 입력이 비어있으면 카운트다운 시작
-        } else {
-            // setIsTyping(false); // 입력이 비어있을 때는 ... 애니메이션 비활성화
-            stopCountdown(); // 입력 중에는 카운트다운 중지
+
+        if (!isActiveSession) {
+            console.log("[Countdown] 세션이 비활성화 상태. 입력 무시.");
+            return;
         }
-    };
 
-    // 메시지 전송 버튼을 눌렀을 때 호출되는 함수
-    const sendMessage = async () => {
-        if (input.trim()) {
-                const userMessage: Message = {
-                    sender: 'user',
-                    text: input.trim(),
-                    avatar: profileImageUri ? { uri: profileImageUri } : BambooPanda, // 프로필 이미지 업데이트
-                    name: userNick,
-                    timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-                    createdAt: new Date().toLocaleDateString('ko-KR'),
-                    showTimestamp: true
-                };
-
-            console.log('User message being sent:', userMessage); // 사용자 메시지 로그 추가
-            setMessages(prevMessages => [...prevMessages, userMessage]);
-            setInput('');
-            setIsTyping(false);
-
+        if (text.trim() === "") {
+            // 입력 필드가 비어 있는 경우
             if (!isCountdownStarted) {
+                // 카운트다운이 시작되지 않은 경우에만 시작
                 startCountdown();
                 setIsCountdownStarted(true);
+                console.log("[Countdown] 입력 필드가 비어있음. 카운트다운 시작.");
             }
-
-            // Bot response에 메시지 보내기 전에 서버로 보내는 로그
-            console.log("Sending message to server:", {
-                userEmail: userEmail,
-                croomIdx: await AsyncStorage.getItem('croomIdx'),
-                chatContent: input.trim()
-            });
-
-            const payload = {
-                userEmail: userEmail,
-                croomIdx: await AsyncStorage.getItem('croomIdx'),
-                chatter: "user",
-                chatContent: input.trim(),
-            };
-
-            try {
-                console.log("Payload before sending:", payload); // 서버로 전송하는 페이로드 로그
-                const response = await axios.post(serverUrl, payload, {
-                    headers: {'Content-Type': 'application/json'},
-                });
-                console.log('Response from server:', response.data); // 서버 응답 로그
-
-                setIsTyping(false); // 응답이 도착하면 전송 중 상태 종료
-
-                // 응답 데이터 검증
-                const botMessageContent = response.data.chatContent;
-
-                // 응답이 객체라면, 해당 내용을 텍스트로 추출
-                if (typeof botMessageContent === 'object') {
-                    console.error("Invalid bot response format:", botMessageContent);
-                    return;
-                }
-
-                setMessages((prevMessages) => [
-                    ...prevMessages,
-                    {
-                        sender: 'bot',
-                        text: botMessageContent,
-                        avatar: BambooHead,
-                        name: chatbotName,
-                        timestamp: getCurrentTime(),
-                        showTimestamp: true,
-                        chatIdx: response.data.chatIdx
-                    }
-                ]);
-
-            } catch (error) {
-                console.error('Error sending bot response:', error);
-                setIsTyping(false); // 오류가 발생해도 전송 중 상태 종료
+        } else {
+            // 입력 중인 경우
+            if (isCountdownStarted) {
+                stopCountdown();
+                setIsCountdownStarted(false);
+                console.log("[Countdown] 입력 중. 카운트다운 중지.");
             }
         }
     };
 
+
+
+// 메시지 전송 함수
+    const sendMessage = async () => {
+        if (input.trim()) {
+            const userMessage: Message = {
+                sender: "user",
+                text: input.trim(),
+                avatar: profileImageUri ? { uri: profileImageUri } : BambooPanda,
+                name: userNick,
+                timestamp: new Date().toLocaleTimeString("ko-KR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+                createdAt: new Date().toLocaleDateString("ko-KR"),
+                showTimestamp: true,
+            };
+
+            console.log("User message being sent:", userMessage);
+            setMessages((prevMessages) => [...prevMessages, userMessage]);
+            // 메시지 배열에 `[LB]` 포함하여 추가
+            messagesToSendRef.current.push(input.trim() + " [LB]");
+            setInput("");
+
+            // 세션 활성화 및 카운트다운 시작
+            setIsActiveSession(true); // 세션 활성화
+            startCountdown(); // 카운트다운 시작
+            setIsCountdownStarted(true);
+            console.log("[Session] 세션 활성화됨.");
+        }
+    };
 
 
     const getCurrentTime = (): string => {
@@ -547,8 +513,6 @@ export default function ChatbotPage() {
     };
 
 
-
-
     const shouldShowTimestamp = (messageIndex: number, currentMessage: Message, allMessages: Message[]): boolean => {
         const nextMessage = allMessages[messageIndex + 1];
 
@@ -564,115 +528,127 @@ export default function ChatbotPage() {
 
 
     // 평가 버튼 컴포넌트
-    const EvaluationButtons = ({message, index}: { message: Message; index: number }) => {
-        if (message.sender !== 'bot') return null;
-        // console.log(`Message ${index} evaluation:`, message.evaluation);
+    const EvaluationButtons = ({ message, index }: { message: Message; index: number }) => {
+        if (message.sender !== "bot") return null;
+
+        // 현재 메시지가 응답의 마지막 말풍선인지 확인
+        const isLastMessage = messages[index + 1]?.sender !== "bot";
+
+        if (!isLastMessage) return null; // 마지막 메시지가 아니면 평가 버튼을 렌더링하지 않음
+
         return (
             <View style={styles.evaluationContainer}>
                 <TouchableOpacity
-                    onPress={() => handleEvaluation(index, 'like')}
-                    style={[styles.evaluationButton, message.evaluation === 'like' && styles.evaluationButtonActive]}
+                    onPress={() => handleEvaluation(index, "like")}
+                    style={[
+                        styles.evaluationButton,
+                        message.evaluation === "like" && styles.evaluationButtonActive,
+                    ]}
                 >
                     <Ionicons
-                        name={message.evaluation === 'like' ? "thumbs-up" : "thumbs-up-outline"}
+                        name={message.evaluation === "like" ? "thumbs-up" : "thumbs-up-outline"}
                         size={14}
-                        color={message.evaluation === 'like' ? "#4a9960" : "#666"}
+                        color={message.evaluation === "like" ? "#4a9960" : "#666"}
                     />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={() => handleEvaluation(index, 'dislike')}
-                    style={[styles.evaluationButton, message.evaluation === 'dislike' && styles.evaluationButtonActive]}
+                    onPress={() => handleEvaluation(index, "dislike")}
+                    style={[
+                        styles.evaluationButton,
+                        message.evaluation === "dislike" && styles.evaluationButtonActive,
+                    ]}
                 >
                     <Ionicons
-                        name={message.evaluation === 'dislike' ? "thumbs-down" : "thumbs-down-outline"}
+                        name={message.evaluation === "dislike" ? "thumbs-down" : "thumbs-down-outline"}
                         size={14}
-                        color={message.evaluation === 'dislike' ? "#e74c3c" : "#666"}
+                        color={message.evaluation === "dislike" ? "#e74c3c" : "#666"}
                     />
                 </TouchableOpacity>
             </View>
         );
     };
-const renderDateHeaders = () => {
-    let lastDate = '';
 
-    return messages.map((msg, index) => {
-        const showDateHeader = msg.createdAt !== lastDate;
-        lastDate = msg.createdAt;
+    const renderDateHeaders = () => {
+        let lastDate = '';
 
-        return (
-            <React.Fragment key={index}>
-                {showDateHeader && (
-                    <View style={styles.dateHeaderContainer}>
-                        <Text style={styles.dateHeader}>{msg.createdAt}</Text>
-                    </View>
-                )}
-                <TouchableOpacity
-                    onLongPress={() => handleLongPress(msg, index)} // 모든 메시지에 길게 누름 이벤트 추가
-                    style={[
-                        styles.messageContainer,
-                        msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
-                    ]}
-                >
-                    {msg.sender === 'bot' && (
-                        <View style={styles.avatarContainer}>
-                            <Image
-                                source={typeof msg.avatar === 'string' ? { uri: msg.avatar } : msg.avatar}
-                                style={styles.botAvatar}
-                            />
+        return messages.map((msg, index) => {
+            const showDateHeader = msg.createdAt !== lastDate;
+            lastDate = msg.createdAt;
+
+            return (
+                <React.Fragment key={index}>
+                    {showDateHeader && (
+                        <View style={styles.dateHeaderContainer}>
+                            <Text style={styles.dateHeader}>{msg.createdAt}</Text>
                         </View>
                     )}
-
-                    <View style={[
-                        styles.messageContent,
-                        msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
-                    ]}>
-                        <Text style={[
-                            styles.senderName,
-                            msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
-                        ]}>
-                            {msg.name}
-                        </Text>
-
-                        <View style={styles.messageTimeContainer}>
-                            {msg.sender === 'user' && msg.showTimestamp && (
-                                <Text style={styles.timeText}>{msg.timestamp}</Text>
-                            )}
-
-                            <View style={[
-                                styles.message,
-                                msg.sender === 'user' ? styles.userMessage : styles.botMessage,
-                            ]}>
-                                <Text style={[
-                                    styles.messageText,
-                                    msg.sender === 'user' ? styles.userMessageText : styles.botMessageText,
-                                ]}>
-                                    {msg.text}
-                                </Text>
+                    <TouchableOpacity
+                        onLongPress={() => handleLongPress(msg, index)} // 모든 메시지에 길게 누름 이벤트 추가
+                        style={[
+                            styles.messageContainer,
+                            msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
+                        ]}
+                    >
+                        {msg.sender === 'bot' && (
+                            <View style={styles.avatarContainer}>
+                                <Image
+                                    source={typeof msg.avatar === 'string' ? {uri: msg.avatar} : msg.avatar}
+                                    style={styles.botAvatar}
+                                />
                             </View>
+                        )}
 
-                            {msg.sender === 'bot' && msg.showTimestamp && (
-                                <View style={styles.timeContainer}>
-                                    <EvaluationButtons message={msg} index={index} />
+                        <View style={[
+                            styles.messageContent,
+                            msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
+                        ]}>
+                            <Text style={[
+                                styles.senderName,
+                                msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
+                            ]}>
+                                {msg.name}
+                            </Text>
+
+                            <View style={styles.messageTimeContainer}>
+                                {msg.sender === 'user' && msg.showTimestamp && (
                                     <Text style={styles.timeText}>{msg.timestamp}</Text>
+                                )}
+
+                                <View style={[
+                                    styles.message,
+                                    msg.sender === 'user' ? styles.userMessage : styles.botMessage,
+                                ]}>
+                                    <Text style={[
+                                        styles.messageText,
+                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText,
+                                    ]}>
+                                        {msg.text}
+                                    </Text>
                                 </View>
-                            )}
-                        </View>
-                    </View>
 
-                    {msg.sender === 'user' && (
-                        <View style={styles.avatarContainer}>
-                            <Image
-                                source={profileImageUri ? { uri: profileImageUri } : BambooPanda} // ProfileContext의 이미지로 업데이트
-                                style={styles.userAvatar}
-                            />
+                                {msg.sender === 'bot' && msg.showTimestamp && (
+                                    <View style={styles.timeContainer}>
+                                        <EvaluationButtons message={msg} index={index}/>
+                                        <Text style={styles.timeText}>{msg.timestamp}</Text>
+                                    </View>
+                                )}
+                            </View>
                         </View>
-                    )}
 
-                </TouchableOpacity>
-            </React.Fragment>
-        );
-    });
-};
+                        {msg.sender === 'user' && (
+                            <View style={styles.avatarContainer}>
+                                <Image
+                                    source={profileImageUri ? {uri: profileImageUri} : BambooPanda} // ProfileContext의 이미지로 업데이트
+                                    style={styles.userAvatar}
+                                />
+                            </View>
+                        )}
+
+                    </TouchableOpacity>
+                </React.Fragment>
+            );
+        });
+    };
 
     return (
         <KeyboardAvoidingView
@@ -684,11 +660,11 @@ const renderDateHeaders = () => {
                 <ScrollView
                     ref={scrollViewRef}
                     style={styles.chatArea}
-                    contentContainerStyle={[styles.chatContent, { paddingBottom: height * 0.02 }]} // 입력창 높이만큼 여유 공간 추가
+                    contentContainerStyle={[styles.chatContent, {paddingBottom: height * 0.02}]} // 입력창 높이만큼 여유 공간 추가
                     showsVerticalScrollIndicator={false}
                     onContentSizeChange={() => {
                         if (isAutoScrollEnabled) {
-                            scrollViewRef.current?.scrollToEnd({ animated: true });
+                            scrollViewRef.current?.scrollToEnd({animated: true});
                         }
                     }}
                     onScroll={handleScroll}
@@ -710,7 +686,7 @@ const renderDateHeaders = () => {
                         </View>
                     )}
                 </ScrollView>
-                <View style={[styles.inputContainer,{marginTop:-height*0.02}]}>
+                <View style={[styles.inputContainer, {marginTop: -height * 0.02}]}>
                     <TextInput
                         style={styles.input}
                         value={input}
@@ -721,11 +697,11 @@ const renderDateHeaders = () => {
                         minHeight={height * 0.044}  // 최소 높이
                         maxHeight={height * 0.2}   // 최대 높이
                         onContentSizeChange={() => {
-                            scrollViewRef.current?.scrollToEnd({ animated: true });
+                            scrollViewRef.current?.scrollToEnd({animated: true});
                         }}
                     />
                     <TouchableOpacity style={styles.iconButton} onPress={sendMessage}>
-                        <Ionicons name="arrow-up" size={20} color="#fff" />
+                        <Ionicons name="arrow-up" size={20} color="#fff"/>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -748,7 +724,7 @@ const styles = StyleSheet.create({
     },
     // 시간과 평가 버튼을 함께 감싸는 컨테이너
     typingDots: {
-        padding:0,
+        padding: 0,
         fontSize: 30, // 점 크기를 크게 설정
         color: '#999999', // 점 색상을 회색으로 설정
         fontWeight: 'bold', // 점을 굵게 설정 (선택 사항)

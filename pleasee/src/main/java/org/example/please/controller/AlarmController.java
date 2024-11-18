@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/alarm")
 public class AlarmController {
-    private final NotificationMessageLoader
-
-    public AlarmController() {}
+//    private final NotificationMessageLoader
+//
+//    public AlarmController() {}
 
 }

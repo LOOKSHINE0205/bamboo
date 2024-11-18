@@ -1,8 +1,8 @@
 // 기본 IP 주소 설정
-const Addr = "192.168.21.165";  // 필요 시 Add 값을 수정할 수 있음
+const Addr = "192.168.20.61";  // 필요 시 Add 값을 수정할 수 있음
 
 // 워드 클라우드 주소
-const WordCloudAddr = "https://6704-121-147-12-202.ngrok-free.app/predict";
+const WordCloudAddr = "https://5212-121-147-12-202.ngrok-free.app/predict";
 
 // API 주소 설정
 export const serverAddress = `http://${Addr}:8082`;

@@ -77,4 +77,12 @@ public class ChattingService {
         return false;
     }
 
+    @Transactional
+    public void updateCroomStatus(String userEmail, String status) {
+        int updatedRows = chattingRepository.updateCroomStatusByEmail(userEmail, status);
+
+        if (updatedRows == 0) {
+            throw new RuntimeException("No records found for userEmail: " + userEmail);
+        }
+    }
 }

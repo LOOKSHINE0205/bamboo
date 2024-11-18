@@ -39,7 +39,7 @@ public class ChattingController {
     public Map<String, Object> sendUserMessage(String userEmail, int croomIdx, int sessionIdx, String chatContent) {
         Map<String, Object> response = new HashMap<>();
 
-        String url = "https://dbd6-121-147-12-202.ngrok-free.app/predict";
+        String url = "https://5212-121-147-12-202.ngrok-free.app/predict";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         try {
@@ -195,6 +195,21 @@ public class ChattingController {
             return ResponseEntity.ok("Message deleted successfully");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chat message not found");
+        }
+    }
+
+    @PostMapping("/updateUserStatus")
+    public ResponseEntity<String> updateUserStatus(@RequestBody Map<String, String> payload) {
+        String userEmail = payload.get("userEmail");
+        String status = payload.get("status");
+        System.out.println("status: " + status+"userEmail"+userEmail);
+
+        try {
+            chattingService.updateCroomStatus(userEmail, status);
+            return ResponseEntity.ok("User status updated successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating user status: " + e.getMessage());
         }
     }
 

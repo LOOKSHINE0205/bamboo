@@ -21,7 +21,7 @@ export interface ChatMessage {
  */
 export const getChatHistory = async (): Promise<ChatMessage[]> => {
     try {
-        // AsyncStorage에m서 crooIdx를 가져오기
+        // AsyncStorage에서 croomIdx를 가져오기
         const storedCroomIdx = await AsyncStorage.getItem("croomIdx");
         if (!storedCroomIdx) {
             throw new Error("croomIdx not found in AsyncStorage");
@@ -33,10 +33,26 @@ export const getChatHistory = async (): Promise<ChatMessage[]> => {
         const response = await axios.get(`${serverAddress}/api/chat/getChatHistory`, {
             params: { croomIdx },
         });
-        return response.data; // 서버로부터 받은 데이터 반환
+
+        const chatHistory: ChatMessage[] = response.data; // 서버로부터 받은 데이터
+
+        // 채팅 내용을 `[LB]` 기준으로 분리
+        const formattedChatHistory: ChatMessage[] = [];
+        chatHistory.forEach(chat => {
+            const splitMessages = chat.chatContent.split("[LB]").map(msg => msg.trim()).filter(Boolean);
+
+            splitMessages.forEach((splitMsg, index) => {
+                formattedChatHistory.push({
+                    ...chat, // 기존의 모든 필드 복사
+                    chatContent: splitMsg, // 나눠진 메시지로 대체
+                    chatIdx: `${chat.chatIdx}` as unknown as number, // 중복 방지를 위해 chatIdx에 index 추가
+                });
+            });
+        });
+
+        return formattedChatHistory; // 분리된 메시지 배열 반환
     } catch (error) {
-        console.error('Error fetching chat history:', error);
+        console.error("Error fetching chat history:", error);
         throw error;
     }
 };
-
