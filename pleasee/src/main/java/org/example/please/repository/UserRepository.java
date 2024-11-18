@@ -32,4 +32,22 @@ public interface UserRepository extends JpaRepository<User, String> {
             "OR u.userEmail IN " +
             "(SELECT DISTINCT d.userEmail FROM Diary d WHERE DATE(d.createdAt) = CURRENT_DATE)")
     long countActiveUsersToday();
+
+    // 일기만 사용하는 사용자 수
+    @Query("SELECT COUNT(DISTINCT u.userEmail) FROM User u " +
+            "WHERE EXISTS (SELECT d FROM Diary d WHERE d.userEmail = u.userEmail) " +
+            "AND NOT EXISTS (SELECT c FROM Chatbot c WHERE c.userEmail = u.userEmail)")
+    long countDiaryOnlyUsers();
+
+    // 챗봇만 사용하는 사용자 수
+    @Query("SELECT COUNT(DISTINCT u.userEmail) FROM User u " +
+            "WHERE EXISTS (SELECT c FROM Chatbot c WHERE c.userEmail = u.userEmail) " +
+            "AND NOT EXISTS (SELECT d FROM Diary d WHERE d.userEmail = u.userEmail)")
+    long countChatbotOnlyUsers();
+
+    // 둘 다 사용하는 사용자 수
+    @Query("SELECT COUNT(DISTINCT u.userEmail) FROM User u " +
+            "WHERE EXISTS (SELECT d FROM Diary d WHERE d.userEmail = u.userEmail) " +
+            "AND EXISTS (SELECT c FROM Chatbot c WHERE c.userEmail = u.userEmail)")
+    long countBothUsers();
 }

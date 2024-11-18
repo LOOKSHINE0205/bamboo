@@ -33,4 +33,14 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
     @Query("SELECT COUNT(*) FROM Diary d WHERE d.createdAt >= :startOfDay AND d.createdAt < :endOfDay")
     long countTodayDiaries(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
 
+    // 일기 작성 통계
+    @Query("SELECT DATE(d.createdAt) as date, COUNT(d) as count " + //작성 일자 별 해당 날짜 일기 수
+            "FROM Diary d " +
+            "WHERE d.createdAt BETWEEN :startDate AND :endDate " + //날짜 범위 지정
+            "GROUP BY DATE(d.createdAt) " +                        //날짜별로 그룹화
+            "ORDER BY DATE(d.createdAt)")                          //날짜순 정렬
+    List<Object[]> countByDateBetween(@Param("startDate") LocalDateTime startDate, //시작일
+                                      @Param("endDate") LocalDateTime endDate); //종료일
+
+
 }

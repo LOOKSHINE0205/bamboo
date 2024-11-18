@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -37,7 +39,6 @@ public interface ChattingRepository extends JpaRepository<Chatting, Integer> {
     @Query("SELECT COUNT(DISTINCT c.sessionIdx) FROM Chatting c WHERE DATE(c.createdAt) = CURRENT_DATE")
     long countTodayChattingSessions();
 
-
     @Query("SELECT COUNT(c) FROM Chatting c WHERE c.userEmail = :userEmail AND c.croomIdx IN " +
             "(SELECT DISTINCT croomIdx FROM Chatting WHERE userEmail = :userEmail)")
     int countByUserEmailAndCroomIdx(@Param("userEmail") String userEmail);
@@ -45,4 +46,15 @@ public interface ChattingRepository extends JpaRepository<Chatting, Integer> {
     @Modifying
     @Query("UPDATE Chatbot c SET c.croomStatus = :status WHERE c.userEmail = :userEmail")
     int updateCroomStatusByEmail(@Param("userEmail") String userEmail, @Param("status") String status);
+    
+    // 특정 기간 동안 날짜별로 채팅 기록의 개수 집계
+    @Query("SELECT DATE(c.createdAt) as date, COUNT(c) as count " +
+            "FROM Chatting c " +
+            "WHERE c.createdAt BETWEEN :startDate AND :endDate " +
+            "GROUP BY DATE(c.createdAt) " +
+            "ORDER BY DATE(c.createdAt)")
+    List<Object[]> countByDateBetween(@Param("startDate") LocalDateTime startDate,
+                                      @Param("endDate") LocalDateTime endDate);
+
+
 }
