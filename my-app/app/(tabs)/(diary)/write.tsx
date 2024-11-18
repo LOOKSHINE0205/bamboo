@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, TextInput, StyleSheet, Platform, Alert,
-  KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard,useWindowDimensions } from "react-native";
+  KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard,useWindowDimensions, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
@@ -8,7 +8,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SmoothCurvedButton from '../../../components/SmoothCurvedButton';
 import { serverAddress } from '../../../components/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 const moodImageMap = {
   happy: require("../../../assets/images/diary_happy.png"),
@@ -130,8 +129,10 @@ export default function DiaryEntryScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-
-          <View style={styles.topContainer}>
+          <View style={[styles.topContainer,{alignItems:'center', justifyContent:'center'}]}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color="#333" />
+            </TouchableOpacity>
             <View style={styles.moodImageContainer}>
               {mood && (
                 <Image
@@ -155,7 +156,7 @@ export default function DiaryEntryScreen() {
             </View>
           </View>
 
-          <View style={styles.entryContainer}>
+          <View style={[styles.entryContainer, { width: width * 0.95, marginLeft: width * 0.025 }]}>
             <View style={styles.imageContainer}>
               {selectedImages.map((imageUri, index) => (
                 <View key={index} style={styles.imageWrapper}>
@@ -179,26 +180,19 @@ export default function DiaryEntryScreen() {
             />
           </View>
 
-          <View style={[styles.buttonContainer]}>
+          <View style={[styles.buttonContainer,{gap:20,}]}>
             <SmoothCurvedButton
               title="저장"
               onPress={handleSaveEntry}
-              svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
-              svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
-              style={[styles.commonButton,{
-                marginHorizontal: aspectRatio>0.6? -100:-30
-                }]}
+              style={[styles.commonButton]} // 세로 간격 설정
             />
             <SmoothCurvedButton
               onPress={pickImage}
               icon={<Ionicons name="image" size={16} color="#000" />}
-              svgWidth={120}  // 설정 저장 및 로그아웃 버튼과 동일한 너비
-              svgPath="M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L100,50 C115,50 120,45 120,30 L120,20 C120,5 115,0 100,0 Z" // 동일한 경로
-              style={[styles.commonButton,{
-                 marginHorizontal: aspectRatio>0.6? -100:-30
-                 }]}
+              style={styles.commonButton}
             />
           </View>
+
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -208,7 +202,6 @@ export default function DiaryEntryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#ffffff",
   },
   topContainer: {
@@ -287,12 +280,15 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems:'center',
-    padding: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    flexDirection: 'column', // 버튼을 세로로 배치
+    alignItems: 'center',
+    padding: 20,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+    position: 'absolute',
+    left: 16,
   },
 
 });

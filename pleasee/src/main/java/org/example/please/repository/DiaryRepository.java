@@ -26,4 +26,10 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
 
     @Query("SELECT COUNT(d) FROM Diary d WHERE d.userEmail = :userEmail")
     int countByUserEmail(@Param("userEmail") String userEmail);
+
+    // 관리자 메서드
+    // 오늘 일기 수 카운트
+    @Query("SELECT COUNT(*) FROM Diary d WHERE d.createdAt >= :startOfDay AND d.createdAt < :endOfDay")
+    long countTodayDiaries(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
+
 }

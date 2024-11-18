@@ -84,7 +84,7 @@ export default function MoodSelectionScreen() {
       <View style={styles.headerContainer}>
         <Text style={styles.title}>{formatDate(date)}</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
@@ -112,7 +112,7 @@ export default function MoodSelectionScreen() {
         />
       </View>
 
-      <View style={styles.sectionContainer}>
+      <View style={[styles.sectionContainer,{alignItems:'center', justifyContent:'center'}]}>
         <Text style={styles.subtitle}>오늘의 날씨</Text>
         <FlatList
           data={weatherOptions}
@@ -179,7 +179,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     marginBottom: 17,
-    fontWeight: "600",
   },
   moodText: {
     textAlign: "center",
@@ -194,8 +193,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     padding: 10,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#dcdcdc",
     backgroundColor: "#f9f9f9",
   },
   optionButton: {

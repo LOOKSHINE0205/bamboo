@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, StyleSheet, Platform, Alert, KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, Text, Image, StyleSheet, Platform, Alert, KeyboardAvoidingView, ScrollView, TouchableOpacity,TouchableWithoutFeedback, Keyboard,useWindowDimensions } from "react-native";
+import { useLocalSearchParams, router } from 'expo-router';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserInfo } from '../../../storage/storageHelper';
 import { serverAddress } from '../../../components/Config';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // 감정 이미지 경로를 매핑한 객체
 const moodImageMap = {
@@ -33,6 +34,7 @@ export default function DiaryScreen() {
   const [mood, setMood] = useState("");
   const [weather, setWeather] = useState("");
   const [day, setDay] = useState("");
+  const {width, height} = useWindowDimensions("");
 
   useEffect(() => {
     const fetchDiaryData = async () => {
@@ -110,23 +112,26 @@ export default function DiaryScreen() {
 
 
   return (
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
-            <View style={styles.topContainer}>
-              <View style={styles.moodImageContainer}>
-                {mood && <Image source={moodImageMap[mood]} style={styles.moodImage} />}
-              </View>
-              <View style={styles.dateDisplayContainer}>
-                <Text style={styles.dateText}>{date}</Text>
-                <View style={styles.dayAndWeatherContainer}>
-                  <Text style={styles.dayText}>{day}</Text>
-                  {weatherImageMap[weather] && (
-                      <Image key={weather} source={weatherImageMap[weather]} style={styles.weatherImage} />
-                  )}
-                </View>
+    <KeyboardAvoidingView style={[styles.container,{}]} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView contentContainerStyle={[styles.scrollContainer]}>
+          <View style={[styles.topContainer,{alignItems:'center', justifyContent:'center'}]}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color="#333" />
+            </TouchableOpacity>
+            <View style={styles.moodImageContainer}>
+              {mood && <Image source={moodImageMap[mood]} style={styles.moodImage} />}
+            </View>
+            <View style={styles.dateDisplayContainer}>
+              <Text style={styles.dateText}>{date}</Text>
+              <View style={styles.dayAndWeatherContainer}>
+                <Text style={styles.dayText}>{day}</Text>
+                {weatherImageMap[weather] && (
+                  <Image key={weather} source={weatherImageMap[weather]} style={styles.weatherImage} />
+                )}
               </View>
             </View>
+          </View>
 
             <View style={styles.entryContainer}>
               <View style={styles.imageContainer}>
@@ -196,5 +201,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'gray',
     marginTop: 20, // 텍스트와 이미지 간 여백 추가
+  },
+
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+    position: 'absolute',
+    left: 16,
   },
 });

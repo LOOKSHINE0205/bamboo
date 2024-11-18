@@ -1,44 +1,67 @@
 import React, { useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
-import { TouchableOpacity, Text, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, useWindowDimensions, View, Animated } from 'react-native';
 
-const SmoothCurvedButton = ({ onPress, title, icon, style, disabled, svgWidth = 130, svgPath, color = '#4a9960' }) => {
-  const { width, height } = useWindowDimensions();
-  const buttonWidth = style?.width || width * 0.6 || svgWidth;
-  const buttonHeight = style?.height || height * 0.06 || 50;
+const SmoothCurvedButton = ({ onPress, title, icon, disabled, color = '#4a9960', customWidth, customHeight,style, fadeAnim }) => {
+  const { width,height } = useWindowDimensions();
+  const buttonWidth = customWidth || width * 0.95;
+  const buttonHeight = customHeight || height * 0.06;
   const [isPressed, setIsPressed] = useState(false);
-  const aspectRatio = width / height; // 화면 비율 계산
-  const fontSize = Math.min(buttonWidth, buttonHeight) * 0.3; // 버튼 크기에 비례하는 폰트 크기 설정
+  const [scale] = useState(new Animated.Value(1)); // Animated scale state for button press effect
+  const fontSize = Math.min(buttonWidth, buttonHeight) * 0.3;
 
+  // fadeAnim이 존재하면 눌림 애니메이션을 비활성화하도록 처리
+  const isFadeAnimPresent = fadeAnim !== undefined;
+
+  // Press in handler
+  const onPressIn = () => {
+    !isFadeAnimPresent && Animated.spring(scale, { toValue: 0.96, useNativeDriver: true }).start();
+    setIsPressed(true);
+  };
+
+  // Press out handler
+  const onPressOut = () => {
+    !isFadeAnimPresent && Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
+    setIsPressed(false);
+  };
 
   return (
-
-      <TouchableOpacity
-          onPress={onPress}
-          onPressIn={() => setIsPressed(true)}
-          onPressOut={() => setIsPressed(false)}
-          style={[
-            styles.buttonContainer,
-            { width: buttonWidth, height: buttonHeight },
-            isPressed && styles.pressedEffect,
-            style,
-          ]}
-          disabled={disabled}
-          pointerEvents="box-none" // 추가
+    <TouchableOpacity
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      style={[
+        styles.buttonContainer,
+        { width: buttonWidth, height: buttonHeight },
+        style,
+      ]}
+      disabled={disabled}
+      activeOpacity={0.7}
+    >
+      <Animated.View
+        style={[
+          { transform: [{ scale }] },
+          { opacity: fadeAnim || 1 },  // fadeAnim이 전달되면 적용, 아니면 기본 1
+          !isFadeAnimPresent && isPressed && styles.pressedEffect,
+        ]}
       >
-
-      <Svg height="100%" width="100%" viewBox={`0 0 ${svgWidth} 50`}>
-        <Path
-          d={
-            svgPath ||
-            `M20,0 C5,0 0,5 0,20 L0,30 C0,45 5,50 20,50 L${svgWidth - 20},50 C${svgWidth - 5},50 ${svgWidth},45 ${svgWidth},30 L${svgWidth},20 C${svgWidth},5 ${svgWidth - 5},0 ${svgWidth - 20},0 Z`
-          }
-          fill={disabled ? '#cccccc' : isPressed ? '#3a7c54' : color}
-        />
-      </Svg>
-
+        <Svg height={buttonHeight} width={buttonWidth} viewBox={`0 0 ${buttonWidth} ${buttonHeight}`}>
+          <Path
+            d={`M0,20
+                Q0,0 20,0
+                L${buttonWidth - 20},0
+                Q${buttonWidth},0 ${buttonWidth},20
+                L${buttonWidth},${buttonHeight - 20}
+                Q${buttonWidth},${buttonHeight} ${buttonWidth - 20},${buttonHeight}
+                L20,${buttonHeight}
+                Q0,${buttonHeight} 0,${buttonHeight - 20}
+                Z`}
+            fill={disabled ? '#cccccc' : isPressed ? '#3a7c54' : color}
+          />
+        </Svg>
+      </Animated.View>
       <View style={styles.contentWrapper}>
-        {icon && <View style={styles.iconWrapper}>{icon}</View>}
+        {icon && <View style={[styles.iconWrapper, !!title && { marginRight: 8 }]}>{icon}</View>}
         {title && <Text style={[styles.buttonText, { fontSize }, isPressed && styles.buttonTextPressed]}>{title}</Text>}
       </View>
     </TouchableOpacity>
@@ -49,16 +72,19 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+    alignSelf: 'center',
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 0 },
+//     shadowOpacity: 0.4,
+//     shadowRadius: 10,
+//     elevation: 12,
+    borderRadius: 20,
   },
   contentWrapper: {
     position: 'absolute',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconWrapper: {
-    marginRight: 5, // icon과 title 사이 간격
   },
   buttonText: {
     color: 'black',
@@ -69,7 +95,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   pressedEffect: {
-    transform: [{ scale: 0.98 }],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
   },
 });
 

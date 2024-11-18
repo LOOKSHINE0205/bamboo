@@ -186,5 +186,17 @@ public class ChattingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chat message not found");
         }
     }
+
+    // 메시지 삭제 엔드포인트 추가
+    @DeleteMapping("/deleteMessage")
+    public ResponseEntity<String> deleteMessage(@RequestParam Integer chatIdx) {
+        boolean isDeleted = chattingService.deleteChatMessage(chatIdx);
+        if (isDeleted) {
+            return ResponseEntity.ok("Message deleted successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chat message not found");
+        }
     }
+
+}
 

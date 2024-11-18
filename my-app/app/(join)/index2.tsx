@@ -15,6 +15,8 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
+import SmoothCurvedView from '../../components/SmoothCurvedView';
+import SmoothCurvedInput from '../../components/SmoothCurvedInput';
 
 const KeywordSelectionScreen = () => {
   const router = useRouter();
@@ -108,6 +110,14 @@ const KeywordSelectionScreen = () => {
     }).start(callback);
   };
 
+  const animateFade = (toValue, duration, callback) => {
+    Animated.timing(fadeAnim, {
+      toValue: toValue,
+      duration: duration,
+      useNativeDriver: true,
+    }).start(callback);
+  };
+
   const handleResponsePress = (index: number) => {
     if (isProcessing) return;
     setIsProcessing(true);
@@ -116,19 +126,11 @@ const KeywordSelectionScreen = () => {
       startCloudAnimation();
     }
 
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => {
+    animateFade(0, 400, () => {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       fadeAnim.setValue(0);
 
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start(() => setIsProcessing(false));
+      animateFade(1, 500, () => setIsProcessing(false));
 
       updateCloudScale(currentQuestionIndex + 1);
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
@@ -140,39 +142,23 @@ const KeywordSelectionScreen = () => {
       if (currentQuestionIndex === questions.length - 1) {
         cloudAnim.setValue(1);
         hideChatbotAnimation(() => {
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }).start(() => {
+          animateFade(0, 400, () => {
             const newIndex = currentQuestionIndex - 1;
             setCurrentQuestionIndex(newIndex);
             fadeAnim.setValue(0);
 
-            Animated.timing(fadeAnim, {
-              toValue: 1,
-              duration: 500,
-              useNativeDriver: true,
-            }).start(() => setIsProcessing(false));
+            animateFade(1, 500, () => setIsProcessing(false));
 
             updateCloudScale(newIndex);
           });
         });
       } else {
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }).start(() => {
+        animateFade(0, 400, () => {
           const newIndex = currentQuestionIndex - 1;
           setCurrentQuestionIndex(newIndex);
           fadeAnim.setValue(0);
 
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }).start(() => setIsProcessing(false));
+          animateFade(1, 500, () => setIsProcessing(false));
 
           updateCloudScale(newIndex);
           scrollViewRef.current?.scrollTo({ y: 0, animated: true });
@@ -266,19 +252,26 @@ return (
           <Text style={styles.chatText}>{currentQuestion.question}</Text>
         </View>
 
-        <Animated.View style={[styles.aiResponse, { opacity: fadeAnim, width: screenWidth * 0.85, top: screenHeight * 0.07 }]}>
-          {!isLastQuestion ? (
-            <TouchableOpacity
-              style={styles.aiResponseButton}
-              onPress={() => !isProcessing && handleResponsePress(0)}
-              disabled={isProcessing}
-            >
-              <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
-            </TouchableOpacity>
-          ) : (
-            <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
-          )}
-        </Animated.View>
+          <Animated.View
+            style={[
+              styles.aiResponse,
+              { opacity: fadeAnim, top: -screenHeight * 0.08, opacity: fadeAnim || 0 }, // 초기 opacity 값 설정
+            ]}
+          >
+            <SmoothCurvedView customWidth={screenWidth * 0.95} disabled={false} fill="#E8E8E8">
+              {!isLastQuestion ? (
+                <TouchableOpacity
+                  onPress={() => !isProcessing && handleResponsePress(0)}
+                  disabled={isProcessing}
+                >
+                  <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.aiResponseText}>{currentQuestion.aiResponse}</Text>
+              )}
+            </SmoothCurvedView>
+          </Animated.View>
+
 
         {!isLastQuestion ? (
           <>
@@ -291,7 +284,7 @@ return (
               <Image source={require('../../assets/images/구름.png')} style={styles.cloudImage} resizeMode="contain" />
             </Animated.View>
 
-            <View style={styles.responseContainer}>
+            <View style={[styles.responseContainer,{gap:5, bottom:-screenHeight*0.007}]}>
               <View style={styles.progressContainer}>
                 {questions.slice(0, -1).map((_, index) => (
                   <View
@@ -304,37 +297,51 @@ return (
                 ))}
               </View>
 
+              // fadeAnim을 각 SmoothCurvedButton에 전달하여 버튼에 페이드 애니메이션 적용
               {currentQuestion.responses.map((response, index) => (
                 <Animated.View
                   key={index}
                   style={[
                     styles.responseButton,
-                    { opacity: fadeAnim, height: screenHeight * 0.06, width: screenWidth * 0.85, borderColor: index === 0 ? '#4a9960' : '#ccc' },
+                    {
+                      opacity: fadeAnim,  // fadeAnim 애니메이션 추가
+                      width: screenWidth * 0.85,
+                      position: 'relative',
+                      zIndex: 2,
+                    },
                   ]}
                 >
-                  <TouchableOpacity
-                    style={styles.responseButtonTouchable}
+                  <SmoothCurvedButton
+                    title={response}
                     onPress={() => !isProcessing && handleResponsePress(index)}
                     disabled={isProcessing}
-                  >
-                    <Text style={styles.responseText}>{response}</Text>
-                  </TouchableOpacity>
+                    customWidth={screenWidth * 0.95}
+                    fadeAnim={fadeAnim}  // fadeAnim 전달
+                    style={[
+                      styles.responseButtonTouchable,
+                    ]}
+                  />
                 </Animated.View>
               ))}
 
-              <View style={styles.navigationButtons}>
+
                 <TouchableOpacity
                   style={[
-                    styles.navButton,
+                    styles.back,
+                    {
+                      paddingHorizontal: screenWidth*0.4,
+                      paddingVertical: screenHeight*0.03,
+                    },
                     currentQuestionIndex > 0 ? {} : { opacity: 0 },
                   ]}
                   onPress={currentQuestionIndex > 0 ? handlePrevious : null}
                   disabled={isProcessing || currentQuestionIndex === 0}
                 >
-                  <Text style={styles.navButtonText}>이전</Text>
+                  <Text style={[styles.navButtonText,{marginTop:-screenHeight*0.03}]}>이전</Text>
                 </TouchableOpacity>
+
+
               </View>
-            </View>
           </>
         ) : (
           <View style={styles.lastQuestionContainer}>
@@ -344,30 +351,23 @@ return (
                 style={[styles.chatbotImage, { width: screenWidth * 0.4, height: screenWidth * 0.4, transform: [{ scale: chatbotScale }] }]}
                 resizeMode="contain"
               />
-              <TextInput
-                style={[
-                  styles.nameInput,
-                  { width: screenWidth * 0.8, top: screenHeight*0.05,borderColor: chatbotName ? '#4a9960' : '#999', backgroundColor: isFocused ? '#eef6ee' : '#FFF' },
-                ]}
+
+
+              <View style={[styles.navigationButtons, { bottom: screenHeight*0.02,marginTop:50, justifyContent: 'center', gap:20 }]}>
+              <Text style={[styles.warningText]}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
+              <SmoothCurvedInput
                 value={chatbotName}
                 onChangeText={setChatbotName}
                 placeholder="밤부의 이름을 입력하세요"
-                placeholderTextColor="#999"
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
+                isFocused={isFocused}
+                chatbotName={chatbotName}
               />
-              <Text style={[styles.warningText,{top:-screenHeight*0.05}]}>밤부의 이름은 변경할 수 없습니다.‼️</Text>
-
-              <View style={[styles.navigationButtons, { top: '5%', flexDirection: 'row', justifyContent: 'center' }]}>
                 {currentQuestionIndex > 0 && (
                   <SmoothCurvedButton
                     title="이전"
                     onPress={handlePrevious}
                     disabled={isProcessing}
                     style={{
-                      width: screenWidth * 0.4,
-                      height: 50,
-                      marginHorizontal: 10,
                     }}
                   />
                 )}
@@ -377,9 +377,6 @@ return (
                   disabled={!chatbotName.trim() || isProcessing}
                   style={{
                     opacity: chatbotName.trim() ? 1 : 0.6,
-                    width: screenWidth * 0.4,
-                    height: 50,
-                    marginHorizontal: 10,
                   }}
                 />
               </View>
@@ -399,9 +396,11 @@ const styles = StyleSheet.create({
   warningText: {
     color: 'red',               // 텍스트 색상을 빨간색으로 설정
     textAlign: 'center',        // 텍스트를 중앙에 정렬
-    marginTop: 10,              // 상단에 10px 여백을 추가하여 다른 요소와 간격을 줌
     fontSize: 14,               // 텍스트 크기를 14px로 설정
   },
+  back:{
+
+    },
 
   // 화면 전체 컨테이너 스타일: 스크롤 시 화면에 꽉 차도록 설정하고, 자식 요소를 중앙에 정렬
   container: {
@@ -433,51 +432,24 @@ const styles = StyleSheet.create({
     marginBottom: 30            // 이미지 하단에 20px 여백 추가하여 텍스트와의 간격 확보
   },
 
-  // 이름 입력 필드 스타일: 사용자가 챗봇 이름을 입력할 수 있는 텍스트 입력 필드
-  nameInput: {
-    borderWidth: 1,             // 입력 필드 테두리 두께를 1px로 설정
-    borderColor: '#999',        // 테두리 색상을 회색으로 설정
-    borderRadius: 12,           // 모서리를 둥글게 처리하여 깔끔한 외형 제공
-    padding: 10,                // 입력 필드 내부 여백 설정
-    fontSize: 16,               // 입력 텍스트 크기를 16px로 설정
-    textAlign: 'center',        // 텍스트를 중앙 정렬하여 보기 좋게 표시
-    backgroundColor: '#FFF'     // 배경색을 흰색으로 설정하여 깔끔한 외형 제공
-  },
-
   // 응답 컨테이너 스타일: 사용자 응답 버튼들을 포함하는 영역
   responseContainer: {
     alignItems: 'center',       // 자식 요소들을 수평 중앙 정렬
     position: 'absolute',       // 화면의 고정된 위치에 배치
-    bottom: 20,                 // 화면 하단에서 20px 위에 배치하여 충분한 여백 확보
-    width: '100%',              // 컨테이너 너비를 화면 너비로 설정
-    paddingHorizontal: '5%'     // 좌우 패딩을 5% 추가하여 화면 가장자리와 떨어뜨림
   },
 
   // AI 응답 스타일: AI가 생성한 응답을 표시할 때 사용하는 스타일
   aiResponse: {
-    backgroundColor: '#E8E8E8', // 배경색을 연회색으로 설정하여 채팅 버블과 구분
-    borderRadius: 30,           // 모서리를 둥글게 처리하여 부드러운 외형 제공
-    padding: '4%',              // 내부 여백을 설정하여 텍스트와 가장자리 간격 확보
-    position: 'absolute',       // 고정된 위치에 배치
-    top: 180,                   // 화면 상단에서 180px 아래에 배치
     zIndex: 2,                  // 다른 요소 위에 표시되도록 z-index 설정
-    shadowColor: '#000',        // 그림자 색상을 검은색으로 설정
-    shadowOffset: { width: 0, height: 2 }, // 그림자 위치 조정
-    shadowOpacity: 0.2,         // 그림자 투명도 설정
-    shadowRadius: 3.84,         // 그림자 반경 설정
-    elevation: 5                // 안드로이드 그림자 효과 적용
+    alignItems:'center'
   },
 
   // AI 응답 버튼 스타일: AI 응답을 버튼 형태로 표시
   aiResponseButton: {
-    width: '100%',              // 버튼 너비를 컨테이너 너비에 맞춤
-    padding: 10                 // 버튼 내부 여백 추가
   },
 
   // 응답 버튼 터치 가능한 영역 스타일: 사용자 응답 버튼의 터치 가능한 영역
   responseButtonTouchable: {
-    width: '100%',              // 터치 영역을 컨테이너 너비에 맞춤
-    padding: 3                 // 터치 영역 내부 여백 추가
   },
 
   // 구름 컨테이너 스타일: 애니메이션 효과가 적용된 구름 이미지 컨테이너
@@ -499,50 +471,28 @@ const styles = StyleSheet.create({
   },
   // 응답 버튼 스타일: 사용자 응답 옵션 버튼의 스타일
   responseButton: {
-    backgroundColor: '#FFF',    // 버튼 배경색을 흰색으로 설정
-    borderRadius: 30,           // 모서리를 둥글게 처리하여 버튼 외형 부드럽게 만듦
-    paddingVertical: 10,        // 상하 패딩을 설정하여 버튼 크기 조절
-    paddingHorizontal: '4%',
     marginBottom: '3%',         // 버튼 간격을 위해 하단에 3% 마진 추가
-    shadowColor: '#000',        // 그림자 색상 설정
-    shadowOffset: { width: 0, height: 2 }, // 그림자 위치 조정
-    shadowOpacity: 0.2,         // 그림자 투명도 설정
-    shadowRadius: 3.84,         // 그림자 반경 설정
-    elevation: 5,               // 안드로이드 그림자 효과 적용
     justifyContent: 'center',   // 텍스트를 수직 중앙에 정렬
-    alignItems: 'center',       // 텍스트를 가로 중앙에 정렬
-    width: '90%',               // 버튼 너비를 90%로 설정하여 화면에 맞춤
   },
 
   // 응답 텍스트 스타일: 응답 텍스트의 폰트 크기와 정렬 설정
   responseText: {
-    fontSize: 16,               // 텍스트 크기를 16px로 설정
-    textAlign: 'center',        // 텍스트를 중앙 정렬하여 버튼 내에서 보기 좋게 표시
-    lineHeight: 20,             // 줄 높이를 설정하여 수직 중앙에 위치하도록 함
   },
 
 
   // 내비게이션 버튼 컨테이너 스타일: '이전' 및 '확인' 버튼들을 담고 있는 컨테이너
   navigationButtons: {
-    justifyContent: 'center',   // 버튼을 중앙에 정렬
-    marginTop: '5%',            // 상단에 5% 마진 추가
-    marginBottom: 20            // 하단에 20px 마진 추가하여 다른 요소와 간격 확보
   },
 
   // 내비게이션 버튼 스타일: '이전' 및 '확인' 버튼의 외형 스타일
   navButton: {
-    paddingVertical: 12,          // 버튼의 상하 패딩을 추가하여 터치 영역 확대
-    paddingHorizontal: 30,        // 좌우 패딩을 추가하여 터치 영역 확대
-    marginHorizontal: '2%',       // 버튼 간격을 위해 좌우에 2% 마진 추가
-    minWidth: 80,                 // 버튼의 최소 너비 설정
-    alignItems: 'center',         // 텍스트를 중앙에 정렬
   },
+
 
   // 내비게이션 버튼 텍스트 스타일: '이전' 및 '확인' 버튼 텍스트 스타일
   navButtonText: {
-    fontSize: 14,               // 텍스트 크기를 14px로 설정
-    color: '#000'               // 텍스트 색상을 검은색으로 설정
   },
+
 
   // 진행 상황 도트 컨테이너 스타일: 현재 진행 상황을 나타내는 도트들을 포함
   progressContainer: {

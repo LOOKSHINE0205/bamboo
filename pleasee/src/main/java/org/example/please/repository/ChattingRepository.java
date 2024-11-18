@@ -32,6 +32,12 @@ public interface ChattingRepository extends JpaRepository<Chatting, Integer> {
     @Query("SELECT c.chatContent FROM Chatting c WHERE c.croomIdx = :croomIdx AND c.sessionIdx = :sessionIdx AND c.chatter = 'bot' ORDER BY c.createdAt DESC LIMIT 1")
     Optional<String> findLatestMessageInRoom(@Param("croomIdx") Integer croomIdx, @Param("sessionIdx") Integer sessionIdx);
 
+    // 관리자페이지 메서드
+    // 오늘의 채팅 세션 수 카운트
+    @Query("SELECT COUNT(DISTINCT c.sessionIdx) FROM Chatting c WHERE DATE(c.createdAt) = CURRENT_DATE")
+    long countTodayChattingSessions();
+
+
     @Query("SELECT COUNT(c) FROM Chatting c WHERE c.userEmail = :userEmail AND c.croomIdx IN " +
             "(SELECT DISTINCT croomIdx FROM Chatting WHERE userEmail = :userEmail)")
     int countByUserEmailAndCroomIdx(@Param("userEmail") String userEmail);
