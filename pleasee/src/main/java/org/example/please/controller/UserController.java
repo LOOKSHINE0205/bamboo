@@ -20,6 +20,7 @@ import java.sql.Time;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,7 +28,9 @@ import java.util.Optional;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    private static final String SERVER_URL = "http://192.168.0.15:8082/uploads/profile/images/";
+    // application.properties에서 서버 URL을 읽어옵니다.
+    @Value("${server.base.url}")
+    private String serverBaseUrl;
 
     @Autowired
     private UserService userService;
@@ -61,7 +64,6 @@ public class UserController {
         }
     }
 
-    // 비밀번호 확인 메서드 추가
     @PostMapping("/verifyPassword")
     public ResponseEntity<Map<String, Object>> verifyPassword(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -72,7 +74,6 @@ public class UserController {
                 String storedPassword = userFromDb.get().getUserPw();
                 String enteredPassword = user.getUserPw();
 
-                // 비밀번호 null 검증
                 if (enteredPassword == null || enteredPassword.isEmpty()) {
                     response.put("message", "비밀번호를 입력해 주세요.");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -92,11 +93,6 @@ public class UserController {
         }
     }
 
-
-
-
-
-
     @PutMapping("/updatePassword")
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -110,7 +106,6 @@ public class UserController {
         }
     }
 
-
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
@@ -119,7 +114,7 @@ public class UserController {
         if (authenticatedUser != null) {
             Chatbot croomIdx = chattingService.findByUserEmail(authenticatedUser.getUserEmail());
             String profileImageUrl = authenticatedUser.getUserProfile() != null
-                    ? SERVER_URL + authenticatedUser.getUserProfile()
+                    ? serverBaseUrl + "/uploads/profile/images/" + authenticatedUser.getUserProfile()
                     : null;
             response.put("message", "로그인 성공");
             response.put("user", authenticatedUser);
@@ -139,7 +134,9 @@ public class UserController {
             Map<String, Object> response = new HashMap<>();
             response.put("user_nick", value.getUserNick());
             response.put("user_email", value.getUserEmail());
-            response.put("profile_image", value.getUserProfile() != null ? SERVER_URL + value.getUserProfile() : null);
+            response.put("profile_image", value.getUserProfile() != null
+                    ? serverBaseUrl + "/uploads/profile/images/" + value.getUserProfile()
+                    : null);
             return ResponseEntity.ok(response);
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
@@ -206,7 +203,6 @@ public class UserController {
             @RequestParam(required = false) String endTime) {
         try {
             if (toggle) {
-                // 알람 활성화 시 시간 포맷 확인 후 변환
                 String formattedStartTime = (startTime != null && startTime.length() == 4) ?
                         startTime.substring(0, 2) + ":" + startTime.substring(2) + ":00" : startTime + ":00";
                 String formattedEndTime = (endTime != null && endTime.length() == 4) ?
@@ -214,10 +210,8 @@ public class UserController {
 
                 userService.updateQuietTimes(userEmail, formattedStartTime, formattedEndTime);
             } else {
-                // 알람 끄기 시 시간 값을 null로 설정
                 userService.updateQuietTimes(userEmail, null, null);
             }
-            // 알람 토글 상태 업데이트 (활성화/비활성화)
             userService.updateToggle(userEmail, toggle);
 
             return ResponseEntity.ok("알림 설정이 업데이트되었습니다.");
@@ -226,6 +220,4 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알림 설정 업데이트 중 오류 발생");
         }
     }
-
-
 }
