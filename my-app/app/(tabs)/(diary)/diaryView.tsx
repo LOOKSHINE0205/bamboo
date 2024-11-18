@@ -89,7 +89,6 @@ export default function DiaryScreen() {
               console.error("diaryPhoto 파싱 중 오류 발생:", error);
               setDiaryPhotoUrls([]); // 오류 발생 시 빈 배열 설정
             }
-            setDiaryPhotoUrls(imageUrls);  // 제대로 된 URL을 set
           } else {
             setDiaryPhotoUrls([]); // diaryPhoto가 없을 경우 빈 배열 설정
           }
@@ -111,44 +110,44 @@ export default function DiaryScreen() {
 
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View style={styles.topContainer}>
-            <View style={styles.moodImageContainer}>
-              {mood && <Image source={moodImageMap[mood]} style={styles.moodImage} />}
-            </View>
-            <View style={styles.dateDisplayContainer}>
-              <Text style={styles.dateText}>{date}</Text>
-              <View style={styles.dayAndWeatherContainer}>
-                <Text style={styles.dayText}>{day}</Text>
-                {weatherImageMap[weather] && (
-                  <Image key={weather} source={weatherImageMap[weather]} style={styles.weatherImage} />
-                )}
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.topContainer}>
+              <View style={styles.moodImageContainer}>
+                {mood && <Image source={moodImageMap[mood]} style={styles.moodImage} />}
+              </View>
+              <View style={styles.dateDisplayContainer}>
+                <Text style={styles.dateText}>{date}</Text>
+                <View style={styles.dayAndWeatherContainer}>
+                  <Text style={styles.dayText}>{day}</Text>
+                  {weatherImageMap[weather] && (
+                      <Image key={weather} source={weatherImageMap[weather]} style={styles.weatherImage} />
+                  )}
+                </View>
               </View>
             </View>
-          </View>
 
-          <View style={styles.entryContainer}>
-            <View style={styles.imageContainer}>
-              {diaryPhotoUrls.length === 0 ? (
-                <Text style={styles.noPhotosText}>사진이 없습니다.</Text>
-              ) : (
-                diaryPhotoUrls.map((url, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: `${url}?${new Date().getTime()}` }}
-                    style={styles.image}
-                    onError={() => console.log(`이미지 로드 오류: ${url}`)} // URL 로그 추가
-                  />
-                ))
-              )}
+            <View style={styles.entryContainer}>
+              <View style={styles.imageContainer}>
+                {diaryPhotoUrls.length === 0 ? (
+                    <Text style={styles.noPhotosText}>사진이 없습니다.</Text>
+                ) : (
+                    diaryPhotoUrls.map((url, index) => (
+                        <Image
+                            key={index}
+                            source={{ uri: `${url}?${new Date().getTime()}` }}
+                            style={styles.image}
+                            onError={() => console.log(`이미지 로드 오류: ${url}`)} // URL 로그 추가
+                        />
+                    ))
+                )}
+              </View>
+              <Text style={styles.entryText}>{entryText || "일기 내용이 없습니다."}</Text>
             </View>
-            <Text style={styles.entryText}>{entryText || "일기 내용이 없습니다."}</Text>
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
   );
 
 }

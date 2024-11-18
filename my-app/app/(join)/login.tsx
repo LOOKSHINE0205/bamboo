@@ -42,10 +42,12 @@ export default function LoginScreen() {
                 userEmail: email,
                 userPw: password,
             });
+            await AsyncStorage.setItem('userEmail', email);
 
             const { message, user, croomIdx } = response.data;
             if (message === '로그인 성공' && user) {
                 await AsyncStorage.setItem('croomIdx', croomIdx?.toString() || '');
+
                 await saveUserInfo({
                     ...user,
                     profileImage: user.profileImage ? `${serverAddress}/uploads/profile/images/${user.profileImage}` : null,
