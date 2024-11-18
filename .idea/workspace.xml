@@ -5,13 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="21daf45c-5552-4b18-811d-5d638d248ea1" name="Changes" comment="로그아웃시 inactive">
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/components/Config.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/components/Config.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,7 +26,12 @@
       <state>
         <projects_view>
           <tree_state>
-            <expand />
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="pleasee" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
             <select />
           </tree_state>
         </projects_view>
@@ -52,6 +55,9 @@
 }</component>
   <component name="JpbToolWindowState">
     <option name="isToolWindowVisible" value="false" />
+  </component>
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/my-app/package.json" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -79,7 +85,7 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "reference.projectsettings.compiler.excludes",
-    "ts.external.directory.path": "C:\\Users\\jin\\Desktop\\bambooo\\my-app\\node_modules\\typescript\\lib",
+    "ts.external.directory.path": "C:\\Users\\jin\\Desktop\\bamboo\\my-app\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -131,6 +137,7 @@
       <workItem from="1731631569810" duration="13637000" />
       <workItem from="1731913277524" duration="172000" />
       <workItem from="1731913458430" duration="6005000" />
+      <workItem from="1731928588794" duration="933000" />
     </task>
     <task id="LOCAL-00001" summary="일기페이지 동기화맨">
       <option name="closed" value="true" />
