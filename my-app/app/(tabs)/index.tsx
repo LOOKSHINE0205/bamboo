@@ -376,7 +376,6 @@ s
 
 
 
-// 챗봇 응답 전송 함수
     // 챗봇 응답 전송 함수
     const sendBotResponse = async () => {
         if (messagesToSendRef.current.length === 0) return;
@@ -591,10 +590,17 @@ s
         let lastDate = ''; // 마지막 날짜 초기화
 
         return messages.map((msg, index) => {
-            // 날짜가 유효한지 확인
-            const currentDate = msg.createdAt || ''; // createdAt 값이 없는 경우 빈 문자열 처리
-            const showDateHeader = currentDate && currentDate !== lastDate; // 날짜가 변경되었는지 확인
-            lastDate = currentDate || lastDate; // 날짜 업데이트
+            const currentDate = msg.createdAt || '';
+            const showDateHeader = currentDate && currentDate !== lastDate;
+            lastDate = currentDate || lastDate;
+
+            // 같은 발신자의 첫 번째 메시지인지 확인
+            const isFirstMessageFromBot =
+                msg.sender === 'bot' &&
+                (index === 0 || messages[index - 1]?.sender !== 'bot');
+            const isFirstMessageFromUser =
+                msg.sender === 'user' &&
+                (index === 0 || messages[index - 1]?.sender !== 'user');
 
             return (
                 <React.Fragment key={index}>
@@ -604,17 +610,20 @@ s
                         </View>
                     )}
                     <TouchableOpacity
-                        onLongPress={() => handleLongPress(msg, index)} // 모든 메시지에 길게 누름 이벤트 추가
+                        onLongPress={() => handleLongPress(msg, index)}
                         style={[
                             styles.messageContainer,
                             msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
+                            !isFirstMessageFromBot && msg.sender === 'bot' ? styles.botMessageNotFirst : {},
+                            !isFirstMessageFromUser && msg.sender === 'user' ? styles.userMessageNotFirst : {},
                         ]}
                     >
-                        {msg.sender === 'bot' && (
-                            <View style={styles.avatarContainer}>
+                        {/* 첫 번째 메시지일 때만 아바타와 이름을 렌더링 */}
+                        {(isFirstMessageFromBot || isFirstMessageFromUser) && (
+                            <View style={[styles.avatarContainer, msg.sender === 'user' && styles.userAvatarPosition]}>
                                 <Image
                                     source={typeof msg.avatar === 'string' ? { uri: msg.avatar } : msg.avatar}
-                                    style={styles.botAvatar}
+                                    style={msg.sender === 'user' ? styles.userAvatar : styles.botAvatar}
                                 />
                             </View>
                         )}
@@ -625,14 +634,17 @@ s
                                 msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
                             ]}
                         >
-                            <Text
-                                style={[
-                                    styles.senderName,
-                                    msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
-                                ]}
-                            >
-                                {msg.name}
-                            </Text>
+                            {/* 첫 번째 메시지일 때만 이름을 렌더링 */}
+                            {(isFirstMessageFromBot || isFirstMessageFromUser) && (
+                                <Text
+                                    style={[
+                                        styles.senderName,
+                                        msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
+                                    ]}
+                                >
+                                    {msg.name}
+                                </Text>
+                            )}
 
                             <View style={styles.messageTimeContainer}>
                                 {msg.sender === 'user' && msg.showTimestamp && (
@@ -643,6 +655,10 @@ s
                                     style={[
                                         styles.message,
                                         msg.sender === 'user' ? styles.userMessage : styles.botMessage,
+                                        !isFirstMessageFromBot && msg.sender === 'bot' ? styles.botMessageNotFirst : {},
+                                        !isFirstMessageFromUser && msg.sender === 'user' ? styles.userMessageNotFirst : {},
+                                        isFirstMessageFromBot && msg.sender === 'bot' ? styles.botMessage : {},
+                                        isFirstMessageFromUser && msg.sender === 'user' ? styles.userMessage : {},
                                     ]}
                                 >
                                     <Text
@@ -663,20 +679,12 @@ s
                                 )}
                             </View>
                         </View>
-
-                        {msg.sender === 'user' && (
-                            <View style={styles.avatarContainer}>
-                                <Image
-                                    source={profileImageUri ? { uri: profileImageUri } : BambooPanda} // ProfileContext의 이미지로 업데이트
-                                    style={styles.userAvatar}
-                                />
-                            </View>
-                        )}
                     </TouchableOpacity>
                 </React.Fragment>
             );
         });
     };
+
 
 
     return (
@@ -795,9 +803,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'white', // 배경색 흰색
         borderRadius: 12, // 모서리 둥글게
         padding: 2, // 내부 여백
-        marginBottom: 2, // 시간과의 세로 간격
+        marginBottom: -8, // 시간과의 세로 간격
         shadowColor: "#000", // 그림자 색상
-        left: -5,
+        left: -9,
+        top:2,
         shadowOffset: {
             width: 0,
             height: 1,
@@ -816,6 +825,7 @@ const styles = StyleSheet.create({
     evaluationButtonActive: {
         backgroundColor: '#f8f9fa',
         borderRadius: 8,
+
     },
 
     // 메시지와 시간 텍스트를 감싸는 컨테이너
@@ -832,6 +842,7 @@ const styles = StyleSheet.create({
         color: '#999', // 텍스트 색상
         marginTop: 2, // 평가 버튼과의 간격
         left: -5,
+        top:8
     },
 
     // 메시지의 기본 스타일
@@ -863,42 +874,46 @@ const styles = StyleSheet.create({
         flex: 1, // 화면을 가득 채움
         padding: 8, // 내부 여백
         width: '100%', // 전체 너비 사용
+        marginBottom:15
     },
 
     // 메시지 컨테이너 스타일
     messageContainer: {
         flexDirection: 'row', // 메시지와 아바타를 가로로 정렬
         alignItems: 'flex-start', // 수직으로 위쪽 정렬
-        marginVertical: 4, // 위아래 여백
-        marginBottom: 20, // 메시지 간격
+        marginVertical: 2, // 위아래 여백
+        marginBottom: 4, // 메시지 간격
         paddingHorizontal: 6, // 좌우 여백
         position: 'relative', // 자식 요소의 위치 설정
     },
 
     // 사용자 메시지 컨테이너 스타일
     userMessageContainer: {
-        justifyContent: 'flex-end', // 오른쪽 정렬
+        flexDirection: 'row-reverse', // 사용자 메시지를 오른쪽으로 정렬
+        justifyContent: 'flex-start',
+        marginRight:-15
     },
-
     // 봇 메시지 컨테이너 스타일
     botMessageContainer: {
-        justifyContent: 'flex-start', // 왼쪽 정렬
+        flexDirection: 'row', // 챗봇 메시지를 왼쪽으로 정렬
+        justifyContent: 'flex-start',
+        marginLeft:-15
     },
 
     // 아바타 컨테이너 스타일
     avatarContainer: {
         width: 36, // 아바타 너비
         height: 36, // 아바타 높이
-        top: 2, // 약간 위로 위치 조정
         borderRadius: 18, // 원형 모양
         overflow: 'hidden', // 넘치는 부분을 숨김
+        justifyContent:'center',
+        alignItems:'center'
     },
 
     // 사용자 아바타 이미지 스타일
     userAvatar: {
         width: '100%',
         height: '100%',
-        top: 2,
         resizeMode: 'cover', // 사용자가 설정한 프로필 사진에 맞춰서 조정
         borderRadius: 15, // 원형으로 조정
     },
@@ -907,9 +922,10 @@ const styles = StyleSheet.create({
     botAvatar: {
         width: '100%',
         height: '100%',
-        top: 2,
         resizeMode: 'contain', // 기본 이미지에 맞춰 조정
         borderRadius: 15, // 사각형에 더 가까운 스타일
+        justifyContent:'center',
+        alignItems:'center'
     },
 
     // 메시지 컨텐츠 스타일
@@ -927,12 +943,11 @@ const styles = StyleSheet.create({
     // 봇 메시지 컨텐츠 정렬 스타일
     botMessageContent: {
         alignItems: 'flex-start', // 왼쪽 정렬
-        marginTop: -2, // 이름과 메시지 버블 사이의 간격을 줄이기 위한 위치 조정
     },
 
     // 채팅 컨텐츠 스타일
     chatContent: {
-        paddingVertical: 10, // 위아래 여백
+        paddingVertical: 1, // 위아래 여백
         flexGrow: 1, // 컨텐츠가 적을 때도 스크롤 가능하도록
     },
 
@@ -941,60 +956,30 @@ const styles = StyleSheet.create({
         backgroundColor: '#ECECEC', // 배경색 설정
         marginRight: 12, // 말풍선 꼬리 공간 확보
         borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
-        position: 'relative', // 상대적 위치 설정으로 정확한 배치 가능
         top: 5, // 기본 위치 설정 (위치 조정이 필요한 경우 수정)
-        marginBottom: 7,
+        marginLeft:-1
     },
 
     // 발신자 이름 텍스트 스타일
     senderName: {
-        fontSize: 13, // 텍스트 크기
+        fontSize: 12, // 텍스트 크기
         fontWeight: 'bold', // 텍스트 두껍게
-        marginBottom: 2, // 버블과의 간격을 최소화
         color: '#555', // 텍스트 색상
-        paddingLeft: 1, // 말풍선 꼬리 공간 확보
+        paddingLeft: 5, // 말풍선 꼬리 공간 확보
         left: -5,
     },
 
     // 봇 발신자 이름 정렬 스타일
     botSenderName: {
-        textAlign: 'left', // 텍스트 왼쪽 정렬
+
     },
 
     // 사용자 발신자 이름 정렬 스타일
     userSenderName: {
-        textAlign: 'right', // 텍스트 오른쪽 정렬
-        paddingLeft: 0, // 왼쪽 여백 제거
-        paddingRight: 1, // 오른쪽 여백
+
     },
 
-    // 메시지 꼬리 스타일
-    messageTail: {
-        position: 'absolute',
-        width: 0,
-        height: 0,
-        borderStyle: 'solid',
-        borderWidth: 6,
-    },
 
-    // 사용자 메시지 꼬리 스타일
-    userMessageTail: {
-        right: -8,
-        top: 8,
-        borderColor: 'transparent transparent transparent #4a9960',
-    },
-
-    // 봇 메시지 꼬리 스타일
-    botMessageTail: {
-        left: -8,
-        top: 8,
-        borderColor: 'transparent #ECECEC transparent transparent',
-    },
-
-    // 메시지 텍스트 스타일
-    messageText: {
-        fontSize: 16, // 텍스트 크기
-    },
 
     // 사용자 메시지 텍스트 색상
     userMessageText: {
@@ -1033,4 +1018,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginLeft: 10,
     },
+    userAvatarPosition: {
+        marginRight: 5, // 오른쪽 여백 추가
+    },
+    botAvatarPosition: {
+        marginLeft: 5, // 왼쪽 여백 추가
+    },
+    botMessageNotFirst: {
+        marginLeft: 10, // 봇의 첫 번째 메시지가 아닐 때 여백 추가
+        borderTopLeftRadius: 15, // 말꼬리 스타일 제거를 위한 둥근 모서리 설정
+        borderBottomLeftRadius: 15,
+    },
+    userMessageNotFirst: {
+        marginRight: 13, // 사용자의 첫 번째 메시지가 아닐 때 여백 추가
+        borderTopRightRadius: 15, // 말꼬리 스타일 제거를 위한 둥근 모서리 설정
+        borderBottomRightRadius: 15,
+    },
+
 });
