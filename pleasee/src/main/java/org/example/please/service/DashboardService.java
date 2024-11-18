@@ -99,10 +99,13 @@ public class DashboardService {
         stats.put("diaryOnlyUsers", userRepository.countDiaryOnlyUsers());
 
         // 챗봇만 사용하는 사용자 수
-        stats.put("chatbotOnlyUsers", userRepository.countChatbotOnlyUsers());
+        stats.put("chatbotOnlyUsers", userRepository.countChatOnlyUsers());
 
         // 둘 다 사용하는 사용자 수
         stats.put("bothUsers", userRepository.countBothUsers());
+
+        // 미이용한 사용자 수
+        stats.put("inactiveUsers", userRepository.countInactiveUsers());
 
         // 전체 사용자 수 (이미 있는 메서드 활용)
         stats.put("totalUsers", getTotalUsers());
