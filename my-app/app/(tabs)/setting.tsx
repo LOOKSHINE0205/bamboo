@@ -24,6 +24,7 @@ import { getUserInfo, clearUserData, getUserProfileImage, setUserProfileImage, s
 import * as ImagePicker from 'expo-image-picker';
 import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 import SmoothCurvedInput from '../../components/SmoothCurvedInput';
+import SmoothCurvedView from '../../components/SmoothCurvedView';
 import {serverAddress} from '../../components/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useProfile } from '../../context/ProfileContext';
@@ -330,17 +331,25 @@ const updateNotificationSettings = async () => {
               </View>
             </TouchableOpacity>
           </View>
-        <Text style={styles.label}>닉네임</Text>
-              <SmoothCurvedInput style={[styles.input,]} value={userInfo?.userNick || ''} editable={false} fillColor="#f9f9f9"  customWidth={width*0.95} />
+            <Text style={styles.label}>닉네임</Text>
+            <SmoothCurvedView style={[styles.input, { alignSelf: 'center' }]} customWidth={width * 0.95} fill="#f9f9f9">
+              <Text style={styles.text}>{userInfo?.userNick || ''}</Text>
+            </SmoothCurvedView>
 
-              <Text style={styles.label}>이메일</Text>
-              <SmoothCurvedInput style={styles.input} value={userInfo?.userEmail || ''} editable={false} fillColor="#f9f9f9" customWidth={width*0.95} />
+            <Text style={styles.label}>이메일</Text>
+            <SmoothCurvedView style={[styles.input, { alignSelf: 'center' }]} customWidth={width * 0.95} fill="#f9f9f9">
+              <Text style={styles.text}>{userInfo?.userEmail || ''}</Text>
+            </SmoothCurvedView>
 
-              <Text style={styles.label}>생일</Text>
-              <SmoothCurvedInput style={styles.input} value={userInfo?.userBirthdate || ''} editable={false} fillColor="#f9f9f9" customWidth={width*0.95} />
+            <Text style={styles.label}>생일</Text>
+            <SmoothCurvedView style={[styles.input, { alignSelf: 'center' }]} customWidth={width * 0.95} fill="#f9f9f9">
+              <Text style={styles.text}>{userInfo?.userBirthdate || ''}</Text>
+            </SmoothCurvedView>
 
-              <Text style={styles.label}>챗봇 이름</Text>
-              <SmoothCurvedInput style={styles.input} value={userInfo?.chatbotName || ''} editable={false} fillColor="#f9f9f9"customWidth={width*0.95} />
+            <Text style={styles.label}>챗봇 이름</Text>
+            <SmoothCurvedView style={[styles.input, { alignSelf: 'center' }]} customWidth={width * 0.95} fill="#f9f9f9">
+              <Text style={styles.text}>{userInfo?.chatbotName || ''}</Text>
+            </SmoothCurvedView>
 
               <Text style={styles.label}>비밀번호 확인</Text>
               <SmoothCurvedInput
@@ -365,8 +374,8 @@ const updateNotificationSettings = async () => {
                 fillColor="#f9f9f9"
                 customWidth={width*0.95}
               />
-        <View style={[styles.toggleContainer]}>
-          <Text style={styles.label}>알림 받기</Text>
+        <View style={[styles.toggleContainer,{marginTop:15}]}>
+          <Text style={[styles.label]}>알림 받기</Text>
           <Switch onValueChange={toggleSwitch} value={notificationsEnabled} trackColor={{ false: '#767577', true: '#c6fdbf' }} thumbColor={notificationsEnabled ? '#4a9960' : '#f4f3f4'} />
         </View>
         {notificationsEnabled && (
@@ -489,7 +498,8 @@ const updateNotificationSettings = async () => {
               label: {
                 fontSize: 18,
                 fontWeight: 'bold',
-                marginBottom: 10
+                marginBottom: 5,
+                marginTop:10
               },
               input: {
               },
