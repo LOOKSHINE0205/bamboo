@@ -12,6 +12,7 @@ import {
     Alert,
     useWindowDimensions,
     Keyboard,
+    Animated
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -74,13 +75,59 @@ export default function ChatbotPage() {
     const prevImageUriRef = useRef<string | null>(null); // 이전 이미지 URI를 저장하는 useRef
     const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
     const {profileImageUri} = useProfile();
-
-
+    const dotOpacity1 = useRef(new Animated.Value(0)).current;
+    const dotOpacity2 = useRef(new Animated.Value(0)).current;
+    const dotOpacity3 = useRef(new Animated.Value(0)).current;
     let countdownInterval: NodeJS.Timeout | null = null;
     let messagesToSend: string[] = [];
     const countdownDuration = 3; // 5초 카운트다운
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (isTyping) {
+            // 점 애니메이션 반복
+            const animateDots = Animated.loop(
+                Animated.sequence([
+                    Animated.timing(dotOpacity1, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(dotOpacity2, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(dotOpacity3, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    // 세 번째 점이 나타난 후에 첫 번째 점이 사라짐
+                    Animated.timing(dotOpacity1, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(dotOpacity2, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(dotOpacity3, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                ])
+            );
+
+            animateDots.start();
+
+            return () => animateDots.stop();
+        }
+    }, [isTyping, dotOpacity1, dotOpacity2, dotOpacity3]);
 
 
     const handleLongPress = (message, messageIndex) => {
@@ -111,18 +158,30 @@ export default function ChatbotPage() {
 
     const deleteMessage = async (chatIdx) => {
         try {
+            if (!chatIdx) {
+                // 클립보드에서 복사한 메시지를 즉시 삭제하려면 로컬 상태만 업데이트
+                setMessages((prevMessages) =>
+                    prevMessages.filter((message) => message.chatIdx !== chatIdx)
+                );
+                return;
+            }
+
+            // 서버 요청을 통해 메시지 삭제
             const response = await axios.delete(`${serverAddress}/api/chat/deleteMessage`, {
-                params: {chatIdx}
+                params: { chatIdx },
             });
 
             console.log("Message deleted successfully:", response.data);
 
-            // 삭제된 메시지를 화면에서 바로 제거
-            setMessages(prevMessages => prevMessages.filter(message => message.chatIdx !== chatIdx));
+            // 서버에서 삭제된 메시지를 화면에서도 제거
+            setMessages((prevMessages) =>
+                prevMessages.filter((message) => message.chatIdx !== chatIdx)
+            );
         } catch (error) {
             console.error("메시지 삭제 오류:", error);
         }
     };
+
 
 
     // 클립보드에 텍스트 복사
@@ -303,7 +362,7 @@ export default function ChatbotPage() {
                 setMessages(updateTimestamps(formattedMessages));
 s
             } catch (error) {
-                console.error("Failed to load chat history:", error);
+                // console.error("Failed to load chat history:", error);
             }
         };
 
@@ -594,13 +653,8 @@ s
             const showDateHeader = currentDate && currentDate !== lastDate;
             lastDate = currentDate || lastDate;
 
-            // 같은 발신자의 첫 번째 메시지인지 확인
-            const isFirstMessageFromBot =
-                msg.sender === 'bot' &&
-                (index === 0 || messages[index - 1]?.sender !== 'bot');
-            const isFirstMessageFromUser =
-                msg.sender === 'user' &&
-                (index === 0 || messages[index - 1]?.sender !== 'user');
+            const isFirstMessage = (msg.sender === 'bot' && (index === 0 || messages[index - 1]?.sender !== 'bot'))
+                || (msg.sender === 'user' && (index === 0 || messages[index - 1]?.sender !== 'user'));
 
             return (
                 <React.Fragment key={index}>
@@ -614,12 +668,11 @@ s
                         style={[
                             styles.messageContainer,
                             msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
-                            !isFirstMessageFromBot && msg.sender === 'bot' ? styles.botMessageNotFirst : {},
-                            !isFirstMessageFromUser && msg.sender === 'user' ? styles.userMessageNotFirst : {},
+                            !isFirstMessage && msg.sender === 'bot' ? styles.botMessageNotFirst : {},
+                            !isFirstMessage && msg.sender === 'user' ? styles.userMessageNotFirst : {},
                         ]}
                     >
-                        {/* 첫 번째 메시지일 때만 아바타와 이름을 렌더링 */}
-                        {(isFirstMessageFromBot || isFirstMessageFromUser) && (
+                        {isFirstMessage && (
                             <View style={[styles.avatarContainer, msg.sender === 'user' && styles.userAvatarPosition]}>
                                 <Image
                                     source={typeof msg.avatar === 'string' ? { uri: msg.avatar } : msg.avatar}
@@ -628,20 +681,15 @@ s
                             </View>
                         )}
 
-                        <View
-                            style={[
-                                styles.messageContent,
-                                msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
-                            ]}
-                        >
-                            {/* 첫 번째 메시지일 때만 이름을 렌더링 */}
-                            {(isFirstMessageFromBot || isFirstMessageFromUser) && (
-                                <Text
-                                    style={[
-                                        styles.senderName,
-                                        msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
-                                    ]}
-                                >
+                        <View style={[
+                            styles.messageContent,
+                            msg.sender === 'user' ? styles.userMessageContent : styles.botMessageContent,
+                        ]}>
+                            {isFirstMessage && (
+                                <Text style={[
+                                    styles.senderName,
+                                    msg.sender === 'user' ? styles.userSenderName : styles.botSenderName,
+                                ]}>
                                     {msg.name}
                                 </Text>
                             )}
@@ -651,22 +699,16 @@ s
                                     <Text style={styles.timeText}>{msg.timestamp}</Text>
                                 )}
 
-                                <View
-                                    style={[
-                                        styles.message,
-                                        msg.sender === 'user' ? styles.userMessage : styles.botMessage,
-                                        !isFirstMessageFromBot && msg.sender === 'bot' ? styles.botMessageNotFirst : {},
-                                        !isFirstMessageFromUser && msg.sender === 'user' ? styles.userMessageNotFirst : {},
-                                        isFirstMessageFromBot && msg.sender === 'bot' ? styles.botMessage : {},
-                                        isFirstMessageFromUser && msg.sender === 'user' ? styles.userMessage : {},
-                                    ]}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.messageText,
-                                            msg.sender === 'user' ? styles.userMessageText : styles.botMessageText,
-                                        ]}
-                                    >
+                                <View style={[
+                                    styles.message,
+                                    msg.sender === 'user' ? styles.userMessage : styles.botMessage,
+                                    !isFirstMessage && msg.sender === 'bot' ? styles.botMessageNotFirst : {},
+                                    !isFirstMessage && msg.sender === 'user' ? styles.userMessageNotFirst : {},
+                                ]}>
+                                    <Text style={[
+                                        styles.messageText,
+                                        msg.sender === 'user' ? styles.userMessageText : styles.botMessageText,
+                                    ]}>
                                         {msg.text}
                                     </Text>
                                 </View>
@@ -721,9 +763,9 @@ s
                             <View style={[styles.messageContent, styles.botMessageContent]}>
                                 <View style={styles.typingIndicator}>
                                     <View style={styles.dotsContainer}>
-                                        <View style={styles.dot}></View>
-                                        <View style={styles.dot}></View>
-                                        <View style={styles.dot}></View>
+                                        <Animated.View style={[styles.dot, { opacity: dotOpacity1 }]} />
+                                        <Animated.View style={[styles.dot, { opacity: dotOpacity2 }]} />
+                                        <Animated.View style={[styles.dot, { opacity: dotOpacity3 }]} />
                                     </View>
                                 </View>
                             </View>
@@ -774,22 +816,25 @@ const styles = StyleSheet.create({
         alignItems: 'center', // 세로 정렬
     },
     typingIndicator: {
-        backgroundColor: '#ECECEC', // 말풍선과 일치하는 색상
-        borderRadius: 15, // 둥근 모서리
-        paddingHorizontal: 12, // 좌우 여백
-        paddingVertical: 8, // 상하 여백
-        alignSelf: 'flex-start', // 왼쪽 정렬
-        maxWidth: '60%', // 최대 너비 제한
+        borderRadius: 15,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        alignSelf: 'flex-start',
+        maxWidth: '60%',
+        marginTop: 10,
     },
+
     dot: {
-        width: 6, // 점의 너비
-        height: 6, // 점의 높이
-        marginHorizontal: 3, // 점 간격
-        backgroundColor: '#666', // 점 색상
-        borderRadius: 3, // 원형
-        opacity: 0.4, // 기본 투명도
-        animation: 'bounce 1.5s infinite', // 애니메이션 추가
+        width: 3,
+        height: 3,
+        marginHorizontal: 3,
+        backgroundColor: '#a5aaa3',
+        borderRadius: 3,
+        opacity: 0.4,
+        animation: 'bounce 1.5s infinite',
+        transform: [{ scale: 1.2 }], // 확대 효과
     },
+
     timeContainer: {
         flexDirection: 'column', // 평가 버튼과 시간을 세로로 정렬
         alignItems: 'flex-start', // 왼쪽 정렬
@@ -851,7 +896,16 @@ const styles = StyleSheet.create({
         borderRadius: 15, // 둥근 모서리 적용
         maxWidth: '100%', // 최대 너비 100%
     },
-
+    botMessageNotFirst: {
+        marginLeft: 10, // 봇의 첫 번째 메시지가 아닐 때 여백 추가
+        borderTopLeftRadius: 15, // 말꼬리 스타일 제거를 위한 둥근 모서리 설정
+        borderBottomLeftRadius: 15,
+    },
+    userMessageNotFirst: {
+        marginRight: 13, // 사용자의 첫 번째 메시지가 아닐 때 여백 추가
+        borderTopRightRadius: 15, // 말꼬리 스타일 제거를 위한 둥근 모서리 설정
+        borderBottomRightRadius: 15,
+    },
     // 사용자 메시지의 스타일
     userMessage: {
         backgroundColor: '#4a9960', // 사용자 메시지 배경색
@@ -1024,15 +1078,6 @@ const styles = StyleSheet.create({
     botAvatarPosition: {
         marginLeft: 5, // 왼쪽 여백 추가
     },
-    botMessageNotFirst: {
-        marginLeft: 10, // 봇의 첫 번째 메시지가 아닐 때 여백 추가
-        borderTopLeftRadius: 15, // 말꼬리 스타일 제거를 위한 둥근 모서리 설정
-        borderBottomLeftRadius: 15,
-    },
-    userMessageNotFirst: {
-        marginRight: 13, // 사용자의 첫 번째 메시지가 아닐 때 여백 추가
-        borderTopRightRadius: 15, // 말꼬리 스타일 제거를 위한 둥근 모서리 설정
-        borderBottomRightRadius: 15,
-    },
+
 
 });

@@ -8,6 +8,9 @@ import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-na
 import { getUserInfo, clearUserData } from '../../storage/storageHelper'; // 사용자 정보 가져오기 함수와 로그아웃 함수 import
 import { useRouter } from 'expo-router';
 import { ProfileProvider } from '../../context/ProfileContext';
+import {serverAddress} from "@/components/Config";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function CustomTabBar({ state, descriptors, navigation }) {
     const { width, height } = useWindowDimensions();
@@ -88,12 +91,33 @@ export default function TabLayout() {
 
     const handleLogout = async () => {
         try {
+            // 사용자 상태를 inactive로 업데이트
+            const userEmail = await AsyncStorage.getItem('userEmail'); // 사용자 이메일 가져오기
+            if (userEmail) {
+                await updateUserStatus(userEmail, "inactive"); // 상태를 inactive로 설정
+            }
+
+            // 사용자 데이터 지우기 및 로그아웃 처리
             await clearUserData();
-            Alert.alert('알림', '로그아웃 되었습니다.');
-            router.replace('../(init)');
+            Alert.alert("알림", "로그아웃 되었습니다.");
+            router.replace("../(init)");
         } catch (error) {
             console.error("로그아웃 중 오류 발생:", error);
             Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.");
+        }
+    };
+
+    // 사용자 상태 업데이트
+    const updateUserStatus = async (userEmail: string, status: string) => {
+        try {
+            // console.log(`[User Status Update] Preparing to send "${status}" for user: ${userEmail}`);
+            const response = await axios.post(`${serverAddress}/api/chat/updateUserStatus`, {
+                userEmail,
+                status,
+            });
+            // console.log(`[User Status Update] Status successfully updated to "${status}":`, response.data);
+        } catch (error) {
+            console.error(`[User Status Update] Failed to update status: ${error.message}`);
         }
     };
 

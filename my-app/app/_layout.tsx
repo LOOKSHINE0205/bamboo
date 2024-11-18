@@ -27,12 +27,12 @@ export default function RootLayout() {
       const userEmail = await AsyncStorage.getItem('userEmail');
 
       if (userEmail) {
-        console.log(`[AppState Change] User email found: ${userEmail}`);
+        // console.log(`[AppState Change] User email found: ${userEmail}`);
         if (nextAppState === 'active') {
-          console.log('[AppState Change] App is now active. Updating status to "active".');
+          // console.log('[AppState Change] App is now active. Updating status to "active".');
           await updateUserStatus(userEmail, 'active');
         } else if (nextAppState === 'background') {
-          console.log('[AppState Change] App is now in background. Updating status to "inactive".');
+          // console.log('[AppState Change] App is now in background. Updating status to "inactive".');
           await updateUserStatus(userEmail, 'inactive');
         }
       } else {
@@ -46,12 +46,12 @@ export default function RootLayout() {
   // 사용자 상태 업데이트
   const updateUserStatus = async (userEmail: string, status: string) => {
     try {
-      console.log(`[User Status Update] Preparing to send "${status}" for user: ${userEmail}`);
+      // console.log(`[User Status Update] Preparing to send "${status}" for user: ${userEmail}`);
       const response = await axios.post(`${serverAddress}/api/chat/updateUserStatus`, {
         userEmail,
         status,
       });
-      console.log(`[User Status Update] Status successfully updated to "${status}":`, response.data);
+      // console.log(`[User Status Update] Status successfully updated to "${status}":`, response.data);
     } catch (error) {
       console.error(`[User Status Update] Failed to update status: ${error.message}`);
     }
@@ -66,9 +66,9 @@ export default function RootLayout() {
       try {
         const userEmail = await AsyncStorage.getItem('userEmail');
         if (userEmail) {
-          console.log(`[Initial State] User email found: ${userEmail}`);
+          // console.log(`[Initial State] User email found: ${userEmail}`);
           const initialState = AppState.currentState === 'active' ? 'active' : 'inactive';
-          console.log(`[Initial State] AppState is "${initialState}". Updating status.`);
+          // console.log(`[Initial State] AppState is "${initialState}". Updating status.`);
           await updateUserStatus(userEmail, initialState);
         } else {
           console.warn('[Initial State] No user email found in AsyncStorage.');
@@ -79,17 +79,17 @@ export default function RootLayout() {
     })();
 
     return () => {
-      console.log('[Cleanup] Removing AppState event listener.');
+      // console.log('[Cleanup] Removing AppState event listener.');
       subscription.remove();
     };
   }, []);
 
   useEffect(() => {
     if (fontsLoaded) {
-      console.log('[SplashScreen] Fonts loaded. Hiding splash screen.');
+      // console.log('[SplashScreen] Fonts loaded. Hiding splash screen.');
       SplashScreen.hideAsync();
     } else {
-      console.log('[SplashScreen] Fonts not loaded yet.');
+      // console.log('[SplashScreen] Fonts not loaded yet.');
     }
   }, [fontsLoaded]);
 
