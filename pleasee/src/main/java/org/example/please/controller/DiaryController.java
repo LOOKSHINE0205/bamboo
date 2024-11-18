@@ -45,7 +45,7 @@ public class DiaryController {
             @RequestPart(value = "photo", required = false) List<MultipartFile> photoFiles) throws IOException {
 
         ObjectMapper objectMapper = new ObjectMapper();
-        Diary diary = objectMapper.readValue(diaryData, Diary.class);
+        Diary diary = objectMapper.readValue(diaryData, Diary.class); // JSON 데이터를 Diary 객체로 변환
 
         // 다중 파일을 지원하는 메서드 호출
         Diary newDiary = diaryService.createDiary(diary, photoFiles);
@@ -70,9 +70,11 @@ public class DiaryController {
     public ResponseEntity<List<Map<String, Object>>> getDiariesByUserEmail(@RequestParam String userEmail) {
         System.out.println("Received request for userEmail: " + userEmail);
 
+        // 이메일을 기준으로 일기 데이터를 조회
         List<Diary> diaries = diaryService.getDiariesByUserEmail(userEmail);
         System.out.println("Diaries found: " + diaries.size());
 
+        // 다중 이미지 URL 처리 및 데이터를 변환
         List<Map<String, Object>> diaryWithUrls = diaries.stream().map(diary -> {
             Map<String, Object> diaryMap = new HashMap<>();
             diaryMap.put("diaryIdx", diary.getDiaryIdx());
@@ -83,6 +85,7 @@ public class DiaryController {
             diaryMap.put("diaryContent", diary.getDiaryContent());
             diaryMap.put("createdAt", diary.getCreatedAt());
             try {
+                // diaryPhoto에 저장된 JSON 배열을 URL로 변환
                 diaryMap.put("diaryPhoto", diaryService.createImageUrls(diary.getDiaryPhoto()));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -98,14 +101,16 @@ public class DiaryController {
     private String createImageUrl(String diaryPhoto) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            // JSON 배열 문자열을 리스트로 변환
             List<String> photoList = objectMapper.readValue(diaryPhoto, new TypeReference<List<String>>() {});
 
+            // 각 파일명을 URL 형태로 변환
             return photoList.stream()
-                    .map(photo -> serverBaseUrl + "/uploads/images/db/" + photo) // 공통 서버 URL 사용
-                    .collect(Collectors.joining(","));
+                    .map(photo -> serverBaseUrl + "/uploads/images/db/" + photo)
+                    .collect(Collectors.joining(",")); // 콤마로 구분된 문자열 반환
         } catch (IOException e) {
             e.printStackTrace();
-            return "";
+            return ""; // 오류 시 빈 문자열 반환
         }
     }
 

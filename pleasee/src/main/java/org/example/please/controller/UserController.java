@@ -55,8 +55,24 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> join(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
         try {
+            // 기존 유저 데이터를 저장하는 로직
             userService.saveUser(user);
-            response.put("message", "회원가입 성공");
+
+            // testResults로 MBTI 계산
+            if (user.getChatbotType() != null && !user.getChatbotType().isEmpty()) {
+                String calculateMBTI = userService.calculateMBTI(user.getChatbotType());
+                user.setChatbotType(calculateMBTI); // 계산된 MBTI를 저장
+            }
+
+            // 챗봇 이름이 존재하면 저장
+            if (user.getChatbotName() != null && !user.getChatbotName().isEmpty()) {
+                user.setChatbotName(user.getChatbotName());
+            }
+
+            // 데이터 저장
+            userService.saveUser(user);
+
+            response.put("message", "회원가입 및 챗봇 정보 저장 성공");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             response.put("message", "회원가입 실패: " + e.getMessage());
@@ -220,4 +236,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알림 설정 업데이트 중 오류 발생");
         }
     }
+
+
+
 }

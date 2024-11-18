@@ -46,6 +46,7 @@ public class UserService {
 
     /**
      * 이메일 중복 체크
+     *
      * @param user 이메일 중복 확인할 사용자 객체
      * @return 이메일 중복 여부
      */
@@ -55,6 +56,7 @@ public class UserService {
 
     /**
      * 새로운 사용자 저장 (회원가입)
+     *
      * @param user 저장할 사용자 객체
      */
     public void saveUser(User user) {
@@ -65,6 +67,7 @@ public class UserService {
 
     /**
      * 사용자 로그인 로직
+     *
      * @param user 로그인할 사용자 객체
      * @return 인증된 사용자 객체 또는 null (인증 실패 시)
      */
@@ -76,6 +79,7 @@ public class UserService {
 
     /**
      * 사용자 비밀번호 업데이트
+     *
      * @param user 비밀번호를 업데이트할 사용자 객체
      */
     public void updatePassword(User user) {
@@ -92,6 +96,7 @@ public class UserService {
 
     /**
      * 이메일로 사용자 조회
+     *
      * @param email 조회할 사용자 이메일
      * @return 조회된 사용자 객체 (Optional)
      */
@@ -101,10 +106,10 @@ public class UserService {
     }
 
 
-
     /**
      * 사용자 프로필 이미지 업로드 및 기존 이미지 삭제
-     * @param email 사용자 이메일
+     *
+     * @param email     사용자 이메일
      * @param photoFile 업로드할 프로필 이미지 파일
      * @return 저장된 프로필 이미지 파일명 또는 null (사용자를 찾을 수 없는 경우)
      * @throws IOException 파일 처리 오류
@@ -134,6 +139,7 @@ public class UserService {
 
     /**
      * 기존 프로필 이미지 삭제
+     *
      * @param fileName 삭제할 파일명
      */
     private void deleteOldProfileImage(String fileName) {
@@ -153,6 +159,7 @@ public class UserService {
 
     /**
      * 프로필 이미지 초기화 (이미지 삭제 후 DB의 이미지 정보 초기화)
+     *
      * @param email 사용자 이메일
      */
     public void resetProfileImage(String email) {
@@ -168,8 +175,9 @@ public class UserService {
 
     /**
      * 프로필 이미지 저장 (파일로 저장)
+     *
      * @param photoFile 저장할 이미지 파일
-     * @param fileName 저장할 파일명
+     * @param fileName  저장할 파일명
      * @throws IOException 파일 처리 오류
      */
     private void saveProfileImage(MultipartFile photoFile, String fileName) throws IOException {
@@ -178,8 +186,6 @@ public class UserService {
         photoFile.transferTo(targetPath.toFile()); // 파일 저장
         logger.info("Saved new profile image: {}", fileName);
     }
-
-
 
 
     public void updateQuietTimes(String userEmail, String startTime, String endTime) {
@@ -208,12 +214,68 @@ public class UserService {
             throw new RuntimeException("해당 사용자를 찾을 수 없습니다.");
         });
     }
+
     private static final int LEVEL_UP_CHAT_COUNT = 10;
     private static final int LEVEL_UP_DIARY_COUNT = 3;
 
     public boolean verifyPassword(User user, String currentPassword) {
         return passwordEncoder.matches(currentPassword, user.getUserPw());
     }
+
+
+    public String calculateMBTI(String testResults) {
+        // 유효성 검사: testResults가 null이거나 길이가 충분하지 않으면 예외 발생
+        if (testResults == null || testResults.length() < 8) {
+            throw new IllegalArgumentException("Invalid testResults: " + testResults);
+        }
+
+        int extrovertCount = 0;
+        int empathicCount = 0;
+
+        // 첫 4개의 값으로 E/I 계산
+        for (int i = 0; i < 3; i++) {
+            if (testResults.charAt(i) == '0') {
+                extrovertCount++;
+            }
+        }
+
+        // 나머지 4개의 값으로 F/T 계산
+        for (int i = 3; i < testResults.length(); i++) {
+            if (testResults.charAt(i) == '0') {
+                empathicCount++;
+            }
+        }
+
+        // E/I 결과 결정
+        String EorI = extrovertCount >= 1 ? "E" : "I";
+
+        // F/T 결과 결정
+        String ForT = empathicCount >= 2 ? "F" : "T";
+
+        // 계산된 MBTI
+        String calculatedMBTI = EorI + "_" + ForT;
+
+        // 매칭되는 성격 유형 반환
+        return getMatchingPersonality(calculatedMBTI);
+    }
+
+    // 매칭되는 성격 유형을 반환하는 메서드 추가
+    private String getMatchingPersonality(String mbti) {
+        switch (mbti) {
+            case "E_F":
+                return "I_F"; // 외향적 + 공감형 -> 내향적 + 공감형
+            case "E_T":
+                return "I_T"; // 외향적 + 논리형 -> 내향적 + 논리형
+            case "I_F":
+                return "E_F"; // 내향적 + 공감형 -> 외향적 + 공감형
+            case "I_T":
+                return "E_T"; // 내향적 + 논리형 -> 외향적 + 논리형
+            default:
+                return mbti; // 예상치 못한 값은 그대로 반환
+        }
+    }
+
+}
 
 ////    @Transactional
 ////    public void updateChatbotLevelAfterDiaryCreation(String userEmail) {
@@ -236,4 +298,4 @@ public class UserService {
 //        int diaryLevel = diaryCount / LEVEL_UP_DIARY_COUNT;
 //        return 1 + chatLevel + diaryLevel; // 기본 레벨 1부터 시작
 //    }
-}
+

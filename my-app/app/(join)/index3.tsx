@@ -90,7 +90,8 @@ const UserGuide = () => {
               style={[
                 styles.dot,
                 pageIndex === index && styles.activeDot,
-                {top:-height*0.04}
+
+                {top:-height*0.05,position: 'absolute',}
               ]}
             />
           ))}
@@ -103,7 +104,7 @@ const UserGuide = () => {
               alignItems: 'center', // 모든 버튼을 가운데 정렬
               width: '80%',
               position: 'absolute',
-              top:height*0.57
+              top:height*0.6
             },
           ]}
         >
