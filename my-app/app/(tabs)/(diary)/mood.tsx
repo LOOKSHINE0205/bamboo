@@ -142,7 +142,7 @@ export default function MoodSelectionScreen() {
       {errorMessage ? (
         <Animated.View style={[styles.alertBox, { opacity: fadeAnim }]}>
             <Image
-                   source={require("../../../assets/images/기쁨2.png")}
+                   source={require("../../../assets/images/기쁨.png")}
                    style={styles.icon}
             />
          <Text style={styles.alertText}>{errorMessage}</Text>
@@ -221,7 +221,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: "#4a4a4a",
     borderRadius: 100,
   },
   icon: {
@@ -231,8 +230,7 @@ const styles = StyleSheet.create({
       resizeMode: "contain",
     },
   alertText: {
-    color: "#ffffff",
+    color: "#000",
     fontSize: 14,
-    fontWeight : "bold",
   },
 });

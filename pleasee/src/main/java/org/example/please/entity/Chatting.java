@@ -58,4 +58,9 @@ public class  Chatting {
     private String evaluation;
 
     private String userEmail;
+
+    // keyword
+    @Column(name = "emotion_keyword")
+    private String emotionKeyword;
+
 }
