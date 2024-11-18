@@ -57,5 +57,9 @@ public class  Chatting {
     @Column(name = "evaluation")
     private String evaluation;
 
+    // 평가
+    @Column(name = "emotion_keyword ")
+    private String emotionKeyword;
+
     private String userEmail;
 }

@@ -110,12 +110,12 @@ export default function TabLayout() {
     // 사용자 상태 업데이트
     const updateUserStatus = async (userEmail: string, status: string) => {
         try {
-            console.log(`[User Status Update] Preparing to send "${status}" for user: ${userEmail}`);
+            // console.log(`[User Status Update] Preparing to send "${status}" for user: ${userEmail}`);
             const response = await axios.post(`${serverAddress}/api/chat/updateUserStatus`, {
                 userEmail,
                 status,
             });
-            console.log(`[User Status Update] Status successfully updated to "${status}":`, response.data);
+            // console.log(`[User Status Update] Status successfully updated to "${status}":`, response.data);
         } catch (error) {
             console.error(`[User Status Update] Failed to update status: ${error.message}`);
         }

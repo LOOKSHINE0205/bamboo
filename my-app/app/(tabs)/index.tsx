@@ -303,7 +303,7 @@ export default function ChatbotPage() {
                 setMessages(updateTimestamps(formattedMessages));
 s
             } catch (error) {
-                console.error("Failed to load chat history:", error);
+                // console.error("Failed to load chat history:", error);
             }
         };
 

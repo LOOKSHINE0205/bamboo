@@ -112,6 +112,7 @@ public class ChattingController {
 
             String botContent = null;
             String botResponseObject = (String) botResponseToUser.get("bot_response");
+            String emotionKeyword = (String)botResponseToUser.get("emotion_keyword");
 //            if (botResponseObject instanceof Map) {
 //                Map<String, Object> botResponseMap = (Map<String, Object>) botResponseObject;
 //                botContent = (String) botResponseMap.get("content");
@@ -130,7 +131,7 @@ public class ChattingController {
             // 봇 응답  저장
             String botEmotionTag = mapper.writeValueAsString(botResponseToUser.get("current_emotion_probabilities"));
 
-            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botResponseObject , botEmotionTag);
+            Chatting botResponse = saveBotMessage(chatting.getCroomIdx(), chatting.getSessionIdx(), botResponseObject , botEmotionTag, emotionKeyword);
             // 응답 데이터 생성
             Map<String, Object> response = new HashMap<>();
             response.put("chatContent", botResponse.getChatContent());
@@ -149,13 +150,14 @@ public class ChattingController {
         }
     }
 
-    private Chatting saveBotMessage(int croomIdx, int sessionIdx, String content, String emotionTag) {
+    private Chatting saveBotMessage(int croomIdx, int sessionIdx, String content, String emotionTag,String emotionKeyword) {
         Chatting botMessage = new Chatting();
         botMessage.setCroomIdx(croomIdx);
         botMessage.setSessionIdx(sessionIdx);
         botMessage.setChatContent(content);
         botMessage.setChatter("bot");
         botMessage.setEmotionTag(emotionTag);
+        botMessage.setEmotionKeyword(emotionKeyword);
 
         Chatting savedMessage = chattingRepository.saveAndFlush(botMessage);
         System.out.println("chatIDXXXXXX: " + savedMessage.getChatIdx());

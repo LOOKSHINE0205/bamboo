@@ -4,9 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="21daf45c-5552-4b18-811d-5d638d248ea1" name="Changes" comment="회원가입 수정, 로그인 됨">
+    <list default="true" id="21daf45c-5552-4b18-811d-5d638d248ea1" name="Changes" comment="로그아웃시 inactive">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +130,7 @@
       <workItem from="1731585613554" duration="4287000" />
       <workItem from="1731631569810" duration="13637000" />
       <workItem from="1731913277524" duration="172000" />
-      <workItem from="1731913458430" duration="3875000" />
+      <workItem from="1731913458430" duration="6005000" />
     </task>
     <task id="LOCAL-00001" summary="일기페이지 동기화맨">
       <option name="closed" value="true" />
@@ -167,7 +172,15 @@
       <option name="project" value="LOCAL" />
       <updated>1731915773808</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="로그아웃시 inactive">
+      <option name="closed" value="true" />
+      <created>1731917386824</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1731917386824</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -189,6 +202,7 @@
     <MESSAGE value="챗봇 평가버튼, 시간, 날짜 입력대기 수정 , 업데이트" />
     <MESSAGE value="zz" />
     <MESSAGE value="회원가입 수정, 로그인 됨" />
-    <option name="LAST_COMMIT_MESSAGE" value="회원가입 수정, 로그인 됨" />
+    <MESSAGE value="로그아웃시 inactive" />
+    <option name="LAST_COMMIT_MESSAGE" value="로그아웃시 inactive" />
   </component>
 </project>

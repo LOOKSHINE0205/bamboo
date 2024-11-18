@@ -210,9 +210,6 @@ public class UserService {
             throw new RuntimeException("해당 사용자를 찾을 수 없습니다.");
         });
     }
-
-    private static final int LEVEL_UP_CHAT_COUNT = 10;
-    private static final int LEVEL_UP_DIARY_COUNT = 3;
     @Transactional
     public void updateChatbotLevelAfterDiaryCreation(String userEmail) {
         // 1. 작성된 일기 수 가져오기
@@ -226,6 +223,9 @@ public class UserService {
         int diaryLevel = diaryCount / 3; // 일기 3개당 1레벨
         int chatLevel = conversationCount / 10; // 대화 10개당 1레벨
         int newLevel = diaryLevel + chatLevel;
+        if(newLevel==0){
+            newLevel=1;
+        }
 
         // 4. 사용자 레벨 업데이트
         userRepository.updateChatbotLevel(userEmail, newLevel);
@@ -289,26 +289,4 @@ public class UserService {
     }
 
 }
-
-////    @Transactional
-////    public void updateChatbotLevelAfterDiaryCreation(String userEmail) {
-////        // 사용자의 채팅 수와 일기 수 조회
-////        int botChatCount = chattingRepository.countBotChatsByUserEmail(userEmail);
-////        int diaryCount = diaryRepository.countDiariesByUserEmail(userEmail);
-////
-////        // 새로운 챗봇 레벨 계산
-////        int newLevel = calculateChatbotLevel(botChatCount, diaryCount);
-////        // 기존 레벨과 비교 후 다를 경우에만 업데이트
-////        int currentLevel = userRepository.findChatbotLevelByUserEmail(userEmail);
-////        if (newLevel != currentLevel) {
-////            userRepository.updateChatbotLevel(userEmail, newLevel);
-////        }
-////    }
-//
-//    // 챗봇 레벨 계산
-//    private int calculateChatbotLevel(int chatCount, int diaryCount) {
-//        int chatLevel = chatCount / LEVEL_UP_CHAT_COUNT;
-//        int diaryLevel = diaryCount / LEVEL_UP_DIARY_COUNT;
-//        return 1 + chatLevel + diaryLevel; // 기본 레벨 1부터 시작
-//    }
 
