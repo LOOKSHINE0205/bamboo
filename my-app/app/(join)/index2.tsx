@@ -255,7 +255,7 @@ return (
           <Animated.View
             style={[
               styles.aiResponse,
-              { opacity: fadeAnim, top: -screenHeight * 0.08, opacity: fadeAnim || 0 }, // 초기 opacity 값 설정
+              { opacity: fadeAnim, top: -screenHeight * 0.07, opacity: fadeAnim || 0 }, // 초기 opacity 값 설정
             ]}
           >
             <SmoothCurvedView customWidth={screenWidth * 0.95} disabled={false} fill="#E8E8E8">
