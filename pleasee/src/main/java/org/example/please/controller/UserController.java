@@ -55,18 +55,11 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> join(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // 기존 유저 데이터를 저장하는 로직
-            userService.saveUser(user);
 
             // testResults로 MBTI 계산
             if (user.getChatbotType() != null && !user.getChatbotType().isEmpty()) {
                 String calculateMBTI = userService.calculateMBTI(user.getChatbotType());
                 user.setChatbotType(calculateMBTI); // 계산된 MBTI를 저장
-            }
-
-            // 챗봇 이름이 존재하면 저장
-            if (user.getChatbotName() != null && !user.getChatbotName().isEmpty()) {
-                user.setChatbotName(user.getChatbotName());
             }
 
             // 데이터 저장

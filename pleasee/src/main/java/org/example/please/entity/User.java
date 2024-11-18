@@ -2,6 +2,7 @@ package org.example.please.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -15,6 +16,7 @@ import java.util.Date;
 @ToString
 @Table(name = "user_tb")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@DynamicInsert
 public class User {
 
     // 사용자 ID
