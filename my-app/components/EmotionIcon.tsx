@@ -1,45 +1,71 @@
-import React from 'react';
-import { View, Image, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Image, Text, Pressable, StyleSheet, useWindowDimensions, Animated } from 'react-native';
 
 interface EmotionIconProps {
   emotionIcon: { key: string; label: string; icon: any }[];
   toggleEmotion: (emotion: string) => void;
   selectedEmotions: string[];
+  iconSize?: number;
+  iconMargin?: number;
 }
 
 const EmotionIcon: React.FC<EmotionIconProps> = ({
   emotionIcon,
   toggleEmotion,
   selectedEmotions,
+  iconSize = 40,
+  iconMargin = 5,
 }) => {
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const aspectRatio = screenWidth / screenHeight;
+  const { width: screenWidth } = useWindowDimensions();
+  const itemWidth = screenWidth / 7;
+  const adjustedIconSize = iconSize || itemWidth * 0.7;
+  const adjustedIconMargin = iconMargin || itemWidth * 0.05;
 
-  // 스타일을 동적으로 조정
-  const iconContainerStyle = {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: aspectRatio >= 0.6 ? 20 : 0.2, // 화면 비율에 따라 아이콘 간격 조정
-  };
-
-  const iconSize = aspectRatio >= 0.6 ? 40 : 20; // 화면 비율에 따라 아이콘 크기 조정
+  // 아이콘 별 애니메이션 값 생성
+  const animatedValues = useMemo(() => emotionIcon.map(() => new Animated.Value(1)), [emotionIcon]);
 
   return (
-    <View style={[styles.iconContainer, iconContainerStyle]}>
-      {emotionIcon.map((emotion) => (
-        <TouchableOpacity
-          key={emotion.key}
-          onPress={() => toggleEmotion(emotion.label)}
-          style={[
-            styles.iconLabelContainer,
-            { opacity: selectedEmotions.includes(emotion.label) ? 1 : 0.4 },
-          ]}
-        >
-          <Image source={emotion.icon} style={{ width: iconSize+2, height: iconSize }} />
-          <Text style={styles.iconLabel}>{emotion.label}</Text>
-        </TouchableOpacity>
-      ))}
+    <View style={styles.iconContainer}>
+      {emotionIcon.map((emotion, index) => {
+        const scaleAnim = animatedValues[index];
+        const isSelected = selectedEmotions.includes(emotion.label);
+
+        const handlePress = () => {
+          toggleEmotion(emotion.label);
+
+          Animated.timing(scaleAnim, {
+            toValue: isSelected ? 1 : 1.2,
+            duration: isSelected ? 250 : 150,
+            useNativeDriver: true,
+          }).start();
+        };
+
+        return (
+          <Pressable
+            key={emotion.key}
+            onPress={handlePress}
+            style={[
+              styles.iconLabelContainer,
+              {
+                width: itemWidth,
+                marginHorizontal: adjustedIconMargin,
+                opacity: isSelected ? 1 : 0.3,
+              },
+            ]}
+          >
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <Image
+                source={emotion.icon}
+                style={{ width: adjustedIconSize, height: adjustedIconSize }}
+                resizeMode="contain"
+              />
+            </Animated.View>
+            <Text style={[styles.iconLabel, { color: isSelected ? '#333' : '#666' }]}>
+              {emotion.label}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 };
@@ -54,12 +80,10 @@ const styles = StyleSheet.create({
   },
   iconLabelContainer: {
     alignItems: 'center',
-    marginHorizontal: 10,
-    marginTop: 15,
   },
   iconLabel: {
     fontSize: 12,
     color: '#666',
-    marginTop: 5,
+    marginTop: 4,
   },
 });

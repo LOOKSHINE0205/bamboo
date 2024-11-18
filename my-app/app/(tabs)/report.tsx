@@ -221,13 +221,16 @@ const Report = () => {
           <Text style={styles.title}>{userNick}의 감정 상태</Text>
         </View>
 
-        <View style={styles.sectionContainer}>
+        <View style={[styles.sectionContainer,{alignItems:'center',justifyContent: 'center'}]}>
           <Text style={styles.subtitle}>감정 선택</Text>
           <EmotionIcon
             emotionIcon={emotionIcon}
             toggleEmotion={toggleEmotion}
             selectedEmotions={selectedEmotions}
+            iconSize={30}
+            iconMargin={-4} // 원하는 간격 값
           />
+
         </View>
 
         {isDataLoaded && normalizedEmotionDataByDay && Object.keys(normalizedEmotionDataByDay).length > 0 && (

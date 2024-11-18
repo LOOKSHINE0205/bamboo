@@ -7,11 +7,11 @@ import SmoothCurvedButton from '../../components/SmoothCurvedButton';
 
 const UserGuide = () => {
   const router = useRouter();
-  const {width, height} = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [pageIndex, setPageIndex] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(1));
-  const [isAnimating, setIsAnimating] = useState(false);
-
+  const [nextAnimating, setNextAnimating] = useState(false);
+  const [prevAnimating, setPrevAnimating] = useState(false);
 
   const pages = [
     {
@@ -37,21 +37,21 @@ const UserGuide = () => {
   ];
 
   const handleNext = () => {
-    if (pageIndex < pages.length - 1 && !isAnimating) {
-      setIsAnimating(true);
+    if (pageIndex < pages.length - 1 && !nextAnimating) {
+      setNextAnimating(true);
       animateContent(() => {
         setPageIndex(pageIndex + 1);
-        setIsAnimating(false);
+        setNextAnimating(false);
       });
     }
   };
 
   const handlePrevious = () => {
-    if (pageIndex > 0 && !isAnimating) {
-      setIsAnimating(true);
+    if (pageIndex > 0 && !prevAnimating) {
+      setPrevAnimating(true);
       animateContent(() => {
         setPageIndex(pageIndex - 1);
-        setIsAnimating(false);
+        setPrevAnimating(false);
       });
     }
   };
@@ -74,13 +74,13 @@ const UserGuide = () => {
   return (
     <JoinBG>
       <View style={styles.container}>
-        <Animated.View style={[styles.iconContainer, { opacity: fadeAnim,top:-height*0.05, }]}>
+        <Animated.View style={[styles.iconContainer, { opacity: fadeAnim, top: -height * 0.05 }]}>
           <TabBarIcon name={pages[pageIndex].icon} color="#4a9960" size={150} />
         </Animated.View>
-        <Animated.Text style={[styles.title, { opacity: fadeAnim,top:-height*0.03 }]}>
+        <Animated.Text style={[styles.title, { opacity: fadeAnim, top: -height * 0.03 }]}>
           {pages[pageIndex].title}
         </Animated.Text>
-        <Animated.Text style={[styles.description, { opacity: fadeAnim, top:-height*0.04 }]}>
+        <Animated.Text style={[styles.description, { opacity: fadeAnim, top: -height * 0.04 }]}>
           {pages[pageIndex].description}
         </Animated.Text>
         <View style={styles.pagination}>
@@ -90,8 +90,7 @@ const UserGuide = () => {
               style={[
                 styles.dot,
                 pageIndex === index && styles.activeDot,
-
-                {top:-height*0.05,position: 'absolute',}
+                { top: -height * 0.05 },
               ]}
             />
           ))}
@@ -100,11 +99,11 @@ const UserGuide = () => {
           style={[
             styles.buttonGroup,
             {
-              flexDirection: 'column', // 버튼을 항상 세로 방향으로 배치
-              alignItems: 'center', // 모든 버튼을 가운데 정렬
+              flexDirection: 'column',
+              alignItems: 'center',
               width: '80%',
               position: 'absolute',
-              top:height*0.6
+              top: height * 0.55,
             },
           ]}
         >
@@ -112,11 +111,11 @@ const UserGuide = () => {
             <SmoothCurvedButton
               title="이전"
               onPress={handlePrevious}
-              disabled={isAnimating}
+              disabled={prevAnimating}
               style={{
                 width: '100%',
-                marginBottom: 10, // '이전' 버튼과 아래 버튼 간격을 일정하게 설정
-                opacity: isAnimating ? 0.5 : 1,
+                marginBottom: 10,
+                opacity: prevAnimating ? 0.5 : 1,
               }}
             />
           )}
@@ -124,28 +123,26 @@ const UserGuide = () => {
             <SmoothCurvedButton
               title="다음"
               onPress={handleNext}
-              disabled={isAnimating}
+              disabled={nextAnimating}
               style={{
                 width: '100%',
-                opacity: isAnimating ? 0.5 : 1,
-                alignSelf: 'center', // 버튼을 가운데 정렬
+                opacity: nextAnimating ? 0.5 : 1,
+                alignSelf: 'center',
               }}
             />
           ) : (
             <SmoothCurvedButton
               title="완료"
               onPress={() => router.push('../../(init)')}
-              disabled={isAnimating}
+              disabled={nextAnimating}
               style={{
                 width: '100%',
-                opacity: isAnimating ? 0.5 : 1,
-                alignSelf: 'center', // '완료' 버튼도 가운데 정렬
+                opacity: nextAnimating ? 0.5 : 1,
+                alignSelf: 'center',
               }}
             />
           )}
         </View>
-
-
       </View>
     </JoinBG>
   );

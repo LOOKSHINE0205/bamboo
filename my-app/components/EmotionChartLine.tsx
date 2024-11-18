@@ -18,7 +18,7 @@ const EmotionChartLine: React.FC<EmotionChartProps> = React.memo(
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
     // 낮은 값에 추가할 오프셋 설정
-    const offset = 0.15;
+    const offset = 0.21;
 
     useEffect(() => {
       // 필요한 로직 추가
@@ -61,7 +61,7 @@ const EmotionChartLine: React.FC<EmotionChartProps> = React.memo(
                   key={index}
                   data={normalizedEmotionDataByDay[dataset.label].map((y, x) => ({
                     x: chartData.labels[x],
-                    y: y + offset, // 낮은 값에 오프셋 추가
+                    y: y + offset,
                   }))}
                   style={{
                     data: {
@@ -71,8 +71,8 @@ const EmotionChartLine: React.FC<EmotionChartProps> = React.memo(
                   }}
                   interpolation="natural"
                   animate={{
-                    duration: 2000,
-                    onLoad: { duration: 1000 },
+                    duration: 2000, // 애니메이션 시간을 줄임
+                    onLoad: { duration: 1500 },
                   }}
                 />
               )
