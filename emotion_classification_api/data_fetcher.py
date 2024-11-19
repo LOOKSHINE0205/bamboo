@@ -45,29 +45,33 @@ def load_chat_history_from_db(croom_idx: int, session_idx: int):
 # 워드 클라우드를 생성하고 이미지 파일로 저장하는 함수
 def fetch_chat_data_and_generate_wordcloud(croom_idx: int) -> str:
     try:
-        # static_dir 값을 출력하여 확인
         print(f"Static directory path in fetcher.py: {static_dir}")
-        
-        # croom_idx에 해당하는 모든 채팅 기록 가져오기
+
+        # croom_idx에 해당하는 bot의 채팅 기록 가져오기
         chat_history = get_chat_history_by_croom(croom_idx)
         if not chat_history:
             raise ValueError("No chat history available for the given croom_idx.")
-        
-        # 모든 대화 내용을 하나의 텍스트로 결합
-        chat_texts = " ".join([entry[1] for entry in chat_history])
+
+        # emotion_keyword만 추출하여 텍스트로 결합
+        emotion_keywords = " ".join([entry[2] for entry in chat_history if entry[2]])  # entry[2]는 emotion_keyword
+        if not emotion_keywords.strip():
+            raise ValueError("No emotion keywords found for the given chat history.")
 
         # 워드 클라우드 생성
-        wordcloud = WordCloud(width=800, height=400, font_path="c:/Windows/Fonts/malgun.ttf", background_color='white').generate(chat_texts)
-        
-        # static_dir 변수를 사용하여 절대 경로 생성
+        wordcloud = WordCloud(
+            width=800,
+            height=400,
+            font_path="c:/Windows/Fonts/malgun.ttf",
+            background_color='white'
+        ).generate(emotion_keywords)
+
+        # 워드클라우드 이미지 저장
         wordcloud_dir = os.path.join(static_dir, "wordclouds")
         os.makedirs(wordcloud_dir, exist_ok=True)
         image_path = os.path.join(wordcloud_dir, f"wordcloud_{croom_idx}.jpg")
         wordcloud.to_file(image_path)
 
-        # 경로 확인 출력
         print(f"Word cloud image path: {image_path}")
-        
         return image_path
 
     except Exception as e:

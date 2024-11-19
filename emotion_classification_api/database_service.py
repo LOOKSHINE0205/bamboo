@@ -58,9 +58,24 @@ def get_chat_history(croom_idx, session_idx):
 def get_chat_history_by_croom(croom_idx):
     try:
         with engine.connect() as connection:
-            query = text("SELECT chatter, chat_content FROM chatting_tb WHERE croom_idx = :croom_idx AND chatter = 'user' ORDER BY chat_idx ASC")
+            # chatter가 'bot'인 데이터와 emotion_keyword 가져오기
+            query = text("""
+                SELECT chatter, chat_content, emotion_keyword
+                FROM chatting_tb
+                WHERE croom_idx = :croom_idx AND chatter = 'bot'
+                ORDER BY chat_idx ASC
+            """)
             results = connection.execute(query, {"croom_idx": croom_idx}).mappings().fetchall()
-            chat_history = [(row['chatter'], row['chat_content']) for row in results]
+            
+            # emotion_keyword 포함하여 반환
+            chat_history = [
+                (row['chatter'], row['chat_content'], row['emotion_keyword'])
+                for row in results
+            ]
+
+            # 디버깅: 반환된 데이터 확인
+            print(f"Chat history fetched (bot): {chat_history}")
+
             return chat_history
     except Exception as e:
         print(f"Error in get_chat_history_by_croom: {e}")
