@@ -1,6 +1,7 @@
 package org.example.please.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.please.entity.User;
 import org.example.please.repository.ChattingRepository;
 import org.example.please.repository.DiaryRepository;
 import org.example.please.repository.UserRepository;
@@ -38,7 +39,7 @@ public class DashboardService {
 
     public Map<String, List<Long>> getWeeklyActivity() {
         LocalDateTime endDate = LocalDateTime.now();
-        LocalDateTime startDate = endDate.minusDays(7);
+        LocalDateTime startDate = endDate.minusDays(6); //7일간의 데이터
 
         // 일기 작성 수 집계
         List<Object[]> diaryStats = diaryRepository.countByDateBetween(startDate, endDate);
@@ -113,6 +114,50 @@ public class DashboardService {
         return stats;
     }
 
+    /**
+     * 최근 7일 동안의 신규 가입자 추이를 반환합니다.
+     * @return Map<String, Long> 형태로 각 날짜의 가입자 수를 반환
+     */
+    public Map<LocalDate, Long> getSignupTrends() {
+        List<Object[]> results = userRepository.findSignupTrends();
+        Map<LocalDate, Long> signupTrends = new TreeMap<>();
+
+        // 결과를 Map으로 변환
+        for (Object[] result : results) {
+            LocalDate date;
+            if (result[0] instanceof java.sql.Date) {
+                date = ((java.sql.Date) result[0]).toLocalDate();
+            } else if (result[0] instanceof java.sql.Timestamp) {
+                date = ((java.sql.Timestamp) result[0]).toLocalDateTime().toLocalDate();
+            } else if (result[0] instanceof LocalDateTime) {
+                date = ((LocalDateTime) result[0]).toLocalDate();
+            } else {
+                throw new IllegalArgumentException("Unexpected date type: " + result[0].getClass());
+            }
+
+            Long count = ((Number) result[1]).longValue();
+            signupTrends.put(date, count);
+        }
+
+        return signupTrends;
+    }
+
+    /**
+     * 모든 사용자와 그들의 가입 날짜를 반환합니다.
+     *
+     * @return List<User> 형태로 사용자 목록 반환
+     */
+    public List<User> getAllUsersWithJoinDate() {
+        return userRepository.findAllUsersWithJoinDate();
+    }
+
+    /**
+     * 활성 사용자 목록을 반환합니다.
+     * @return List<User> 형태로 활성 사용자 목록 반환
+     */
+    public List<User> getActiveUsers() {
+        return userRepository.findActiveUsers();
+    }
 
 
 }

@@ -1,6 +1,7 @@
 package org.example.please.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.please.entity.User;
 import org.example.please.service.DashboardService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -9,9 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;  // CrossOrigin을 위해 추가
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -48,4 +51,37 @@ public class DashboardController {
     public ResponseEntity<Map<String, Long>> getUserServiceStats() {
         return ResponseEntity.ok(dashboardService.getUserServiceStats());
     }
+
+    @GetMapping("/signup-trend")
+    public ResponseEntity<Map<String, Long>> getSignupTrend() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Map<String, Long> signupTrends = dashboardService.getSignupTrends().entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().format(formatter), // LocalDate를 지정된 형식의 String으로 변환
+                        Map.Entry::getValue
+                ));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(signupTrends);
+    }
+
+    @GetMapping("/users-with-join-date")
+    public ResponseEntity<List<User>> getAllUsersWithJoinDate() {
+        List<User> users = dashboardService.getAllUsersWithJoinDate();
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/active-users")
+    public ResponseEntity<List<User>> getActiveUsers() {
+        List<User> activeUsers = dashboardService.getActiveUsers();
+        return ResponseEntity.ok(activeUsers);
+    }
+
+
+
+
+
+
+
 }

@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, String> {
@@ -51,9 +53,24 @@ public interface UserRepository extends JpaRepository<User, String> {
             "AND EXISTS (SELECT c FROM Chatting c WHERE c.userEmail = u.userEmail)")
     long countBothUsers();
 
-    // 미이용한 사용자 수
+    // 이용하지 않는 사용자 수
     @Query("SELECT COUNT(DISTINCT u.userEmail) FROM User u " +
             "WHERE NOT EXISTS (SELECT d FROM Diary d WHERE d.userEmail = u.userEmail) " +
             "AND NOT EXISTS (SELECT c FROM Chatting c WHERE c.userEmail = u.userEmail)")
     long countInactiveUsers();
+
+    //날짜별 가입자 수
+    @Query("SELECT DATE(u.joinedAt), COUNT(u) FROM User u GROUP BY DATE(u.joinedAt) ORDER BY DATE(u.joinedAt)")
+    List<Object[]> findSignupTrends();
+
+    // 모든 사용자와 가입 날짜를 가져오기
+    @Query("SELECT u FROM User u")
+    List<User> findAllUsersWithJoinDate();
+
+    // 사용자의 상태를 가져오기 (Chatbot 테이블의 croomStatus 사용, null일 경우 inactive)
+    @Query("SELECT u FROM User u WHERE EXISTS (" +
+            "SELECT c FROM Chatbot c WHERE c.userEmail = u.userEmail AND " +
+            "COALESCE(c.croomStatus, 'inactive') = 'active')")
+    List<User> findActiveUsers();
+
 }
