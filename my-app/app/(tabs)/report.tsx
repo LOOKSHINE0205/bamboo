@@ -40,9 +40,9 @@ const initialChartData = {
     labels: getLast7DaysLabels(),
     datasets: [
         { data: Array(7).fill(0), color: () => "#009944", label: "공포" },
-        { data: Array(7).fill(0), color: () => "#8800FF", label: "놀람" },
+        { data: Array(7).fill(0), color: () => "#00A0E9", label: "놀람" },
         { data: Array(7).fill(0), color: () => "#E50012", label: "분노" },
-        { data: Array(7).fill(0), color: () => "#00A0E9", label: "슬픔" },
+        { data: Array(7).fill(0), color: () => "#8800FF", label: "슬픔" },
         { data: Array(7).fill(0), color: () => "#575554", label: "중립" },
         { data: Array(7).fill(0), color: () => "#E4D354", label: "행복" },
         { data: Array(7).fill(0), color: () => "#EF8BB6", label: "혐오" }
