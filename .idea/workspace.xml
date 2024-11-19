@@ -130,7 +130,7 @@
       <workItem from="1731585613554" duration="4287000" />
       <workItem from="1731631569810" duration="13637000" />
       <workItem from="1731913277524" duration="172000" />
-      <workItem from="1731913458430" duration="6005000" />
+      <workItem from="1731913458430" duration="2270000" />
     </task>
     <task id="LOCAL-00001" summary="일기페이지 동기화맨">
       <option name="closed" value="true" />
@@ -192,6 +192,18 @@
         <entry key="MAIN">
           <value>
             <State />
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -201,8 +213,6 @@
     <MESSAGE value="일기페이지 동기화맨" />
     <MESSAGE value="챗봇 평가버튼, 시간, 날짜 입력대기 수정 , 업데이트" />
     <MESSAGE value="zz" />
-    <MESSAGE value="회원가입 수정, 로그인 됨" />
-    <MESSAGE value="로그아웃시 inactive" />
-    <option name="LAST_COMMIT_MESSAGE" value="로그아웃시 inactive" />
+    <option name="LAST_COMMIT_MESSAGE" value="zz" />
   </component>
 </project>
