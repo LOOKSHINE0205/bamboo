@@ -312,3 +312,5 @@ public class UserService {
 //        return 1 + chatLevel + diaryLevel; // 기본 레벨 1부터 시작
 //    }
 
+
+//
