@@ -112,45 +112,42 @@ export default function MonthView() {
   };
 
   // 개별 일기 항목 렌더링 함수
-  const renderDiaryItem = ({ item }: { item: DiaryEntry }) => (
-    <TouchableOpacity
-      style={styles.diaryItem}
-      onPress={() => router.push({
-        pathname: "/(diary)/diaryView",
-        params: { date: item.diaryDate || '' }
-      })}
-    >
-      <View style={styles.diaryContainer}>
-        <View style={styles.emotionContainer}>
-          <Image
-            source={emotionImages[item.emotionTag]}
-            style={styles.emotionImage}
-          />
-        </View>
-        <View style={styles.rightContainer}>
-          <View style={styles.headerContainer}>
-            {/* diaryDate 필드를 사용하여 날짜 표시 */}
-            <Text style={styles.dateText}>{formatDate(item.diaryDate)}</Text>
+  const renderDiaryItem = ({ item }: { item: DiaryEntry }) => {
+    return (
+      <TouchableOpacity
+        style={styles.diaryItem}
+        onPress={() =>
+          router.push({
+            pathname: "/(diary)/diaryView",
+            params: { date: item.diary_date || "" },
+          })
+        }
+      >
+        <View style={styles.diaryContainer}>
+          <View style={styles.emotionContainer}>
             <Image
-              source={weatherImages[item.diaryWeather]}
-              style={styles.weatherImage}
+              source={emotionImages[item.emotion_tag]}
+              style={styles.emotionImage}
             />
           </View>
-          <View style={styles.contentContainer}>
-            <Text style={styles.contentText} numberOfLines={2}>
-              {item.diaryContent}
-            </Text>
-            {item.diaryPhoto && item.diaryPhoto[0] && (
+          <View style={styles.rightContainer}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.dateText}>{formatDate(item.diary_date)}</Text>
               <Image
-                source={{ uri: item.diaryPhoto[0] }}
-                style={styles.photoThumbnail}
+                source={weatherImages[item.diary_weather]}
+                style={styles.weatherImage}
               />
-            )}
+            </View>
+            <View style={styles.contentContainer}>
+              <Text style={styles.contentText} numberOfLines={2}>
+                {item.diary_content}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
