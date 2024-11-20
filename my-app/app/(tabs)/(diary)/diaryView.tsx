@@ -137,7 +137,7 @@ export default function DiaryScreen() {
           <View style={styles.entryContainer}>
             <View style={styles.imageContainer}>
               {diaryPhotoUrls.length === 0 ? (
-                <Text style={styles.noPhotosText}>사진이 없습니다.</Text>
+                <Text style={styles.noPhotosText}></Text>
               ) : (
                 diaryPhotoUrls.map((url, index) => (
                   <Image
