@@ -27,6 +27,7 @@ import * as Clipboard from 'expo-clipboard';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view'; // KeyboardAwareScrollView 임포트
 import {useRoute} from '@react-navigation/native';
 import {useProfile} from '../../context/ProfileContext';
+import {ThemedText} from "@/components/ThemedText";
 
 // 메시지 구조를 정의하는 인터페이스
 interface Message {
@@ -83,6 +84,7 @@ export default function ChatbotPage() {
     const countdownDuration = 3; // 5초 카운트다운
     const messagesToSendRef = useRef<string[]>([]);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
 
     useEffect(() => {
         if (isTyping) {
@@ -256,7 +258,7 @@ export default function ChatbotPage() {
 
     useEffect(() => {
         setUserAvatar(profileImageUri ? {uri: profileImageUri} : BambooPanda);
-        console.log('프로필 이미지 URI가 변경됨:', profileImageUri || '기본 이미지(BambooPanda)');
+        // console.log('프로필 이미지 URI가 변경됨:', profileImageUri || '기본 이미지(BambooPanda)');
     }, [profileImageUri]);
 
 
@@ -284,7 +286,7 @@ export default function ChatbotPage() {
                     // 설정된 이미지 URL을 AsyncStorage 및 Context에 저장
                     await AsyncStorage.setItem('profileImageUri', profileImageUrl || '');
                     setUserAvatar(profileImageUrl ? {uri: profileImageUrl} : BambooPanda);
-                    console.log('fetchData 내에서 설정된 프로필 이미지 URL:', profileImageUrl);
+                    // console.log('fetchData 내에서 설정된 프로필 이미지 URL:', profileImageUrl);
                 } else {
                     setUserAvatar(BambooPanda);
                 }
@@ -303,9 +305,9 @@ export default function ChatbotPage() {
                 const storedImageUri = await AsyncStorage.getItem('profileImageUri');
                 const imageUri = storedImageUri || profileImageUri || BambooPanda;
 
-                console.log('AsyncStorage에서 불러온 프로필 이미지 URI:', storedImageUri);
-                console.log('Context에서 가져온 profileImageUri:', profileImageUri);
-                console.log('최종 설정된 프로필 이미지 URI:', imageUri || '기본 이미지(BambooPanda)');
+                // console.log('AsyncStorage에서 불러온 프로필 이미지 URI:', storedImageUri);
+                // console.log('Context에서 가져온 profileImageUri:', profileImageUri);
+                // console.log('최종 설정된 프로필 이미지 URI:', imageUri || '기본 이미지(BambooPanda)');
 
                 setUserAvatar(imageUri ? {uri: imageUri} : BambooPanda);
             };
@@ -485,7 +487,7 @@ s
                         stopCountdown();
                         setIsCountdownStarted(false);
                         setIsActiveSession(false);
-                        console.log("[Session] 챗봇 응답 완료. 세션 비활성화.");
+                        // console.log("[Session] 챗봇 응답 완료. 세션 비활성화.");
                     }
                 }, index * 1000); // 메시지 간 지연 시간 (1000ms = 1초)
             });
@@ -508,7 +510,7 @@ s
         setIsTyping(false); // 입력 시 typing 상태 초기화
 
         if (!isActiveSession) {
-            console.log("[Countdown] 세션이 비활성화 상태. 입력 무시.");
+            // console.log("[Countdown] 세션이 비활성화 상태. 입력 무시.");
             return;
         }
 
@@ -730,6 +732,7 @@ s
 
 
     return (
+
         <KeyboardAvoidingView
             style={{flex: 1}}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}

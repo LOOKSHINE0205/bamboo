@@ -9,6 +9,7 @@ import EmotionChartLine from '../../components/EmotionChartLine';
 import EmotionStackChart from '../../components/EmotionStackChart';
 import WordCloud from '../../components/WordCloud';
 import { useFocusEffect } from '@react-navigation/native';
+import { LogBox } from 'react-native';
 
 import em_happy from "../../assets/images/기쁨.png";
 import em_angry from "../../assets/images/화남.png";
@@ -21,7 +22,13 @@ import em_soso from "../../assets/images/쏘쏘.png";
 export interface EmotionTag {
     emotionTag: string;
 }
+// LogBox 경고 숨기기
+LogBox.ignoreAllLogs();
 
+// 모든 console 메서드 덮어쓰기
+console.log = () => {};
+console.warn = () => {};
+console.error = () => {};
 // 최근 7일의 날짜 라벨 생성 함수
 const getLast7DaysLabels = () => {
     const labels = [];
