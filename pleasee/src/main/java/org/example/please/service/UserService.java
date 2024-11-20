@@ -213,28 +213,43 @@ public class UserService {
 
     private static final int LEVEL_UP_CHAT_COUNT = 10;
     private static final int LEVEL_UP_DIARY_COUNT = 3;
+
     @Transactional
     public void updateChatbotLevelAfterDiaryCreation(String userEmail) {
-        // 1. 작성된 일기 수 가져오기
+        // 1. 사용자의 현재 챗봇 레벨 가져오기
+        int currentLevel = userRepository.findChatbotLevelByUserEmail(userEmail);
+
+        // 2. 작성된 일기 수 가져오기
         int diaryCount = diaryRepository.countByUserEmail(userEmail);
 
-        // 2. 대화 수 계산: 같은 userEmail, croomIdx 기준
+        // 3. 대화 수 계산
         int chatRecordCount = chattingRepository.countByUserEmailAndCroomIdx(userEmail);
         int conversationCount = chatRecordCount / 2;
 
-        // 3. 레벨 계산
-        int diaryLevel = diaryCount / 3; // 일기 3개당 1레벨
-        int chatLevel = conversationCount / 10; // 대화 10개당 1레벨
-        int newLevel = diaryLevel + chatLevel;
+        // 4. 추가 레벨 계산
+        int diaryLevelIncrease = diaryCount / LEVEL_UP_DIARY_COUNT;
+        int chatLevelIncrease = conversationCount / LEVEL_UP_CHAT_COUNT;
 
-        // 4. 사용자 레벨 업데이트
-        userRepository.updateChatbotLevel(userEmail, newLevel);
+        // 5. 새 레벨 계산: 기본 레벨 1 + 추가된 레벨 증가
+        int newLevel = 1 + diaryLevelIncrease + chatLevelIncrease;
+
+        // 6. 현재 레벨과 새로 계산된 레벨 비교하여 업데이트
+        if (newLevel != currentLevel) {
+            userRepository.updateChatbotLevel(userEmail, newLevel);
+            logger.info("Updated chatbot level for user {} to {}", userEmail, newLevel);
+        } else {
+            logger.info("Chatbot level remains the same for user {}", userEmail);
+        }
     }
 
     public boolean verifyPassword(User user, String currentPassword) {
         return passwordEncoder.matches(currentPassword, user.getUserPw());
     }
 
+    // 이메일로 사용자의 일기 개수를 가져오는 메서드
+    public int getDiaryCountByUserEmail(String userEmail) {
+        return diaryRepository.countByUserEmail(userEmail);
+    }
 
     public String calculateMBTI(String testResults) {
         // 유효성 검사: testResults가 null이거나 길이가 충분하지 않으면 예외 발생

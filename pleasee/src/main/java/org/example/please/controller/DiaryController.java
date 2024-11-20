@@ -2,6 +2,7 @@ package org.example.please.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.please.entity.Diary;
+import org.example.please.repository.DiaryRepository;
 import org.example.please.service.DiaryService;
 import org.example.please.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,8 @@ public class DiaryController {
     @Autowired
     private S3Service S3Service; // S3 업로드 서비스 추가
 
+    @Autowired
+    private DiaryRepository diaryRepository;
     /**
      * 사진을 포함한 일기 작성
      */

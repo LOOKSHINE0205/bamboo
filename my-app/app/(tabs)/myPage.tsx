@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useMemo} from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     View,
     Text,
@@ -11,8 +11,9 @@ import {
     Animated,
     Easing
 } from 'react-native';
-import {getUserInfo} from '../../storage/storageHelper';
-import {useFocusEffect} from '@react-navigation/native';
+import { getUserInfo } from '../../storage/storageHelper';
+import { useFocusEffect } from '@react-navigation/native';
+import { useProfile } from '../../context/ProfileContext';
 
 const backgroundImage = require('../../assets/images/긴배경2.png');
 const pandaImage = require('../../assets/images/판다.png');
@@ -23,9 +24,10 @@ const cloud2 = require('../../assets/images/구름들2.png');
 const bamboo = require('../../assets/images/bamboo.png');
 
 export default function MyPage() {
-    const {width, height} = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
     const scrollViewRef = useRef(null);
-    const [chatbotLevel, setChatbotLevel] = useState(null);
+    const { chatbotLevel } = useProfile();
+    const [displayedLevel, setDisplayedLevel] = useState(chatbotLevel);
     const [chatbotName, setChatbotName] = useState('');
     const [textColor, setTextColor] = useState('#333');
     const [cloud1Top, setCloud1Top] = useState(`${45 + Math.random() * 8}%`);
@@ -37,7 +39,7 @@ export default function MyPage() {
     const cloud2Animation = useRef(new Animated.Value(-width * 0.25)).current;
 
     const createStarAnimations = () => {
-        return Array.from({length: 20}, () => ({
+        return Array.from({ length: 20 }, () => ({
             opacity: new Animated.Value(0),
             scale: new Animated.Value(1),
             top: `${1 + Math.random() * 15}%`,
@@ -102,7 +104,6 @@ export default function MyPage() {
                 const userInfo = await getUserInfo();
                 if (userInfo) {
                     setChatbotName(userInfo.chatbotName);
-                    setChatbotLevel(userInfo.chatbotLevel);
                 } else {
                     Alert.alert("오류", "사용자 정보를 불러올 수 없습니다.");
                 }
@@ -158,14 +159,17 @@ export default function MyPage() {
 
     useFocusEffect(
         React.useCallback(() => {
+            if (displayedLevel !== chatbotLevel) {
+                setDisplayedLevel(chatbotLevel);
+            }
             setTimeout(() => {
-                scrollViewRef.current?.scrollToEnd({animated: true});
+                scrollViewRef.current?.scrollToEnd({ animated: true });
             }, 100);
-        }, [])
+        }, [chatbotLevel])
     );
 
-    const bambooLevel = chatbotLevel !== null ? Math.floor(chatbotLevel / 30) : 1;
-    const displayLevel = chatbotLevel !== null ? (chatbotLevel - 1) % 30 + 1 : 1;
+    const bambooLevel = displayedLevel !== null ? Math.floor(displayedLevel / 30) : 1;
+    const displayLevel = displayedLevel !== null ? (displayedLevel - 1) % 30 + 1 : 1;
     const treeLevel = `Lv ${displayLevel}`;
 
     const renderBambooStack = useMemo<JSX.Element[]>(() => {
@@ -259,7 +263,6 @@ export default function MyPage() {
         }
     };
 
-
     const renderBambooImages = useMemo<JSX.Element[]>(() => {
         const bambooElements = [];
         for (let i = 0; i < bambooLevel; i++) {
@@ -281,8 +284,8 @@ export default function MyPage() {
     return (
         <View style={styles.backgroundContainer}>
             <View style={styles.fixedInfoContainer}>
-                <Text style={[styles.levelText, {color: textColor}]}>{treeLevel}</Text>
-                <Text style={[styles.treeNameText, {color: textColor}]}>{chatbotName}</Text>
+                <Text style={[styles.levelText, { color: textColor }]}>{treeLevel}</Text>
+                <Text style={[styles.treeNameText, { color: textColor }]}>{chatbotName}</Text>
             </View>
 
             <ScrollView
@@ -296,14 +299,14 @@ export default function MyPage() {
                 }}
                 scrollEventThrottle={32}
             >
-                <ImageBackground source={backgroundImage} style={[styles.background, {height: aspectRatio>0.6?height * 3 :height * 2.2 }]}
-                                 resizeMode="cover">
+                <ImageBackground source={backgroundImage} style={[styles.background, { height: aspectRatio > 0.6 ? height * 3 : height * 2.2 }]}
+                    resizeMode="cover">
                     <Animated.Image source={cloud1}
-                                    style={[styles.cloud, {top: cloud1Top, transform: [{translateX: cloud1Animation}]}]}
-                                    resizeMode="contain"/>
+                        style={[styles.cloud, { top: cloud1Top, transform: [{ translateX: cloud1Animation }] }]}
+                        resizeMode="contain" />
                     <Animated.Image source={cloud2}
-                                    style={[styles.cloud, {top: cloud2Top, transform: [{translateX: cloud2Animation}]}]}
-                                    resizeMode="contain"/>
+                        style={[styles.cloud, { top: cloud2Top, transform: [{ translateX: cloud2Animation }] }]}
+                        resizeMode="contain" />
 
                     {starAnimations.map((star, index) => (
                         <Animated.View
@@ -314,7 +317,7 @@ export default function MyPage() {
                                     top: star.top,
                                     left: star.left,
                                     opacity: star.opacity,
-                                    transform: [{scale: star.scale}],
+                                    transform: [{ scale: star.scale }],
                                 },
                             ]}
                         />
@@ -324,12 +327,14 @@ export default function MyPage() {
                         {renderBambooStack}
                     </View>
                     <Image source={pandaImage}
-                           style={
-                             [styles.pandaImage,
+                        style={
+                            [styles.pandaImage,
 
-                               { width : aspectRatio > 0.6 ? width*0.2 : width*0.2,
-                                 height: aspectRatio > 0.6 ? height * 0.2: height*0.2}]}
-                           resizeMode="contain"/>
+                            {
+                                width: aspectRatio > 0.6 ? width * 0.2 : width * 0.2,
+                                height: aspectRatio > 0.6 ? height * 0.2 : height * 0.2
+                            }]}
+                        resizeMode="contain" />
                     {renderBambooImages}
                 </ImageBackground>
             </ScrollView>
@@ -338,10 +343,10 @@ export default function MyPage() {
 }
 
 const styles = StyleSheet.create({
-    backgroundContainer: {flex: 1},
-    scrollContainer: {flex: 1},
-    scrollContent: {flexGrow: 1, justifyContent: 'flex-end'},
-    background: {flex: 1, width: '100%'},
+    backgroundContainer: { flex: 1 },
+    scrollContainer: { flex: 1 },
+    scrollContent: { flexGrow: 1, justifyContent: 'flex-end' },
+    background: { flex: 1, width: '100%' },
     fixedInfoContainer: {
         position: 'absolute',
         top: 20,
@@ -349,8 +354,8 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
         zIndex: 1,
     },
-    levelText: {fontSize: 18, fontWeight: 'bold'},
-    treeNameText: {fontSize: 20, fontWeight: 'bold'},
+    levelText: { fontSize: 18, fontWeight: 'bold' },
+    treeNameText: { fontSize: 20, fontWeight: 'bold' },
     cloud: {
         position: 'absolute',
         width: '25%',

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.example.please.config.SecurityConfig;
 import org.example.please.entity.Chatbot;
 import org.example.please.entity.User;
+import org.example.please.repository.DiaryRepository;
 import org.example.please.service.ChattingService;
 import org.example.please.service.UserService;
 import org.slf4j.Logger;
@@ -40,6 +41,9 @@ public class UserController {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private DiaryRepository diaryRepository;
 
     @PostMapping("/checkEmail")
     public ResponseEntity<Map<String, Object>> checkEmail(@RequestBody User user) {
@@ -230,7 +234,33 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알림 설정 업데이트 중 오류 발생");
         }
     }
+    @GetMapping("/chatbot-level")
+    public ResponseEntity<Map<String, Object>> getChatbotLevel(@RequestParam String email) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Optional<User> user = userService.findByEmail(email);
+            if (user.isPresent()) {
+                int chatbotLevel = user.get().getChatbotLevel();
+                response.put("chatbotLevel", chatbotLevel);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            logger.error("챗봇 레벨 조회 중 오류 발생: ", e);
+            response.put("message", "챗봇 레벨 조회 중 오류 발생: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
 
+    @GetMapping("/diary-count")
+    public ResponseEntity<Map<String, Object>> getDiaryCount(@RequestParam String email) {
+        int diaryCount = diaryRepository.countByUserEmail(email); // 데이터베이스에서 일기 개수를 가져옴
+        Map<String, Object> response = new HashMap<>();
+        response.put("diaryCount", diaryCount);
+        return ResponseEntity.ok(response);
+    }
 
 }
