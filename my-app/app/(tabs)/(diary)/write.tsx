@@ -129,13 +129,15 @@ const handleSaveEntry = async () => {
             params: { email: userData?.userEmail },
         });
 
+
+
         if (countResponse.status === 200) {
             const newDiaryCount = countResponse.data.diaryCount;
             console.log("현재 일기 작성 횟수 (DB에서 가져옴):", newDiaryCount);
 
             // 3번 작성할 때마다 레벨 업데이트
             if (newDiaryCount % 3 === 0) {
-                const newLevel = chatbotLevel + 1;
+                const newLevel = userData.chatbotLevel + 1;
                 await setChatbotLevel(newLevel); // 챗봇 레벨 업데이트
                 console.log("챗봇 레벨 업데이트:", newLevel); // 레벨 업데이트 로그
             }

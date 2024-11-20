@@ -14,6 +14,7 @@ import {
 import { getUserInfo } from '../../storage/storageHelper';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../../context/ProfileContext';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 올바르게 임포트
 
 const backgroundImage = require('../../assets/images/대나무숲_배경.png');
 const pandaImage = require('../../assets/images/판다.png');
@@ -163,18 +164,35 @@ export default function MyPage() {
         animateCloud1();
         animateCloud2();
     }, [width, height]);
-
     useFocusEffect(
         React.useCallback(() => {
-            if (displayedLevel !== chatbotLevel) {
-                setDisplayedLevel(chatbotLevel);
-            }
+            const updateDisplayedLevel = async () => {
+                try {
+                    const userInfo = await AsyncStorage.getItem('userInfo');
+                    if (userInfo) {
+                        const parsedUserInfo = JSON.parse(userInfo);
+                        const levelFromStorage = parsedUserInfo?.chatbotLevel || 1;
+
+                        console.log("[useFocusEffect] 챗봇 레벨 가져옴:", levelFromStorage);
+
+                        if (displayedLevel !== levelFromStorage) {
+                            setDisplayedLevel(levelFromStorage);
+                        }
+                    } else {
+                        console.warn("[useFocusEffect] userInfo가 없습니다.");
+                    }
+                } catch (error) {
+                    console.error("[useFocusEffect] userInfo 불러오는 중 오류 발생:", error);
+                }
+            };
+
+            updateDisplayedLevel();
+
             setTimeout(() => {
                 scrollViewRef.current?.scrollToEnd({ animated: true });
             }, 100);
-        }, [chatbotLevel])
+        }, [displayedLevel, chatbotLevel]) // chatbotLevel 추가
     );
-
     // Bamboo Head 이미지 토글 로직
     useEffect(() => {
         const toggleBambooHead = setInterval(() => {
