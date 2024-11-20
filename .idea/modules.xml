@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/bamboo.iml" filepath="$PROJECT_DIR$/.idea/bamboo.iml" />
       <module fileurl="file://$PROJECT_DIR$/my-app/my-app.iml" filepath="$PROJECT_DIR$/my-app/my-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/pleasee.main.iml" filepath="$PROJECT_DIR$/.idea/modules/pleasee.main.iml" />
     </modules>
   </component>
 </project>

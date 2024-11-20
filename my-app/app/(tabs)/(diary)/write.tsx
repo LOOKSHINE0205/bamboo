@@ -87,9 +87,7 @@ export default function DiaryEntryScreen() {
       const storedUserInfo = await AsyncStorage.getItem('userInfo');
       const userData = storedUserInfo ? JSON.parse(storedUserInfo) : null;
 
-      const formData = new FormData();
-
-      // diary 데이터를 JSON 문자열로 추가
+      // diary 데이터를 JSON 문자열로 준비
       const diaryData = JSON.stringify({
         userEmail: userData?.userEmail,
         diaryDate: date,
@@ -98,29 +96,37 @@ export default function DiaryEntryScreen() {
         diaryContent: entryText,
       });
 
+      // FormData 객체 생성
+      const formData = new FormData();
       formData.append("diary", diaryData);
 
-      // 이미지가 있을 경우 FormData에 추가
-      selectedImages.forEach((imageUri, index) => {
-        formData.append("photo", {
-          uri: imageUri,
-          type: "image/jpeg", // 이미지 타입을 지정
-          name: `photo_${index}.jpg`, // 이미지 파일 이름 지정
+      // 선택된 이미지 처리
+      if (selectedImages.length > 0) {
+        selectedImages.forEach((imageUri, index) => {
+          formData.append("photo", {
+            uri: imageUri,
+            type: "image/jpeg",
+            name: `photo_${index}.jpg`,
+          });
         });
-      });
+      }
 
-      await axios.post(`${serverAddress}/api/diaries/create-with-photo`, formData, {
+      // Axios POST 요청
+      const response = await axios.post(`${serverAddress}/api/diaries/create-with-photo`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      alert("일기가 저장되었습니다!");
-      router.push("/(diary)"); // 원하는 경로로 변경
+      Alert.alert("알림", "일기가 성공적으로 저장되었습니다!");
+      router.push("/(diary)");
     } catch (error) {
-      console.error("일기 저장 오류:", error);
+      console.error("Axios 요청 오류:", error.response || error.message);
+      Alert.alert("오류", "일기를 저장하는 중 문제가 발생했습니다.");
     }
   };
+
+
 
   return (
     <KeyboardAvoidingView
@@ -292,3 +298,5 @@ const styles = StyleSheet.create({
   },
 
 });
+
+//

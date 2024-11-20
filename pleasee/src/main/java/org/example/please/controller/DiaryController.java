@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.example.please.service.S3Service; // S3 서비스 추가
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,10 @@ public class DiaryController {
     @Autowired
     private UserService userService;
 
+
+    @Autowired
+    private S3Service S3Service; // S3 업로드 서비스 추가
+
     /**
      * 사진을 포함한 일기 작성
      */
@@ -35,11 +41,33 @@ public class DiaryController {
             @RequestPart("diary") String diaryData,
             @RequestPart(value = "photo", required = false) List<MultipartFile> photoFiles) throws IOException {
 
+        // JSON 데이터를 Diary 객체로 변환
         ObjectMapper objectMapper = new ObjectMapper();
-        Diary diary = objectMapper.readValue(diaryData, Diary.class); // JSON 데이터를 Diary 객체로 변환
+        Diary diary = objectMapper.readValue(diaryData, Diary.class);
 
-        // 다중 파일 저장 및 일기 작성
-        Diary newDiary = diaryService.createDiary(diary, photoFiles);
+        // 사진 업로드 및 URL 생성
+        List<String> photoUrls = new ArrayList<>();
+        if (photoFiles != null && !photoFiles.isEmpty()) {
+            for (MultipartFile file : photoFiles) {
+                // 파일을 S3에 업로드하고 반환된 URL을 저장
+                try {
+                    String photoUrl = S3Service.uploadFile(file); // S3 업로드 후 URL 반환
+                    if (photoUrl != null && !photoUrl.isEmpty()) {
+                        photoUrls.add(photoUrl);
+                    } else {
+                        System.err.println("S3 URL 생성 실패: " + file.getOriginalFilename());
+                    }
+                } catch (Exception e) {
+                    System.err.println("S3 업로드 실패: " + file.getOriginalFilename() + " 오류: " + e.getMessage());
+                }
+            }
+        }
+
+        // S3 URL만 JSON 배열로 변환하여 Diary 객체에 저장
+        diary.setDiaryPhoto(objectMapper.writeValueAsString(photoUrls)); // JSON 배열로 변환하여 저장
+
+        // 일기 생성 및 저장
+        Diary newDiary = diaryService.createDiary(diary, null);
 
         // 챗봇 레벨 업데이트
         try {
@@ -51,6 +79,10 @@ public class DiaryController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
     }
+
+
+
+
 
     /**
      * URL을 통해 사진 업로드 및 일기 작성
@@ -87,6 +119,7 @@ public class DiaryController {
             diaryMap.put("diaryContent", diary.getDiaryContent());
             diaryMap.put("createdAt", diary.getCreatedAt());
 
+            // S3 URL 변환
             try {
                 diaryMap.put("diaryPhoto", diaryService.createImageUrls(diary.getDiaryPhoto()));
             } catch (IOException e) {
@@ -120,6 +153,7 @@ public class DiaryController {
             diaryMap.put("diaryContent", diary.getDiaryContent());
             diaryMap.put("createdAt", diary.getCreatedAt());
 
+            // S3 URL 변환
             try {
                 diaryMap.put("diaryPhoto", diaryService.createImageUrls(diary.getDiaryPhoto()));
             } catch (IOException e) {
@@ -131,3 +165,5 @@ public class DiaryController {
         return ResponseEntity.ok(diaryWithUrls);
     }
 }
+
+//
