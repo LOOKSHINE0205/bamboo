@@ -67,9 +67,12 @@ def get_chat_history_by_croom(croom_idx):
             """)
             results = connection.execute(query, {"croom_idx": croom_idx}).mappings().fetchall()
             
-            # emotion_keyword 포함하여 반환
+            # 반환 데이터 디버깅
+            print(f"Raw results fetched: {results}")
+
+            # emotion_keyword가 없는 경우 기본값 추가
             chat_history = [
-                (row['chatter'], row['chat_content'], row['emotion_keyword'])
+                (row['chatter'], row['chat_content'], row.get('emotion_keyword', ''))
                 for row in results
             ]
 

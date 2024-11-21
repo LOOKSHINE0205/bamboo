@@ -1,5 +1,3 @@
-# main.py
-
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -11,15 +9,12 @@ from emotion_model import predict_with_probabilities
 from data_fetcher import fetch_user_data
 from keyword_extractor import extract_emotion_keyword
 from memory_manager import get_session_memory, update_session_memory
-from langchain.schema import messages_from_dict, messages_to_dict
-from langchain.prompts import PromptTemplate
-from openai_service import llm
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
+from openai_service import llm
 from data_fetcher import fetch_user_data, fetch_chat_data_and_generate_wordcloud
 
 import os
 from config import static_dir  # static_dir 임포트
-
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -32,7 +27,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 static_dir = os.path.join(script_dir, "static")
@@ -120,18 +114,12 @@ async def predict(request: EmotionRequest):
         print("Emotion Keyword:", emotion_keyword)
 
         # Step 6: 시스템 프롬프트 및 메시지 생성
-
-        # 메모리에서 요약 가져오기
-        conversation_summary = memory.load_memory_variables({"input": ""})["history"]
-
-        # 시스템 프롬프트 생성
         system_prompt = (
             f"{base_prompt}\n"
-            "당신의 이름은 Bamboo이며, 10대 혹은 20대의 친구같은 어시트턴트입니다.\n"
+            "당신의 이름은 Bamboo이며, 20대 혹은 30대의 친구같은 어시트턴트입니다.\n"
             f"일기 정보: {diary_info}\n"
             f"감정 비율: {emotion_ratios}\n"
             f"감정 키워드: {emotion_keyword}\n"
-            f"대화 요약: {conversation_summary}\n"
             "해당 정보를 user_information 섹션을 참고해 활용하여 적절하게 응답해 주세요."
         )
 
@@ -158,7 +146,8 @@ async def predict(request: EmotionRequest):
         bot_response = llm(messages)
         print("Bot Response:", bot_response.content)
 
-        # Step 7: 메모리에 봇 응답 추가
+        # Step 7: 메모리에 사용자 및 봇 응답 추가
+        update_session_memory(request.croom_idx, request.session_idx, "user", request.current_user_message)
         update_session_memory(request.croom_idx, request.session_idx, "assistant", bot_response.content)
 
         # 응답 데이터 생성

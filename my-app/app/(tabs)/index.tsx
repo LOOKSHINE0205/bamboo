@@ -653,18 +653,24 @@ s
         return messages.map((msg, index) => {
             const currentDate = msg.createdAt || '';
             const showDateHeader = currentDate && currentDate !== lastDate;
-            lastDate = currentDate || lastDate;
 
-            const isFirstMessage = (msg.sender === 'bot' && (index === 0 || messages[index - 1]?.sender !== 'bot'))
-                || (msg.sender === 'user' && (index === 0 || messages[index - 1]?.sender !== 'user'));
+            // 날짜 헤더가 렌더링될 때만 마지막 날짜를 업데이트
+            if (showDateHeader) {
+                lastDate = currentDate;
+            }
+
+            const isFirstMessage =
+                (msg.sender === 'bot' && (index === 0 || messages[index - 1]?.sender !== 'bot')) ||
+                (msg.sender === 'user' && (index === 0 || messages[index - 1]?.sender !== 'user'));
 
             return (
                 <React.Fragment key={index}>
-                    {showDateHeader && currentDate && (
+                    {showDateHeader && (
                         <View style={styles.dateHeaderContainer}>
                             <Text style={styles.dateHeader}>{currentDate}</Text>
                         </View>
                     )}
+
                     <TouchableOpacity
                         onLongPress={() => handleLongPress(msg, index)}
                         style={[
