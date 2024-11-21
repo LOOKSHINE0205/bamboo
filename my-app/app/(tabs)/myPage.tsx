@@ -387,8 +387,8 @@ export default function MyPage() {
                     ))}
 
                     <View style={styles.bambooContainer}>
-                        {renderBambooHead} {/* Bamboo Head만 업데이트 */}
-                        {renderBambooBodyAndRoot} {/* Bamboo Body와 Root는 고정 */}
+                        {renderBambooHead}
+                        {renderBambooBodyAndRoot}
                     </View>
 
                     <Image source={pandaImage}
