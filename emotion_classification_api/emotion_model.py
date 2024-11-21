@@ -34,12 +34,12 @@ def predict_with_probabilities(first_sentence, previous_sentence, current_senten
     - speaker (str): 화자 ('A' 또는 'B')
 
     Returns:
-    - label_probs (dict): 각 감정 레이블과 그에 대한 확률을 포함한 딕셔너리
+    - label_probs (dict): 각 감정 레이블과 그에 대한 확률을 포함한 dict
     """
     # 화자 토큰 설정
     speaker_token = '[SPEAKER_A]' if speaker.upper() == 'A' else '[SPEAKER_B]'
 
-    # 입력 시퀀스 생성 (훈련 시와 동일한 방식)
+    # 입력 시퀀스 생성
     if first_sentence == '[NO_FIRST]' and previous_sentence == '[NO_PREV]':
         input_sequence = f"[CLS] [FIRST] {speaker_token} {current_sentence} [SEP]"
     elif first_sentence == '[NO_FIRST]':
@@ -50,8 +50,8 @@ def predict_with_probabilities(first_sentence, previous_sentence, current_senten
     # 토큰화
     encoded_dict = tokenizer(
         input_sequence,
-        add_special_tokens=False,  # [CLS]와 [SEP]는 이미 포함됨
-        max_length=256,           # 학습 시 설정한 max_length와 동일
+        add_special_tokens=False,  
+        max_length=256,           
         padding='max_length',
         truncation=True,
         return_tensors='pt'
