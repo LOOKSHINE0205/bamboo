@@ -62,48 +62,38 @@ export default function DiaryScreen() {
 
           // diaryPhoto에서 URL 배열 처리
           const diaryPhoto = selectedDateData.diaryPhoto;
-          if (diaryPhoto) {
-            try {
-              let imageUrls = [];
-
-              if (typeof diaryPhoto === "string") {
-                const parsedArray = JSON.parse(diaryPhoto); // JSON 문자열 -> 배열 변환
-                if (Array.isArray(parsedArray)) {
-                  imageUrls = parsedArray.map((photo) =>
-                    photo.startsWith("http") ? photo : `${serverAddress}/uploads/images/db/${photo}` // URL인지 확인 후 처리
-                  );
+                  if (diaryPhoto) {
+                    try {
+                      // diaryPhoto가 JSON 문자열로 저장된 경우 배열로 변환
+                      const imageUrls = JSON.parse(diaryPhoto);
+                      if (Array.isArray(imageUrls)) {
+                        setDiaryPhotoUrls(imageUrls); // 변환된 배열 설정
+                      } else {
+                        setDiaryPhotoUrls([]); // 결과가 배열이 아닌 경우 빈 배열 설정
+                      }
+                    } catch (error) {
+                      console.error("diaryPhoto 파싱 오류:", error);
+                      setDiaryPhotoUrls([]); // JSON 파싱 실패 시 빈 배열 설정
+                    }
+                  } else {
+                    setDiaryPhotoUrls([]); // diaryPhoto가 없는 경우 빈 배열 설정
+                  }
+                } else {
+                  // 데이터가 없을 경우 초기화
+                  setEntryText("");
+                  setMood("");
+                  setWeather("");
+                  setDiaryPhotoUrls([]);
+                  Alert.alert("알림", `${formattedDate}에 해당하는 일기 데이터가 없습니다.`);
                 }
-              } else if (Array.isArray(diaryPhoto)) {
-                imageUrls = diaryPhoto.map((photo) =>
-                  photo.startsWith("http") ? photo : `${serverAddress}/uploads/images/db/${photo}` // URL인지 확인 후 처리
-                );
+              } catch (error) {
+                console.error("일기 데이터를 가져오는 데 오류가 발생했습니다:", error);
+                Alert.alert("오류", "일기 데이터를 불러오는 중 문제가 발생했습니다.");
               }
+            };
 
-
-
-              setDiaryPhotoUrls(imageUrls);
-            } catch (error) {
-              console.error("diaryPhoto 파싱 오류:", error);
-              setDiaryPhotoUrls([]);
-            }
-          } else {
-            setDiaryPhotoUrls([]);
-          }
-        } else {
-          setEntryText("");
-          setMood("");
-          setWeather("");
-          setDiaryPhotoUrls([]);
-          Alert.alert("알림", `${formattedDate}에 해당하는 일기 데이터가 없습니다.`);
-        }
-      } catch (error) {
-        console.error("일기 데이터를 가져오는 데 오류가 발생했습니다:", error);
-        Alert.alert("오류", "일기 데이터를 불러오는 중 문제가 발생했습니다.");
-      }
-    };
-
-    fetchDiaryData();
-  }, [date]);
+            fetchDiaryData();
+          }, [date]);
 
   return (
     <KeyboardAvoidingView

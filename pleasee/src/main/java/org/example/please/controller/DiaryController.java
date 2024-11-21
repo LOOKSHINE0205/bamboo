@@ -84,26 +84,6 @@ public class DiaryController {
     }
 
 
-
-
-
-    /**
-     * URL을 통해 사진 업로드 및 일기 작성
-     */
-    @PostMapping("/upload-from-url")
-    public ResponseEntity<Diary> uploadFromUrl(
-            @RequestParam("diary") String diaryData,
-            @RequestParam("imageUrl") String imageUrl) throws IOException {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        Diary diary = objectMapper.readValue(diaryData, Diary.class); // JSON 데이터를 Diary 객체로 변환
-
-        // URL을 통한 파일 다운로드 및 일기 저장
-        Diary newDiary = diaryService.createDiaryFromUrl(diary, imageUrl);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(newDiary);
-    }
-
     /**
      * 사용자 이메일을 기준으로 일기 조회
      */
@@ -122,12 +102,8 @@ public class DiaryController {
             diaryMap.put("diaryContent", diary.getDiaryContent());
             diaryMap.put("createdAt", diary.getCreatedAt());
 
-            // S3 URL 변환
-            try {
-                diaryMap.put("diaryPhoto", diaryService.createImageUrls(diary.getDiaryPhoto()));
-            } catch (IOException e) {
-                diaryMap.put("diaryPhoto", List.of("Error parsing image URLs"));
-            }
+            // S3 URL을 그대로 반환
+            diaryMap.put("diaryPhoto", diary.getDiaryPhoto());
             return diaryMap;
         }).collect(Collectors.toList());
 
@@ -156,12 +132,8 @@ public class DiaryController {
             diaryMap.put("diaryContent", diary.getDiaryContent());
             diaryMap.put("createdAt", diary.getCreatedAt());
 
-            // S3 URL 변환
-            try {
-                diaryMap.put("diaryPhoto", diaryService.createImageUrls(diary.getDiaryPhoto()));
-            } catch (IOException e) {
-                diaryMap.put("diaryPhoto", List.of("Error parsing image URLs"));
-            }
+            // S3 URL을 그대로 반환
+            diaryMap.put("diaryPhoto", diary.getDiaryPhoto());
             return diaryMap;
         }).collect(Collectors.toList());
 

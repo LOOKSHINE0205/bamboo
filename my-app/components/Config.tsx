@@ -1,5 +1,5 @@
 // 기본 IP 주소 설정
-const Addr = "192.168.21.191";  // 필요 시 Add 값을 수정할 수 있음
+const Addr = "192.168.21.12";  // 필요 시 Add 값을 수정할 수 있음
 
 // 워드 클라우드 주소
 const WordCloudAddr = "https://d14a-121-147-12-202.ngrok-free.app/predict";

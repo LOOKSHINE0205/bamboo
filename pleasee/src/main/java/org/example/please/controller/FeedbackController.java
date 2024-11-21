@@ -29,17 +29,4 @@ public class FeedbackController {
          return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-//    @PostMapping("/join")
-//    public ResponseEntity<Map<String, Object>> join(@RequestBody User user) {
-//        Map<String, Object> response = new HashMap<>();
-//        try {
-//            userService.saveUser(user);
-//            response.put("message", "회원가입 성공");
-//            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//        } catch (Exception e) {
-//            response.put("message", "회원가입 실패: " + e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//        }
-//    }
-
 }
