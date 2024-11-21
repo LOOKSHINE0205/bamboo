@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     pandaImage: {
         position: 'absolute',
         bottom: '8%',
-        left: '20%',
+        left: '30%',
     },
     bambooBody: {
         alignSelf: 'center',
