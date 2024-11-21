@@ -127,7 +127,7 @@ async def predict(request: EmotionRequest):
         # 시스템 프롬프트 생성
         system_prompt = (
             f"{base_prompt}\n"
-            "당신의 이름은 Bamboo이며, 10대 혹은 20대의 친구같은 어시트턴트입니다.\n"
+            "당신의 이름은 Bamboo이며, 20대 혹은 30대의 친구같은 어시트턴트입니다.\n"
             f"일기 정보: {diary_info}\n"
             f"감정 비율: {emotion_ratios}\n"
             f"감정 키워드: {emotion_keyword}\n"
