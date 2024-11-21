@@ -28,6 +28,7 @@ const bambooHead2 = require('../../assets/images/밤부_머리2.png');
 const cloud1 = require('../../assets/images/구름1.png');
 const cloud2 = require('../../assets/images/구름2.png');
 const bamboo = require('../../assets/images/밤부.png');
+const shadow = require('../../assets/images/그림자.png');
 
 export default function MyPage() {
     const { width, height } = useWindowDimensions();
@@ -231,8 +232,8 @@ export default function MyPage() {
                         {
                             width: bambooBodyWidth,
                             height: bambooBodyHeight,
-                            marginBottom: -height * 0.062,
-                            zIndex: displayLevel - i, // 레벨에 따라 zIndex 조정
+                            marginBottom: -height * 0.0625,
+                            zIndex: displayLevel +1 - i, // 레벨에 따라 zIndex 조정
                         },
                     ]}
                     resizeMode="contain"
@@ -250,7 +251,7 @@ export default function MyPage() {
                     {
                         width: bambooBodyWidth,
                         height: bambooBodyHeight * 1,
-                        zIndex: 0, // 가장 아래에 위치
+                        zIndex: 1, // 가장 아래에 위치
                         marginTop: -5,
                     },
                 ]}
@@ -270,9 +271,9 @@ export default function MyPage() {
                 styles.bambooHead,
                 {
                     width: aspectRatio > 0.6 ? width * 0.5 : width * 0.5,
-                    height: (aspectRatio > 0.6 ? height * 0.07 : height * 0.12) * 1.1,
-                    zIndex: displayLevel + 1,
-                    marginBottom: -height * 0.07,
+                    height: (aspectRatio > 0.6 ? height * 0.07 : height * 0.11) * 1.1,
+                    zIndex: displayLevel +1 + 1,
+                    marginBottom: -height * 0.065,
                 },
             ]}
             resizeMode="contain"
@@ -401,6 +402,23 @@ export default function MyPage() {
                             }]}
                         resizeMode="contain" />
                     {renderBambooImages}
+                    <Image
+                      source={shadow}
+                      style={[
+                        styles.shadow, // 기존의 스타일 객체
+                        {
+                          top: height * 1.975, // 추가로 적용할 스타일
+                          width: width * 1,
+                          height: height * 0.19,
+                          left:width*0.007,
+                          zIndex:0,
+                          opacity: 0.6, // 투명도를 50%로 설정
+                        },
+                      ]}
+                      resizeMode="contain" // 크기를 조정하면서 잘리지 않도록 설정
+                    />
+
+
                 </ImageBackground>
             </ScrollView>
         </View>
