@@ -38,7 +38,7 @@ export default function DiaryScreen() {
 
   useEffect(() => {
     const fetchDiaryData = async () => {
-      const formattedDate = new Date(date).toISOString().split('T')[0];
+      const formattedDate = new Date(date).toISOString().split("T")[0];
       const dayOfWeek = new Date(date).toLocaleDateString("ko-KR", { weekday: "long" });
       setDay(dayOfWeek);
 
@@ -53,45 +53,41 @@ export default function DiaryScreen() {
         });
 
         const data = response.data;
-        const selectedDateData = data.find(entry => entry.diaryDate === formattedDate);
+        const selectedDateData = data.find((entry) => entry.diaryDate === formattedDate);
 
         if (selectedDateData) {
           setEntryText(selectedDateData.diaryContent);
           setMood(selectedDateData.emotionTag);
           setWeather(selectedDateData.diaryWeather);
 
-          // diaryPhoto에서 JSON 배열 부분만 추출하여 파싱
+          // diaryPhoto에서 URL 배열 처리
           const diaryPhoto = selectedDateData.diaryPhoto;
           if (diaryPhoto) {
             try {
               let imageUrls = [];
 
-              // diaryPhoto가 JSON 배열 문자열일 경우
-              if (typeof diaryPhoto === 'string') {
-                const parsedArray = JSON.parse(diaryPhoto); // JSON 문자열을 배열로 파싱
+              if (typeof diaryPhoto === "string") {
+                const parsedArray = JSON.parse(diaryPhoto); // JSON 문자열 -> 배열 변환
                 if (Array.isArray(parsedArray)) {
-                  imageUrls = parsedArray.map(photoFileName => `${serverAddress}/uploads/images/db/${photoFileName}`);
-                } else {
-                  console.warn("diaryPhoto는 문자열이지만 JSON 배열이 아닙니다:", diaryPhoto);
+                  imageUrls = parsedArray.map((photo) =>
+                    photo.startsWith("http") ? photo : `${serverAddress}/uploads/images/db/${photo}` // URL인지 확인 후 처리
+                  );
                 }
-              }
-              // diaryPhoto가 이미 배열일 경우
-              else if (Array.isArray(diaryPhoto)) {
-                imageUrls = diaryPhoto.map(photoFileName => {
-                  if (!photoFileName.startsWith("http")) {
-                    return `${serverAddress}/uploads/images/db/${photoFileName}`;
-                  }
-                  return photoFileName;
-                });
+              } else if (Array.isArray(diaryPhoto)) {
+                imageUrls = diaryPhoto.map((photo) =>
+                  photo.startsWith("http") ? photo : `${serverAddress}/uploads/images/db/${photo}` // URL인지 확인 후 처리
+                );
               }
 
-              setDiaryPhotoUrls(imageUrls); // URL 배열 상태 설정
+
+
+              setDiaryPhotoUrls(imageUrls);
             } catch (error) {
-              console.error("diaryPhoto 파싱 중 오류 발생:", error);
-              setDiaryPhotoUrls([]); // 오류 발생 시 빈 배열 설정
+              console.error("diaryPhoto 파싱 오류:", error);
+              setDiaryPhotoUrls([]);
             }
           } else {
-            setDiaryPhotoUrls([]); // diaryPhoto가 없을 경우 빈 배열 설정
+            setDiaryPhotoUrls([]);
           }
         } else {
           setEntryText("");
@@ -109,12 +105,14 @@ export default function DiaryScreen() {
     fetchDiaryData();
   }, [date]);
 
-
   return (
-    <KeyboardAvoidingView style={[styles.container,{}]} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      style={[styles.container, {}]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={[styles.scrollContainer]}>
-          <View style={[styles.topContainer,{alignItems:'center', justifyContent:'center'}]}>
+          <View style={[styles.topContainer, { alignItems: "center", justifyContent: "center" }]}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color="#333" />
             </TouchableOpacity>
@@ -126,34 +124,40 @@ export default function DiaryScreen() {
               <View style={styles.dayAndWeatherContainer}>
                 <Text style={styles.dayText}>{day}</Text>
                 {weatherImageMap[weather] && (
-                  <Image key={weather} source={weatherImageMap[weather]} style={styles.weatherImage} />
+                  <Image
+                    key={weather}
+                    source={weatherImageMap[weather]}
+                    style={styles.weatherImage}
+                  />
                 )}
               </View>
             </View>
           </View>
 
-            <View style={styles.entryContainer}>
-              <View style={styles.imageContainer}>
-                {diaryPhotoUrls.length === 0 ? (
-                    <Text style={styles.noPhotosText}>사진이 없습니다.</Text>
-                ) : (
-                    diaryPhotoUrls.map((url, index) => (
-                        <Image
-                            key={index}
-                            source={{ uri: `${url}?${new Date().getTime()}` }}
-                            style={styles.image}
-                            onError={() => console.log(`이미지 로드 오류: ${url}`)} // URL 로그 추가
-                        />
-                    ))
-                )}
-              </View>
-              <Text style={styles.entryText}>{entryText || "일기 내용이 없습니다."}</Text>
+          <View style={styles.entryContainer}>
+            <View style={styles.imageContainer}>
+              {diaryPhotoUrls.length === 0 ? (
+                <Text style={styles.noPhotosText}></Text>
+              ) : (
+                diaryPhotoUrls.map((url, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: `${url}?${new Date().getTime()}` }}
+                    style={styles.image}
+                    onError={(error) => {
+                      console.error(`이미지 로드 오류: ${url}`, error.nativeEvent);
+                      Alert.alert("이미지 오류", `이미지를 불러올 수 없습니다: ${url}`);
+                    }}
+                  />
+                ))
+              )}
             </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+            <Text style={styles.entryText}>{entryText || "일기 내용이 없습니다."}</Text>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
-
 }
 
 const styles = StyleSheet.create({

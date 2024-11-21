@@ -42,7 +42,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ onEntriesLoaded }) => {
             }
 
             const data: Diary[] = await response.json(); // JSON 데이터 파싱
-            console.log('Data fetched:', data); // 로드한 데이터 출력
+            // console.log('Data fetched:', data); // 로드한 데이터 출력
 
             if (Array.isArray(data)) {
                 onEntriesLoaded(data); // 데이터 전달

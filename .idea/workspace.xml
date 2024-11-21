@@ -4,14 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="21daf45c-5552-4b18-811d-5d638d248ea1" name="Changes" comment="로그아웃시 inactive">
+    <list default="true" id="21daf45c-5552-4b18-811d-5d638d248ea1" name="Changes" comment="month view 오류 발견">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/my-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/controller/ChattingController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/entity/Chatting.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/java/org/example/please/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/diaryView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/diaryView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/monthView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/my-app/app/(tabs)/(diary)/monthView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pleasee/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/pleasee/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +32,9 @@
       </state>
     </system>
   </component>
+  <component name="Git.Rebase.Settings">
+    <option name="NEW_BASE" value="origin/master" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -44,12 +44,12 @@
     &quot;assignee&quot;: &quot;Yang-jun-yeong&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/2024-AISCHOOL-WEB2B/bamboo.git&quot;,
-    &quot;accountId&quot;: &quot;12de272d-1ffa-4d1a-8158-874b666fee37&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/2024-AISCHOOL-WEB2B/bamboo.git",
+    "accountId": "7e537f4c-d73a-4bd7-a1ce-8e357b2d50b4"
   }
-}</component>
+}]]></component>
   <component name="JpbToolWindowState">
     <option name="isToolWindowVisible" value="false" />
   </component>
@@ -58,15 +58,31 @@
   &quot;associatedIndex&quot;: 5
 }</component>
   <component name="ProjectId" id="2opRDeWBgh9bAFUv72J6fFIXMUs" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "FileHistory.git4idea.history.GitHistoryProvider_flatOrder0": "0",
+    "FileHistory.git4idea.history.GitHistoryProvider_flatOrder1": "1",
+    "FileHistory.git4idea.history.GitHistoryProvider_flatOrder2": "2",
+    "FileHistory.git4idea.history.GitHistoryProvider_flatOrder3": "3",
+    "FileHistory.git4idea.history.GitHistoryProvider_flatWidth0": "447",
+    "FileHistory.git4idea.history.GitHistoryProvider_flatWidth1": "447",
+    "FileHistory.git4idea.history.GitHistoryProvider_flatWidth2": "448",
+    "FileHistory.git4idea.history.GitHistoryProvider_flatWidth3": "447",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeOrder0": "0",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeOrder1": "1",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeOrder2": "2",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeOrder3": "3",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeWidth0": "447",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeWidth1": "447",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeWidth2": "448",
+    "FileHistory.git4idea.history.GitHistoryProvider_treeWidth3": "447",
     "Gradle.pleasee [:org.example.please.PleaseApplication.main()].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/jin/Desktop/bambooo/my-app",
@@ -111,14 +127,6 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-jdk-9823dce3aa75-28b599e66164-intellij.indexing.shared.core-IU-242.23726.103" />
-        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-IU-242.23726.103" />
-      </set>
-    </attachedChunks>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -130,7 +138,7 @@
       <workItem from="1731585613554" duration="4287000" />
       <workItem from="1731631569810" duration="13637000" />
       <workItem from="1731913277524" duration="172000" />
-      <workItem from="1731913458430" duration="2270000" />
+      <workItem from="1731913458430" duration="6005000" />
     </task>
     <task id="LOCAL-00001" summary="일기페이지 동기화맨">
       <option name="closed" value="true" />
@@ -180,7 +188,23 @@
       <option name="project" value="LOCAL" />
       <updated>1731917386824</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="오류수정중">
+      <option name="closed" value="true" />
+      <created>1732012291524</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1732012291524</updated>
+    </task>
+    <task id="LOCAL-00008" summary="month view 오류 발견">
+      <option name="closed" value="true" />
+      <created>1732074472990</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1732074472990</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -192,18 +216,6 @@
         <entry key="MAIN">
           <value>
             <State />
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="origin/master" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
           </value>
         </entry>
       </map>
@@ -213,6 +225,11 @@
     <MESSAGE value="일기페이지 동기화맨" />
     <MESSAGE value="챗봇 평가버튼, 시간, 날짜 입력대기 수정 , 업데이트" />
     <MESSAGE value="zz" />
-    <option name="LAST_COMMIT_MESSAGE" value="zz" />
+    <MESSAGE value="회원가입 수정, 로그인 됨" />
+    <MESSAGE value="로그아웃시 inactive" />
+    <MESSAGE value="민감정보 지웠음" />
+    <MESSAGE value="오류수정중" />
+    <MESSAGE value="month view 오류 발견" />
+    <option name="LAST_COMMIT_MESSAGE" value="month view 오류 발견" />
   </component>
 </project>

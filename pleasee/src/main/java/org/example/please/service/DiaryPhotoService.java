@@ -61,3 +61,5 @@ public class DiaryPhotoService {
         return objectMapper.writeValueAsString(List.of(fileName)); // JSON 배열로 반환
     }
 }
+
+//

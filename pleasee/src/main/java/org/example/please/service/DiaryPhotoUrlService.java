@@ -26,10 +26,17 @@ public class DiaryPhotoUrlService {
             List<String> fileNames = objectMapper.readValue(diaryPhotoJson, new TypeReference<List<String>>() {});
 
             for (String fileName : fileNames) {
-                urls.add(serverBaseUrl + "/uploads/images/db/" + fileName); // URL로 변환
+                // 이미 URL인지 확인
+                if (fileName.startsWith("http://") || fileName.startsWith("https://")) {
+                    urls.add(fileName); // 이미 URL이면 그대로 추가
+                } else {
+                    urls.add(serverBaseUrl + "/uploads/images/db/" + fileName); // URL로 변환
+                }
             }
         }
 
         return urls;
     }
 }
+
+//

@@ -526,17 +526,11 @@ const updateNotificationSettings = async () => {
               timeInputField: {
                 height: 40,
                 borderColor: '#ccc',
-                borderWidth: 1,
+                borderWidth: 0.35,
                 borderRadius: 16,
                 paddingHorizontal: 12,
                 fontSize: 16,
                 textAlign: 'center',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 16,
-                backgroundColor: '#fff',
-                elevation: 1
               },
               buttonContainer: {
                 flexDirection: 'row',

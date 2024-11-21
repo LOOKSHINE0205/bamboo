@@ -73,4 +73,6 @@ public interface UserRepository extends JpaRepository<User, String> {
             "COALESCE(c.croomStatus, 'inactive') = 'active')")
     List<User> findActiveUsers();
 
+    @Query("SELECT u.chatbotLevel FROM User u WHERE u.userEmail = :userEmail")
+    int findChatbotLevelByUserEmail(@Param("userEmail") String userEmail);
 }

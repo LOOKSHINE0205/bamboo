@@ -51,7 +51,7 @@ export default function MonthView() {
     try {
       setLoading(true);
 
-      const storedUserInfo = await AsyncStorage.getItem('userInfo');
+      const storedUserInfo = await AsyncStorage.getItem("userInfo");
       const userData = storedUserInfo ? JSON.parse(storedUserInfo) : null;
 
       if (!userData) {
@@ -67,19 +67,49 @@ export default function MonthView() {
         },
       });
 
+      console.log("API Response:", response.data); // API 응답 확인용 로그
+
       if (Array.isArray(response.data)) {
-        setDiaries(response.data);
+        const formattedData = response.data.map((entry) => {
+          let parsedPhotos = [];
+          if (typeof entry.diaryPhoto === "string" && entry.diaryPhoto.trim() !== "") {
+            try {
+              parsedPhotos = JSON.parse(entry.diaryPhoto);
+            } catch (error) {
+              console.error("Error parsing diaryPhoto JSON:", error);
+              parsedPhotos = [];
+            }
+          }
+
+          return {
+            ...entry,
+            diary_photo: parsedPhotos, // diaryPhoto를 diary_photo로 매핑
+            emotion_tag: entry.emotionTag, // emotionTag를 emotion_tag로 매핑
+            diary_content: entry.diaryContent, // diaryContent를 diary_content로 매핑
+            diary_date: entry.diaryDate || "날짜 없음", // diaryDate를 diary_date로 매핑
+          };
+        });
+
+        console.log("Formatted Data:", formattedData); // 매핑된 데이터 확인
+        setDiaries(formattedData);
       } else {
-        console.warn("데이터가 예상한 형식이 아닙니다.");
+        console.warn("응답 데이터가 예상 형식이 아닙니다.");
         setDiaries([]);
       }
     } catch (error) {
-      console.error('Error fetching diaries:', error);
+      console.error("데이터 로드 실패:", error);
       Alert.alert("오류", "데이터를 가져오는 중 문제가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
+
+
+
+
+
+
+
 
 
   // 달 변경 함수 (이전 또는 다음 달로 이동)
@@ -103,54 +133,51 @@ export default function MonthView() {
 
   // 날짜 포맷팅 함수에서 diaryDate를 사용하도록 업데이트
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "날짜 없음";
+    if (!dateString) return "날짜 없음"; // null 또는 undefined 처리
 
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "날짜 오류";
+    if (isNaN(date.getTime())) return "날짜 오류"; // 잘못된 날짜 형식 처리
 
     return `${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
   // 개별 일기 항목 렌더링 함수
-  const renderDiaryItem = ({ item }: { item: DiaryEntry }) => (
-    <TouchableOpacity
-      style={styles.diaryItem}
-      onPress={() => router.push({
-        pathname: "/(diary)/diaryView",
-        params: { date: item.diaryDate || '' }
-      })}
-    >
-      <View style={styles.diaryContainer}>
-        <View style={styles.emotionContainer}>
-          <Image
-            source={emotionImages[item.emotionTag]}
-            style={styles.emotionImage}
-          />
-        </View>
-        <View style={styles.rightContainer}>
-          <View style={styles.headerContainer}>
-            {/* diaryDate 필드를 사용하여 날짜 표시 */}
-            <Text style={styles.dateText}>{formatDate(item.diaryDate)}</Text>
+  const renderDiaryItem = ({ item }: { item: DiaryEntry }) => {
+    return (
+      <TouchableOpacity
+        style={styles.diaryItem}
+        onPress={() =>
+          router.push({
+            pathname: "/(diary)/diaryView",
+            params: { date: item.diary_date || "" },
+          })
+        }
+      >
+        <View style={styles.diaryContainer}>
+          <View style={styles.emotionContainer}>
             <Image
-              source={weatherImages[item.diaryWeather]}
-              style={styles.weatherImage}
+              source={emotionImages[item.emotion_tag]}
+              style={styles.emotionImage}
             />
           </View>
-          <View style={styles.contentContainer}>
-            <Text style={styles.contentText} numberOfLines={2}>
-              {item.diaryContent}
-            </Text>
-            {item.diaryPhoto && item.diaryPhoto[0] && (
+          <View style={styles.rightContainer}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.dateText}>{formatDate(item.diary_date)}</Text>
               <Image
-                source={{ uri: item.diaryPhoto[0] }}
-                style={styles.photoThumbnail}
+                source={weatherImages[item.diary_weather]}
+                style={styles.weatherImage}
               />
-            )}
+            </View>
+            <View style={styles.contentContainer}>
+              <Text style={styles.contentText} numberOfLines={2}>
+                {item.diary_content}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -289,3 +316,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+//
