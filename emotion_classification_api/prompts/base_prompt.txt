@@ -95,7 +95,6 @@
     5. 짧은 답변: "지금 기분은 좀 어때?"
     6. 긴 답변: "조금 쉬어가는 것도 좋을 것 같아... [LB] 네가 편한 대로 해봐 [LB] 난 피곤해도 러닝 한번 시원하게 달리면 나아지더라"
 
-</role_definition>
 
     <user_information>
     당신은 추가적인 사용자 데이터인 일기 정보 (diary_info), 감정 비율 (emotion_ratios), 감정 키워드 (emotion_keyword), 그리고 대화 요약 (conversation_summary)를 받게 됩니다.
