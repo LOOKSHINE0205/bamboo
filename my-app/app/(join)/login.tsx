@@ -174,14 +174,6 @@ export default function LoginScreen() {
                     style={{ marginTop: 20 }}
                 />
 
-                {!isFindingPassword && (
-                    <TouchableOpacity
-                        style={styles.passButton}
-                        onPress={() => router.push('/index3')} // router.push 사용
-                    >
-                        <Text style={styles.passButtonText}>패스</Text>
-                    </TouchableOpacity>
-                )}
             </View>
         </View>
     );

@@ -64,6 +64,7 @@ export default function ChatbotPage() {
     const [inputAreaHeight, setInputAreaHeight] = useState(height * 0.05);
     const [userNick, setUserNick] = useState<string>('');
     const [chatbotName, setChatbotName] = useState<string>('');
+    const { chatbotLevel, setChatbotLevel } = useProfile();
     const [userAvatar, setUserAvatar] = useState(profileImageUri || BambooPanda);
     const [userEmail, setUserEmail] = useState<string>('');
     const [isTyping, setIsTyping] = useState(false);
@@ -298,6 +299,10 @@ export default function ChatbotPage() {
 
         fetchData();
     }, []);
+    useFocusEffect(() => {
+        // 페이지 포커스 시 스크롤을 하단으로 이동
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+    });
 
     useFocusEffect(
         React.useCallback(() => {
@@ -662,7 +667,11 @@ s
             const isFirstMessage =
                 (msg.sender === 'bot' && (index === 0 || messages[index - 1]?.sender !== 'bot')) ||
                 (msg.sender === 'user' && (index === 0 || messages[index - 1]?.sender !== 'user'));
-
+            // 사용자의 마지막 메시지 이후 챗봇의 첫 번째 메시지인지 확인
+            const isFirstResponseFromBot =
+                msg.sender === 'bot' &&
+                index > 0 &&
+                messages[index - 1]?.sender === 'user';
             return (
                 <React.Fragment key={index}>
                     {showDateHeader && (
@@ -678,6 +687,7 @@ s
                             msg.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
                             !isFirstMessage && msg.sender === 'bot' ? styles.botMessageNotFirst : {},
                             !isFirstMessage && msg.sender === 'user' ? styles.userMessageNotFirst : {},
+                            isFirstResponseFromBot && styles.firstBotResponseSpacing,
                         ]}
                     >
                         {isFirstMessage && (
@@ -735,7 +745,13 @@ s
         });
     };
 
-
+    useEffect(() => {
+        // 모든 메시지가 렌더링된 뒤 스크롤 하단 이동
+        const timer = setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: false });
+        }, 0); // 스크롤 이동 딜레이 설정
+        return () => clearTimeout(timer);
+    }, [messages]); // 메시지가 변경될 때 실행
 
     return (
 
@@ -812,6 +828,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25, // 좌우 패딩 추가
         borderRadius: 15, // 둥근 테두리
         alignSelf: 'center', // 가운데 정렬
+    },
+    firstBotResponseSpacing: {
+        marginTop: 20, // 원하는 간격 크기 (20px)
     },
     dateHeader: {
         textAlign: 'center',
