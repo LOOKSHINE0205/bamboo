@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, Alert, StyleSheet, Image, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import JoinBG from '../../components/JoinBG';
-import BambooHead from "../../assets/images/bamboo_head.png";
+import BambooHead from "../../assets/images/밤부_머리1.png";
 import em_happy from "../../assets/images/기쁨.png";
 import em_angry from "../../assets/images/화남.png";
 import em_surprise from "../../assets/images/놀람.png";

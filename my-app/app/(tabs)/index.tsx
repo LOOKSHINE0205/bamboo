@@ -18,7 +18,7 @@ import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getUserInfo, getUserProfileImage} from '../../storage/storageHelper';
 import {useFocusEffect} from '@react-navigation/native';
-import BambooHead from '../../assets/images/bamboo_head.png';
+import BambooHead from '../../assets/images/밤부_머리1.png';
 import BambooPanda from '../../assets/images/bamboo_panda.png';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {serverAddress} from '../../components/Config';
@@ -266,65 +266,66 @@ export default function ChatbotPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const userData = await getUserInfo();
+                const userData = await getUserInfo(); // 사용자 정보를 서버에서 가져오기
                 if (userData) {
                     setUserNick(userData.userNick || '');
                     setChatbotName(userData.chatbotName || '챗봇');
                     setUserEmail(userData.userEmail);
 
-                    // 프로필 이미지 URL을 정확히 설정
                     let profileImageUrl = userData.profileImage;
 
                     if (profileImageUrl) {
-                        // URL이 서버 주소로 시작하지 않으면 서버 주소를 추가
+                        // URL이 상대 경로라면 서버 주소를 추가
                         if (!profileImageUrl.startsWith('http')) {
                             profileImageUrl = `${serverAddress}/uploads/profile/images/${profileImageUrl}`;
                         }
                     } else {
+                        // URL이 없으면 기본 이미지로 설정
                         profileImageUrl = null;
                     }
 
-                    // 설정된 이미지 URL을 AsyncStorage 및 Context에 저장
-                    await AsyncStorage.setItem('profileImageUri', profileImageUrl || '');
-                    setUserAvatar(profileImageUrl ? {uri: profileImageUrl} : BambooPanda);
-                    // console.log('fetchData 내에서 설정된 프로필 이미지 URL:', profileImageUrl);
+                    // AsyncStorage에 저장
+                    await AsyncStorage.setItem(
+                        'profileImageUri',
+                        profileImageUrl || '' // null이면 빈 문자열로 저장
+                    );
+
+                    // 프로필 이미지 상태 설정
+                    setUserAvatar(profileImageUrl ? { uri: profileImageUrl } : BambooPanda);
                 } else {
+                    // 서버에서 사용자 정보를 가져올 수 없는 경우 기본 이미지 사용
                     setUserAvatar(BambooPanda);
                 }
             } catch (error) {
                 console.error('프로필 정보 로드 중 오류:', error);
-                setUserAvatar(BambooPanda);
+                setUserAvatar(BambooPanda); // 오류 발생 시 기본 이미지 사용
             }
         };
 
         fetchData();
     }, []);
-    useFocusEffect(() => {
-        // 페이지 포커스 시 스크롤을 하단으로 이동
-        scrollViewRef.current?.scrollToEnd({ animated: false });
-    });
+
 
     useFocusEffect(
         React.useCallback(() => {
             const fetchProfileImage = async () => {
                 const storedImageUri = await AsyncStorage.getItem('profileImageUri');
-                const imageUri = storedImageUri || profileImageUri || BambooPanda;
 
-                // console.log('AsyncStorage에서 불러온 프로필 이미지 URI:', storedImageUri);
-                // console.log('Context에서 가져온 profileImageUri:', profileImageUri);
-                // console.log('최종 설정된 프로필 이미지 URI:', imageUri || '기본 이미지(BambooPanda)');
+                // URL이 없으면 기본 이미지 사용
+                const imageUri = storedImageUri || BambooPanda;
 
-                setUserAvatar(imageUri ? {uri: imageUri} : BambooPanda);
+                setUserAvatar(imageUri ? { uri: imageUri } : BambooPanda);
             };
 
             fetchProfileImage();
 
             // 포커스될 때마다 스크롤을 맨 아래로 이동
             if (scrollViewRef.current) {
-                scrollViewRef.current.scrollToEnd({animated: true});
+                scrollViewRef.current.scrollToEnd({ animated: true });
             }
-        }, [profileImageUri])
+        }, [])
     );
+
 
 
     // 초기 로딩용 useEffect
@@ -359,13 +360,14 @@ export default function ChatbotPage() {
                     name: chat.chatter === 'bot' ? chatbotName : userNick,
                     timestamp: new Date(chat.createdAt).toLocaleTimeString('ko-KR', {
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
                     }),
                     createdAt: new Date(chat.createdAt).toLocaleDateString('ko-KR'),
                     showTimestamp: true,
                     evaluation: chat.evaluation,
-                    chatIdx: chat.chatIdx
+                    chatIdx: chat.chatIdx, // 고유 chatIdx 포함
                 }));
+
                 setMessages(updateTimestamps(formattedMessages));
 s
             } catch (error) {
@@ -469,30 +471,27 @@ s
 
             console.log("Bot response:", response.data);
 
-            const botMessages = response.data.chatContent.split("[LB]").map((msg) => msg.trim());
+            const botMessages = response.data.chatContent.split("[LB]").map((msg, subIdx) => ({
+                sender: "bot",
+                text: msg.trim(),
+                avatar: BambooHead,
+                name: chatbotName,
+                timestamp: getCurrentTime(),
+                showTimestamp: true,
+                chatIdx: response.data.chatIdx, // 서버에서 받은 chatIdx
+                subIdx, // 추가: 분리된 메시지의 고유 인덱스
+            }));
 
-            // 메시지 간 지연 시간 추가
-            botMessages.forEach((msg, index) => {
+            // 메시지 추가
+            botMessages.forEach((message, index) => {
                 setTimeout(() => {
-                    setMessages((prevMessages) => {
-                        const newMessage = {
-                            sender: "bot",
-                            text: msg,
-                            avatar: BambooHead,
-                            name: chatbotName,
-                            timestamp: getCurrentTime(),
-                            showTimestamp: true,
-                            chatIdx: response.data.chatIdx,
-                        };
-                        return updateTimestamps([...prevMessages, newMessage]);
-                    });
+                    setMessages((prevMessages) => updateTimestamps([...prevMessages, message]));
 
                     // 마지막 메시지가 출력되면 세션 종료
                     if (index === botMessages.length - 1) {
                         stopCountdown();
                         setIsCountdownStarted(false);
                         setIsActiveSession(false);
-                        // console.log("[Session] 챗봇 응답 완료. 세션 비활성화.");
                     }
                 }, index * 1000); // 메시지 간 지연 시간 (1000ms = 1초)
             });
@@ -502,6 +501,7 @@ s
             console.error("Error sending bot response:", error);
         }
     };
+
 
 
 
@@ -545,7 +545,7 @@ s
             const userMessage: Message = {
                 sender: "user",
                 text: input.trim(),
-                avatar: profileImageUri ? { uri: profileImageUri } : BambooPanda,
+                avatar: userAvatar, // 사용자 아바타를 추가
                 name: userNick,
                 timestamp: new Date().toLocaleTimeString("ko-KR", {
                     hour: "2-digit",
@@ -823,7 +823,7 @@ s
 const styles = StyleSheet.create({
     dateHeaderContainer: {
         backgroundColor: 'rgba(128, 128, 128, 0.2)', // 반투명 회색 배경
-        marginVertical: 10, // 상하 여백 축소
+        marginVertical: 40, // 상하 여백 축소
         paddingVertical: 5, // 상하 패딩
         paddingHorizontal: 25, // 좌우 패딩 추가
         borderRadius: 15, // 둥근 테두리
@@ -878,7 +878,7 @@ const styles = StyleSheet.create({
         padding: 2, // 내부 여백
         marginBottom: -8, // 시간과의 세로 간격
         shadowColor: "#000", // 그림자 색상
-        left: -9,
+        left: -5,
         top:2,
         shadowOffset: {
             width: 0,
@@ -940,7 +940,7 @@ const styles = StyleSheet.create({
         marginLeft: 5,  // 말풍선 꼬리 공간 확보
         borderTopRightRadius: 3, // 오른쪽 상단 모서리를 더 둥글게
         top: 5,
-        left: -5,
+        left: -8,
     },
 
     // 전체 컨테이너 스타일
@@ -1007,7 +1007,7 @@ const styles = StyleSheet.create({
         resizeMode: 'contain', // 기본 이미지에 맞춰 조정
         borderRadius: 15, // 사각형에 더 가까운 스타일
         justifyContent:'center',
-        alignItems:'center'
+        alignItems:'center',
     },
 
     // 메시지 컨텐츠 스타일
@@ -1039,7 +1039,7 @@ const styles = StyleSheet.create({
         marginRight: 12, // 말풍선 꼬리 공간 확보
         borderTopLeftRadius: 3, // 왼쪽 상단 모서리를 더 둥글게
         top: 5, // 기본 위치 설정 (위치 조정이 필요한 경우 수정)
-        marginLeft:-1
+        left:4
     },
 
     // 발신자 이름 텍스트 스타일
@@ -1053,12 +1053,13 @@ const styles = StyleSheet.create({
 
     // 봇 발신자 이름 정렬 스타일
     botSenderName: {
-
+      left: 1,
     },
 
     // 사용자 발신자 이름 정렬 스타일
     userSenderName: {
-
+      top:1.2,
+      left:-8
     },
 
 

@@ -321,8 +321,8 @@ export default function MyPage() {
             default:
                 return {
                     width: width * 0.5,
-                    height: height * 0.1,
-                    bottom: isWideAspect ? '8%' : '10%'
+                    height: height * 0.25,
+                    bottom: isWideAspect ? '8%' : '17%'
                 };
         }
     };
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     pandaImage: {
         position: 'absolute',
         bottom: '8%',
-        left: '30%',
+        left: '20%',
     },
     bambooBody: {
         alignSelf: 'center',

@@ -378,7 +378,7 @@ return (
           <View style={styles.lastQuestionContainer}>
             <View style={[styles.chatbotContainer, { top: '20%' }]}>
               <Animated.Image
-                source={require('../../assets/images/bamboo_head.png')}
+                source={require('../../assets/images/밤부_머리2.png')}
                 style={[styles.chatbotImage, { width: screenWidth * 0.4, height: screenWidth * 0.4, transform: [{ scale: chatbotScale }] }]}
                 resizeMode="contain"
               />
